@@ -5,10 +5,13 @@
      (i dati di bilancio devono essere sempre aggiornati e non vanno salvati).
    - Richieste non-GET (POST/PUT/DELETE): sempre network-only.
 */
-const CACHE_NAME = "agesci-bilancio-helper-v17";
+const CACHE_NAME = "agesci-bilancio-helper-v18";
+// Il motore OCR rimane disponibile offline anche dopo gli aggiornamenti della app shell.
+const OCR_CACHE_NAME = "agesci-bilancio-ocr-v1";
 const APP_SHELL = [
   "./",
   "./index.html",
+  "./receipt-ocr.js",
   "./manifest.json",
   "./icons/icon-48.png",
   "./icons/icon-192.png",
@@ -31,7 +34,7 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys.map((key) => {
-            if (key !== CACHE_NAME) return caches.delete(key);
+            if (key.startsWith("agesci-bilancio-helper-") && key !== CACHE_NAME) return caches.delete(key);
             return Promise.resolve();
           })
         )
@@ -73,10 +76,9 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       caches.match(request).then((cached) => {
         if (cached) return cached;
-        return fetch(request).then((res) => {
+        return fetch(request).then(async (res) => {
           if (res && res.status === 200) {
-            const copy = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+            try { const isOcr = url.pathname.startsWith(new URL("./vendor/ocr/", self.registration.scope).pathname); const cache = await caches.open(isOcr ? OCR_CACHE_NAME : CACHE_NAME); await cache.put(request, res.clone()); } catch (_) { /* L'app resta utilizzabile se la cache è piena. */ }
           }
           return res;
         });
