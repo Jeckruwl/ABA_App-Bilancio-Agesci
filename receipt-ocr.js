@@ -10,14 +10,17 @@
   function unique(values){ return [...new Set(values.filter(Boolean))]; }
   function parseReceipt(text){
     const lines=String(text||'').split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
-    const dates=[];
+    const dates=[], labelledDates=[];
     for(const line of lines){
-      for(const m of line.matchAll(/\b(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2}|\d{4})\b/g)) dates.push(dateFromMatch(m));
+      for(const m of line.matchAll(/\b(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2}|\d{4})\b/g)){
+        const date=dateFromMatch(m); dates.push(date);
+        if(/\bdata\b/i.test(line) && !/scadenza|termine|validit[aà]/i.test(line)) labelledDates.push(date);
+      }
     }
-    const dateValues=unique(dates);
+    const dateValues=unique(labelledDates.filter(Boolean).length?labelledDates:dates);
     const totals=[];
     for(let i=0;i<lines.length;i++){
-      const line=lines[i];
+      const line=lines[i].replace(/\bT[O0]TA[LI1]E\b/gi,'TOTALE');
       if(!/\btotale\b/i.test(line) || /sub\s*totale|subtotale|imponibile|iva|sconto|resto|parziale/i.test(line)) continue;
       let tail=line.slice(line.search(/\btotale\b/i)+6);
       if(!/\d/.test(tail) && lines[i+1] && /^\s*(?:€|eur)?\s*\d[\d.,]*\s*(?:€|eur)?\s*$/i.test(lines[i+1])) tail=lines[i+1];
@@ -33,5 +36,13 @@
     });
     return {date:dateValues.length===1?dateValues[0]:null, amount:totalValues.length===1?totalValues[0]:null, description:merchant?'Scontrino - '+merchant:null, ambiguousDate:dateValues.length>1, ambiguousAmount:totalValues.length>1};
   }
-  root.ReceiptOCR={parseReceipt};
+  function mergeReceipts(original, enhanced){
+    if(!enhanced) return original;
+    const dateConflict=original.ambiguousDate || enhanced.ambiguousDate || !!(original.date && enhanced.date && original.date!==enhanced.date);
+    const amountConflict=original.ambiguousAmount || enhanced.ambiguousAmount || !!(original.amount && enhanced.amount && original.amount!==enhanced.amount);
+    const sameDescription=original.description && enhanced.description && original.description.toLocaleLowerCase('it-IT')===enhanced.description.toLocaleLowerCase('it-IT');
+    const description=original.description && enhanced.description ? (sameDescription?original.description:null) : (original.description || enhanced.description);
+    return {date:dateConflict?null:(original.date||enhanced.date), amount:amountConflict?null:(original.amount||enhanced.amount), description, ambiguousDate:dateConflict, ambiguousAmount:amountConflict};
+  }
+  root.ReceiptOCR={parseReceipt,mergeReceipts};
 })(typeof window!=='undefined'?window:globalThis);

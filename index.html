@@ -833,6 +833,20 @@ function prepareReceiptImage(file){
     image.src=url;
   });
 }
+function preprocessReceipt(image){
+  return new Promise(resolve=>{
+    if(typeof Worker==="undefined") return resolve(null);
+    let task, timer, done=false;
+    const finish=result=>{ if(done) return; done=true; clearTimeout(timer); if(task) task.terminate(); resolve(result); };
+    try{
+      task=new Worker(new URL("vendor/ocr/receipt-preprocess-worker.js",document.baseURI));
+      timer=setTimeout(()=>finish(null),30000);
+      task.onmessage=e=>finish(e.data?.ok && e.data.image ? e.data : null);
+      task.onerror=()=>finish(null);
+      task.postMessage({image});
+    }catch(_){ finish(null); }
+  });
+}
 $("btnReceipt").onclick=()=>{
   if(receiptBusy) return;
   if(!$("receiptChoices").classList.contains("hidden")){ closeReceiptChoices(true); return; }
@@ -852,6 +866,9 @@ async function readReceiptFile(e){
   showMsg("ocrMsg","Lettura sul dispositivo. Al primo utilizzo è necessaria una connessione per scaricare il motore OCR…","ok");
   try{
     const image=await prepareReceiptImage(file);
+    if(generation!==receiptGeneration || !state.user) return;
+    showMsg("ocrMsg","Preparazione dello scontrino sul dispositivo…","ok");
+    const prepared=preprocessReceipt(image);
     const tesseract=await loadTesseract();
     if(generation!==receiptGeneration || !state.user) return;
     const base=new URL("vendor/ocr/",document.baseURI).href.replace(/\/$/,"");
@@ -862,16 +879,29 @@ async function readReceiptFile(e){
     if(generation!==receiptGeneration || !state.user) return;
     let rejectInit, timer, abandoned=false;
     const failure=new Promise((_,reject)=>{ rejectInit=reject; timer=setTimeout(()=>reject(new Error("Tempo di inizializzazione OCR scaduto")),90000); });
+    let readingPass="originale";
     const creating=tesseract.createWorker("ita",1,{
       workerPath:base+"/worker.min.js", corePath:base, langPath:base,
       workerBlobURL:false, cacheMethod:"none", errorHandler:err=>rejectInit(new Error(String(err))),
-      logger: m=>{ if(generation===receiptGeneration && m.status==="recognizing text") showMsg("ocrMsg","Lettura dello scontrino: "+Math.round(m.progress*100)+"%. L'immagine resta sul dispositivo.","ok"); }
+      logger: m=>{ if(generation===receiptGeneration && m.status==="recognizing text") showMsg("ocrMsg","Lettura "+readingPass+": "+Math.round(m.progress*100)+"%. L'immagine resta sul dispositivo.","ok"); }
     }).then(w=>{ if(abandoned) w.terminate(); return w; });
     try{ worker=await Promise.race([creating,failure]); }catch(err){ abandoned=true; throw err; }finally{ clearTimeout(timer); }
     if(generation!==receiptGeneration || !state.user) return;
     const result=await worker.recognize(image);
     if(generation!==receiptGeneration || !state.user || $("appCard").classList.contains("hidden")) return;
-    const found=ReceiptOCR.parseReceipt(result.data.text);
+    let enhanced=null;
+    const processed=await prepared;
+    if(generation!==receiptGeneration || !state.user || $("appCard").classList.contains("hidden")) return;
+    if(processed){
+      try{
+        readingPass="immagine migliorata";
+        showMsg("ocrMsg","Lettura dell'immagine migliorata…","ok");
+        const second=await worker.recognize(processed.image);
+        enhanced=ReceiptOCR.parseReceipt(second.data.text);
+      }catch(err){ console.warn("Lettura immagine migliorata non riuscita:",err); }
+    }
+    if(generation!==receiptGeneration || !state.user || $("appCard").classList.contains("hidden")) return;
+    const found=ReceiptOCR.mergeReceipts(ReceiptOCR.parseReceipt(result.data.text),enhanced);
     const filled=[];
     if(found.date && initial.date===isoToInputDate(new Date()) && $("fData").value===initial.date){ $("fData").value=found.date; filled.push("data"); }
     if(found.amount && !initial.amount && !$("fImporto").value){ $("fImporto").value=found.amount; filled.push("importo"); }
@@ -879,6 +909,7 @@ async function readReceiptFile(e){
     if(filled.length && initial.tipo==="i" && state.tipo===initial.tipo && !initial.tipoId && !$("fTipo").value) setTipo("o");
     let message=filled.length ? "Proposti: "+filled.join(", ")+". Controlla i dati prima di salvare." : "Nessun campo compilato: dati non riconosciuti o campi già compilati. Controlla lo scontrino e inseriscili manualmente.";
     if(found.ambiguousAmount || found.ambiguousDate) message+=" Più "+(found.ambiguousAmount && found.ambiguousDate?"date e totali":found.ambiguousAmount?"totali":"date")+" rilevati: verifica e inserisci i valori corretti.";
+    if(!processed) message+=" Miglioramento immagine non disponibile: usata la foto originale.";
     message+=" Conto, tipologia e categoria restano da verificare.";
     showMsg("ocrMsg",message,"warn");
   }catch(err){
