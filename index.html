@@ -23,7 +23,7 @@
 @media(max-width:700px){.wrap{padding:20px 16px 50px}.card{padding:20px}.grid2,.grid3{grid-template-columns:1fr;gap:0}.hero{margin:5vh auto}.section-heading .btn{width:100%}.tabs button{flex:none}.context-actions{width:100%}.context-head{align-items:flex-start}}
 /* Spaziatura compatta e comandi sempre raggiungibili nella schermata operazione. */
 .card.operation-screen{padding:calc(20px + env(safe-area-inset-top)) 20px calc(180px + env(safe-area-inset-bottom));scroll-padding-bottom:calc(180px + env(safe-area-inset-bottom))}
-.operation-screen input:not(.switch),.operation-screen select,.operation-screen textarea{padding:8px 10px}.operation-screen .field{margin-bottom:12px}.operation-screen .grid2{column-gap:12px}.operation-screen .tabs{margin-bottom:16px}
+.operation-screen input:not(.switch),.operation-screen select,.operation-screen textarea{padding:8px 10px}.note-label{display:flex;justify-content:space-between;align-items:center;gap:8px}.note-label .muted{font-weight:400}.operation-screen .field{margin-bottom:12px}.operation-screen .grid2{column-gap:12px}.operation-screen .tabs{margin-bottom:16px}
 .operation-footer{position:fixed;z-index:1;bottom:0;left:50%;transform:translateX(-50%);width:min(100%, 800px);padding:8px 20px calc(8px + env(safe-area-inset-bottom));background:transparent;pointer-events:none}
 .operation-footer .msg{pointer-events:auto;margin:0 0 8px;background:var(--card);max-height:25vh;overflow-y:auto}
 .operation-actions{display:flex;gap:10px;align-items:stretch}.operation-actions .btn{pointer-events:auto}.back-btn{width:44px;min-width:44px;height:44px;align-self:center;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 8px #1018281a}.save-grid{flex:1;gap:6px}.save-grid .btn{min-height:36px;padding:2px 4px;box-shadow:0 2px 8px #1018281a}
@@ -87,8 +87,8 @@
       <div class="field"><label>Elenco voci tipologia</label><div class="toggle" id="voceToggle"><button type="button" class="on" data-mode="scout">Scout</button><button type="button" data-mode="ministero">Ministero</button></div></div>
       <div class="grid2 paired-fields"><div class="field"><label for="fTipo">Tipologia *</label><select id="fTipo"></select></div><div class="field"><label for="fImporto">Importo (€) *</label><input id="fImporto" type="number" step="0.01" min="0.01" placeholder="0,00"></div></div>
       <div class="field"><label for="fDesc">Descrizione *</label><input id="fDesc" placeholder="Descrivi l'operazione"></div>
-      <div class="grid2"><div class="field"><label for="fCat">Categoria</label><select id="fCat"><option value="">— Nessuna —</option></select></div><div class="field hidden" id="unitaField"><label for="fUnita">Unità</label><select id="fUnita"></select></div></div>
-      <div class="field"><label for="fNote">Note</label><input id="fNote" maxlength="150" placeholder="Facoltative"><div class="muted count" id="noteCount">0/150</div></div>
+      <div class="grid2"><div class="field"><label for="fCat">Categoria</label><select id="fCat"><option value="">— Nessuna —</option></select></div><div class="field"><label class="note-label" for="fNote"><span>Note</span><span class="muted" id="noteCount">0/150</span></label><input id="fNote" maxlength="150" placeholder="Facoltative"></div></div>
+      <div class="field hidden" id="unitaField"><label for="fUnita">Unità</label><select id="fUnita"></select></div>
 
 
     </div>
