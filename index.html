@@ -28,6 +28,9 @@
 .operation-footer .msg{pointer-events:auto;margin:0 0 8px;background:var(--card);max-height:25vh;overflow-y:auto}
 .operation-actions{display:flex;gap:10px;align-items:stretch}.operation-actions .btn{pointer-events:auto}.back-btn{width:44px;min-width:44px;height:44px;align-self:center;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 8px #1018281a}.save-grid{flex:1;gap:6px}.save-grid .btn{min-height:36px;padding:2px 4px;box-shadow:0 2px 8px #1018281a}
 @media(max-width:700px){.operation-screen .paired-fields{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:8px}.operation-screen .paired-fields input,.operation-screen .paired-fields select{min-width:0;padding-left:7px;padding-right:7px}.card.operation-screen{padding-left:16px;padding-right:16px}.operation-footer{padding-left:16px;padding-right:16px}.save-grid .btn{font-size:13px}}
+/* Azioni del contesto e selettore tema */
+.context-actions{flex-wrap:nowrap}.context-actions .btn{white-space:nowrap}.context-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px}.context-bottom p{margin:0;flex:1}.theme-switch{position:relative;display:block;width:64px;height:32px;flex:none;margin:0;cursor:pointer}.theme-switch input{position:absolute;width:1px;height:1px;opacity:0}.theme-track{position:absolute;inset:0;border:1px solid var(--border);border-radius:999px;background:var(--surface);display:flex;align-items:center;justify-content:space-around}.theme-track:before{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:var(--card);box-shadow:0 1px 4px #10182833;transition:transform .15s}.theme-switch input:checked+.theme-track:before{transform:translateX(32px)}.theme-switch input:focus-visible+.theme-track{outline:3px solid #aeb0d9}.theme-track svg{width:16px;height:16px;position:relative;color:var(--muted)}
+@media(max-width:700px){.context-actions{width:100%;gap:6px}.context-actions .btn{flex:1;min-width:0;white-space:normal;padding:8px 4px;font-size:12px}.context-head{gap:14px}}
 </style>
 </head>
 <body>
@@ -60,7 +63,7 @@
   <section class="card hidden" id="ctxCard">
     <div class="context-head">
       <div class="greeting"><h2 id="helloName">Ciao</h2></div>
-      <div class="context-actions"><label class="theme-control" for="darkToggle">Dark mode <input class="switch" id="darkToggle" type="checkbox" role="switch"></label><button class="btn ghost small" id="btnRefresh">Ricarica</button><button class="btn ghost small" id="btnForget">Dimentica password</button><button class="btn danger small" id="btnLogout">Esci</button></div>
+      <div class="context-actions"><button class="btn ghost small" id="btnRefresh">Ricarica</button><button class="btn ghost small" id="btnForget">Dimentica password</button><button class="btn danger small" id="btnLogout">Esci</button></div>
     </div>
     <div class="grid3">
       <div class="field"><label>Anno sociale</label><select id="selYear"></select></div>
@@ -68,7 +71,7 @@
       <div class="field"><label>Unità (se richiesto)</label><select id="selUnita"><option value="">— Nessuna —</option></select></div>
     </div>
     <div class="msg" id="ctxMsg"></div>
-    <p class="muted" id="editableInfo"></p>
+    <div class="context-bottom"><p class="muted" id="editableInfo" role="status"></p><label class="theme-switch"><input id="darkToggle" type="checkbox" role="switch" aria-label="Attiva modalità scura"><span class="theme-track" aria-hidden="true"><svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg><svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></svg></span></label></div>
   </section>
 
   <div id="operationHeading" class="section-heading hidden"><button class="btn add-btn" id="btnAdd" aria-expanded="false" aria-controls="appCard"><span>+</span> Aggiungi entrata/uscita</button></div>
@@ -125,7 +128,7 @@ const $ = id => document.getElementById(id);
 const LS = { user:"ab_user", creds:"ab_creds", loggedOut:"ab_logged_out", years:"ab_years", year:"ab_selectedYear", incarico:"ab_selectedIncarico", unita:"ab_selectedUnita", tpl:"ab_templates", hist:"ab_history", onboarded:"ab_onboarded", firstName:"ab_first_name", lastName:"ab_last_name", theme:"ab_theme" };
 
 let state = {
-  user:null, years:[], year:null, incarico:null, unita:null,
+  user:null, allYears:[], years:[], year:null, incarico:null, unita:null,
   conti:[], tipiE:[], tipiU:[], categorie:[], tipo:"i",
   voceMode:"scout", csvRows:[], csvSending:false
 };
@@ -431,6 +434,7 @@ async function initAfterLogin(){
   return initPromise;
 }
 async function loadYears(forceRefresh=false){
+  setOperationEnabled(false);
   hideMsg("ctxMsg");
   try{
     let years = forceRefresh ? null : JSON.parse(localStorage.getItem(LS.years)||"null");
@@ -438,12 +442,7 @@ async function loadYears(forceRefresh=false){
       years = await api("/api/rendiconto/list",{method:"GET"});
       if(Array.isArray(years)) localStorage.setItem(LS.years, JSON.stringify(years));
     }
-    state.years = (years||[]).filter(y=>y.label!=="21-22");
-    const sel=$("selYear"); sel.innerHTML="";
-    state.years.forEach(y=>{ const o=document.createElement("option"); o.value=y.value; o.textContent=y.label; sel.appendChild(o); });
-    const saved=JSON.parse(localStorage.getItem(LS.year)||"null");
-    state.year = state.years.find(y=>saved && y.value===saved.value) || state.years[0] || null;
-    if(state.year){ sel.value=state.year.value; localStorage.setItem(LS.year, JSON.stringify(state.year)); }
+    state.allYears = Array.isArray(years) ? years : [];
     // incarichi
     const incSel=$("selIncarico"); incSel.innerHTML="";
     const list = state.user?.userInfo?.incarichiSocio||[];
@@ -462,8 +461,8 @@ async function loadYears(forceRefresh=false){
       localStorage.setItem(LS.incarico, JSON.stringify(state.incarico));
     }
     updateUnitaSelect();
-    await checkEditable();
-  }catch(err){ showMsg("ctxMsg","Errore caricamento anni: "+err.message,"err"); }
+    await filterEditableYears();
+  }catch(err){ state.year=null; state.years=[]; setOperationEnabled(false); $("selYear").disabled=true; showMsg("ctxMsg","Errore caricamento anni: "+err.message,"err"); }
 }
 function incaricoLabel(inc){
   const t={1:"Zona",2:"Gruppo",3:"Unità",4:"INO",5:"Responsabile Regionale",6:"IRO",7:"Segretario regionale",8:"Commissione economica"};
@@ -483,18 +482,45 @@ function updateUnitaSelect(){
     if(saved){ const v=saved.cun+saved.prog; if([...sel.options].some(o=>o.value===v)){ sel.value=v; state.unita=saved; } }
   }
 }
+let yearsCheckVersion=0;
+function setOperationEnabled(enabled){
+  $("btnAdd").disabled=!enabled; $("btnSave").disabled=!enabled; $("btnSaveDup").disabled=!enabled;
+}
+function readOnlyRole(){ return !!(state.incarico && ([11,12,13].includes(state.incarico.accessoTipo) || [4,5].includes(state.incarico.tipoIncarico))); }
+function editableResult(res){
+  const value=typeof res==="boolean" ? res : res?.data;
+  if(typeof value!=="boolean") throw new Error("Risposta di verifica non valida");
+  return !value;
+}
+async function filterEditableYears(){
+  const version=++yearsCheckVersion;
+  const previous=state.year || JSON.parse(localStorage.getItem(LS.year)||"null");
+  const req=buildReq(0);
+  const sel=$("selYear");
+  setOperationEnabled(false);
+  state.year=null; state.years=[];
+  sel.innerHTML='<option value="">Verifica anni…</option>'; sel.disabled=true;
+  $("editableInfo").textContent="";
+  const results=readOnlyRole()? [] : await Promise.allSettled(state.allYears.map(async year=>({year, editable:editableResult(await postReq("/api/rendiconto/checkifnoteditable", {...req, rendicontoid:year.value}))})));
+  if(version!==yearsCheckVersion || !state.user) return;
+  const failed=results.some(r=>r.status==="rejected");
+  state.years=results.filter(r=>r.status==="fulfilled" && r.value.editable).map(r=>r.value.year);
+  state.year=state.years.find(y=>previous && String(y.value)===String(previous.value)) || state.years[0] || null;
+  sel.innerHTML="";
+  if(!state.year){ const o=document.createElement("option"); o.value=""; o.textContent=failed?"Verifica non riuscita":"Nessun anno modificabile"; sel.appendChild(o); localStorage.removeItem(LS.year); }
+  else { state.years.forEach(y=>{ const o=document.createElement("option"); o.value=y.value; o.textContent=y.label; sel.appendChild(o); }); sel.value=state.year.value; localStorage.setItem(LS.year,JSON.stringify(state.year)); }
+  sel.disabled=!state.year;
+  setOperationEnabled(!!state.year);
+  if(failed) $("editableInfo").textContent="Impossibile verificare alcuni anni. Ricarica per riprovare.";
+  else if(!state.year) $("editableInfo").textContent=readOnlyRole()?"Accesso in sola lettura.":"Nessun anno disponibile per l'inserimento.";
+}
 async function checkEditable(){
-  if(!state.year) return;
+  if(!state.year){ setOperationEnabled(false); return; }
   try{
-    const req=buildReq(0); req.rendicontoid=state.year.value;
-    const res=await postReq("/api/rendiconto/checkifnoteditable", req);
-    const blocked = res===true || res?.data===true;
-    const noAccess = state.incarico && ([11,12,13].includes(state.incarico.accessoTipo) || [4,5].includes(state.incarico.tipoIncarico));
-    const dis = blocked||noAccess;
-    $("btnSave").disabled=dis; $("btnSaveDup").disabled=dis;
-    $("editableInfo").textContent = dis? "Anno bloccato o accesso in sola lettura: inserimento disabilitato." : "Anno modificabile.";
-    $("editableInfo").style.color = dis? "var(--err)":"var(--ok)";
-  }catch(e){ $("editableInfo").textContent=""; }
+    const editable=!readOnlyRole() && editableResult(await postReq("/api/rendiconto/checkifnoteditable", {...buildReq(0), rendicontoid:state.year.value}));
+    setOperationEnabled(editable);
+    if(!editable){ await filterEditableYears(); return; }
+  }catch(e){ setOperationEnabled(false); $("editableInfo").textContent="Impossibile verificare l'anno. Ricarica per riprovare."; }
 }
 async function loadContextData(){
   if(!state.year || !state.user) return;
@@ -709,7 +735,7 @@ function setTipo(t){
 $("btnLogin").onclick=doLogin;
 $("firstName").value=localStorage.getItem(LS.firstName)||""; $("lastName").value=localStorage.getItem(LS.lastName)||"";
 $("showPassword").onclick=()=>{ const el=$("password"), show=el.type==="password"; el.type=show?"text":"password"; $("showPassword").textContent=show?"Nascondi":"Mostra"; $("showPassword").setAttribute("aria-label",show?"Nascondi password":"Mostra password"); $("showPassword").setAttribute("aria-pressed",String(show)); };
-function applyTheme(dark){ document.documentElement.classList.toggle("dark-mode",dark); $("darkToggle").checked=dark; document.querySelector('meta[name="theme-color"]').content=dark?"#13161b":"#fafafa"; }
+function applyTheme(dark){ document.documentElement.classList.toggle("dark-mode",dark); $("darkToggle").checked=dark; $("darkToggle").setAttribute("aria-label",dark?"Disattiva modalità scura":"Attiva modalità scura"); document.querySelector('meta[name="theme-color"]').content=dark?"#13161b":"#fafafa"; }
 applyTheme(localStorage.getItem(LS.theme)==="dark");
 $("darkToggle").onchange=e=>{ localStorage.setItem(LS.theme,e.target.checked?"dark":"light"); applyTheme(e.target.checked); };
 function closeOperation(){ $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open"); if(state.user) $("btnAdd").focus(); }
@@ -745,8 +771,8 @@ $("btnForget").onclick=()=>{
 };
 $("btnRefresh").onclick=async()=>{ await loadYears(true); await loadContextData(); };
 $("selYear").onchange=async e=>{ state.year=state.years.find(y=>String(y.value)===e.target.value)||null; if(state.year) localStorage.setItem(LS.year, JSON.stringify(state.year)); await loadContextData(); await checkEditable(); };
-$("selIncarico").onchange=e=>{ const list=state.user?.userInfo?.incarichiSocio||[]; state.incarico=list[Number(e.target.value)]||null; if(state.incarico) localStorage.setItem(LS.incarico, JSON.stringify(state.incarico)); updateUnitaSelect(); loadContextData(); checkEditable(); };
-$("selUnita").onchange=e=>{ const unita=state.incarico?.dati?.unita||[]; state.unita=unita.find(u=>(u.cun+u.prog)===e.target.value)||null; if(state.unita) localStorage.setItem(LS.unita, JSON.stringify(state.unita)); else localStorage.removeItem(LS.unita); loadContextData(); };
+$("selIncarico").onchange=async e=>{ const list=state.user?.userInfo?.incarichiSocio||[]; state.incarico=list[Number(e.target.value)]||null; if(state.incarico) localStorage.setItem(LS.incarico, JSON.stringify(state.incarico)); updateUnitaSelect(); await filterEditableYears(); await loadContextData(); };
+$("selUnita").onchange=async e=>{ const unita=state.incarico?.dati?.unita||[]; state.unita=unita.find(u=>(u.cun+u.prog)===e.target.value)||null; if(state.unita) localStorage.setItem(LS.unita, JSON.stringify(state.unita)); else localStorage.removeItem(LS.unita); await filterEditableYears(); await loadContextData(); };
 document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
 document.querySelectorAll("#tipoToggle button").forEach(b=>b.onclick=()=>setTipo(b.dataset.t));
 ["fConto","fData","fImporto","fTipo","fDesc","fCat","fNote","fUnita"].forEach(id=>$(id).addEventListener("input",updatePayloadPreview));
