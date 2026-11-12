@@ -150,17 +150,18 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 }
 
 /* Menu di selezione dell'app: testi completi e ricerca anche su Android. */
-.select-dialog{width:min(560px,calc(100% - 32px));max-width:none;max-height:min(80dvh,700px);padding:0;border:0;border-radius:14px;background:#fff;color:#181d27;box-shadow:0 12px 40px #0005}
+.select-dialog{width:min(560px,calc(100% - 32px));max-width:none;max-height:min(80dvh,700px);padding:0;border:0;border-radius:14px;background:var(--card);color:var(--txt);box-shadow:0 12px 40px #0005}
 .select-dialog::backdrop{background:#0009}
 .select-dialog .select-panel{display:flex;flex-direction:column;max-height:min(80dvh,700px);padding:16px;gap:10px}
 .select-dialog header{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .select-dialog h2{font-size:16px;margin:0;line-height:1.3}
-.select-dialog .select-close{border:0;background:transparent;color:#462678;font-size:25px;line-height:1;cursor:pointer;padding:2px 8px}
+.select-dialog .select-close{border:0;background:transparent;color:var(--viola);font-size:25px;line-height:1;cursor:pointer;padding:2px 8px}
 .select-dialog input{background:#fff;color:#181d27;font-size:16px;padding:8px 10px}
-.select-list{overflow-y:auto;overscroll-behavior:contain;min-height:0;border:1px solid #d5d7da;border-radius:8px}
-.select-option{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #e5e5e5;background:#fff;color:#181d27;padding:10px 12px;font:400 14px/1.35 Roboto,Tahoma,Arial,sans-serif;white-space:normal;overflow-wrap:anywhere;cursor:pointer}
-.select-option:last-child{border-bottom:0}.select-option[aria-selected="true"]{background:#f4edf9;color:#462678;font-weight:700}.select-option:disabled{color:#999;cursor:not-allowed}
-.select-empty{font-size:14px;margin:0;padding:12px;color:#535862}
+.select-list{overflow-y:auto;overscroll-behavior:contain;min-height:0;border:1px solid var(--border);border-radius:8px}
+.select-option{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--border);background:var(--card);color:var(--txt);padding:10px 12px;font:400 14px/1.35 Roboto,Tahoma,Arial,sans-serif;white-space:normal;overflow-wrap:anywhere;cursor:pointer}
+.select-option:last-child{border-bottom:0}.select-option[aria-selected="true"]{background:#f4edf9;color:#462678;font-weight:700}.select-option:disabled{color:var(--muted);opacity:.7;cursor:not-allowed}
+.dark-mode .select-option[aria-selected="true"]{background:#382b4b;color:#fff}
+.select-empty{font-size:14px;margin:0;padding:12px;color:var(--muted)}
 </style>
 </head>
 <body>
