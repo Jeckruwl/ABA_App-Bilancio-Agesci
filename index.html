@@ -34,7 +34,7 @@
 /* Comandi allineati e pulsante che occupa lo spazio residuo. */
 .context-bottom{gap:8px}.context-actions{flex:1;min-width:0;align-items:stretch}.context-actions .btn{height:40px;min-width:0}.context-bottom .theme-switch{flex:none}.context-head{margin-bottom:20px}#editableInfo:empty{display:none}
 .dashboard-active .wrap{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding-bottom:20px}.dashboard-active #operationHeading:not(.hidden){flex:1 1 auto;align-items:stretch;margin:0;min-height:90px}.dashboard-active .add-btn{height:auto;min-height:90px}
-#tab-nuova input,#tab-nuova select,#tab-nuova .toggle{height:38px}#tab-nuova .toggle button{padding:0 8px}
+:is(#tab-nuova,#edit-fields) input,:is(#tab-nuova,#edit-fields) select,:is(#tab-nuova,#edit-fields) .toggle{height:38px}:is(#tab-nuova,#edit-fields) .toggle button{padding:0 8px}
 @media(max-width:700px){.context-bottom{gap:6px}.context-actions{gap:4px}.context-actions .btn{height:40px;padding:4px 2px;font-size:12px;line-height:1.15}.context-bottom .theme-switch{width:64px}.dashboard-active .wrap{padding-bottom:16px}}
 /* Dashboard mobile fissa nello spazio effettivamente visibile, comprese le aree di sistema. */
 @media(max-width:700px){
@@ -79,23 +79,23 @@
   .operation-screen .tabs{flex:none;margin-bottom:10px}
   .operation-screen .field{margin-bottom:8px}
   .operation-screen label{margin-bottom:3px}
-  #tab-nuova>.grid2:not(.paired-fields){grid-template-columns:repeat(2,minmax(0,1fr));column-gap:8px}
+  :is(#tab-nuova,#edit-fields)>.grid2:not(.paired-fields){grid-template-columns:repeat(2,minmax(0,1fr));column-gap:8px}
   #tab-modelli{min-height:0;overflow-y:auto;overscroll-behavior:contain}
 }
 @media(max-width:700px) and (max-height:700px){
   .card.operation-screen{padding-top:calc(8px + env(safe-area-inset-top));padding-bottom:calc(92px + env(safe-area-inset-bottom))}
   .operation-screen .field{margin-bottom:5px}.operation-screen label{font-size:12px;line-height:16px;margin-bottom:2px}
-  #tab-nuova input,#tab-nuova select,#tab-nuova .toggle{height:33px}
-  #tab-nuova input,#tab-nuova select{padding-top:4px;padding-bottom:4px}
+  :is(#tab-nuova,#edit-fields) input,:is(#tab-nuova,#edit-fields) select,:is(#tab-nuova,#edit-fields) .toggle{height:33px}
+  :is(#tab-nuova,#edit-fields) input,:is(#tab-nuova,#edit-fields) select{padding-top:4px;padding-bottom:4px}
   .operation-screen .tabs{margin-bottom:7px}.operation-screen .tabs button{padding:6px 8px}
 }
 @media(max-width:700px) and (max-height:500px){
-  #tab-nuova{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:8px}
-  #tab-nuova>.grid2,#tab-nuova>#unitaField,#tab-nuova>.field:has(#fDesc){grid-column:1 / -1}
+  :is(#tab-nuova,#edit-fields){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:8px}
+  :is(#tab-nuova,#edit-fields)>.grid2,:is(#tab-nuova,#edit-fields)>:is(#unitaField,#edit-unitaField),:is(#tab-nuova,#edit-fields)>.field:has(#fDesc){grid-column:1 / -1}
 }
 @media(min-width:500px) and (max-width:700px) and (max-height:500px){
-  #tab-nuova{grid-template-columns:repeat(4,minmax(0,1fr))}
-  #tab-nuova>*{grid-column:span 2!important}
+  :is(#tab-nuova,#edit-fields){grid-template-columns:repeat(4,minmax(0,1fr))}
+  :is(#tab-nuova,#edit-fields)>*{grid-column:span 2!important}
 }
 @media(max-width:700px){.keyboard-open .card.operation-screen{overflow-y:auto}}
 /* Identità AGESCI e stati di pressione. */
@@ -122,9 +122,9 @@
 #appCard .tabs,#appCard .toggle{background:#fdc500;border-color:#fdc500}
 #appCard .tabs button,#appCard .toggle button{color:#462678;background:transparent}
 #appCard .tabs button.on,#appCard .toggle button.on{background:#fff;color:#462678}
-#appCard #tipoToggle{background:#fff;border-color:#fdc500}
-#appCard #tipoToggle button.on[data-t="i"]{background:#21a067;color:#fff}
-#appCard #tipoToggle button.on[data-t="o"]{background:#e74030;color:#fff}
+#appCard :is(#tipoToggle,#edit-tipoToggle){background:#fff;border-color:#fdc500}
+#appCard :is(#tipoToggle,#edit-tipoToggle) button.on[data-t="i"]{background:#21a067;color:#fff}
+#appCard :is(#tipoToggle,#edit-tipoToggle) button.on[data-t="o"]{background:#e74030;color:#fff}
 #appCard .btn{background:#fff;color:#211638;border-color:#d5d7da}
 #appCard #btnSave{background:#fdc500;color:#462678;border-color:#fdc500}
 #loginCard input:focus,#ctxCard select:focus,#appCard input:focus,#appCard select:focus,#appCard textarea:focus{outline:2px solid #fdc500;outline-offset:1px}
@@ -137,30 +137,30 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 
 /* Il selettore delle schede è più alto degli altri. */
 #appCard .tabs{height:86.25px;margin-bottom:24px}
-#tab-nuova .toggle{height:46px}
-#tab-nuova>.field:has(#voceToggle){margin-bottom:24px}
-@media(min-width:701px){#tab-nuova .field{margin-bottom:5px}}
-@media(max-width:700px) and (max-height:500px){#appCard .tabs{height:56.25px;margin-bottom:12px}#tab-nuova .toggle{height:30px}#tab-nuova>.field:has(#voceToggle){margin-bottom:10px}}
+:is(#tab-nuova,#edit-fields) .toggle{height:46px}
+:is(#tab-nuova,#edit-fields)>.field:has(:is(#voceToggle,#edit-voceToggle)){margin-bottom:24px}
+@media(min-width:701px){:is(#tab-nuova,#edit-fields) .field{margin-bottom:5px}}
+@media(max-width:700px) and (max-height:500px){#appCard .tabs{height:56.25px;margin-bottom:12px}:is(#tab-nuova,#edit-fields) .toggle{height:30px}:is(#tab-nuova,#edit-fields)>.field:has(:is(#voceToggle,#edit-voceToggle)){margin-bottom:10px}}
 /* Campi bianchi ridotti rispetto allo spazio disponibile, senza modificare i selettori gialli. */
-#tab-nuova input,#tab-nuova select{height:20.349px;padding-top:0;padding-bottom:0;line-height:1.1}
-@media(max-width:700px) and (max-height:500px){#tab-nuova input,#tab-nuova select{height:16.065px;padding-top:0;padding-bottom:0;font-size:12px;line-height:1.2}}
-@media(max-width:700px) and (min-height:501px) and (max-height:700px){#tab-nuova input,#tab-nuova select{font-size:12px;line-height:1.1}}
+:is(#tab-nuova,#edit-fields) input,:is(#tab-nuova,#edit-fields) select{height:20.349px;padding-top:0;padding-bottom:0;line-height:1.1}
+@media(max-width:700px) and (max-height:500px){:is(#tab-nuova,#edit-fields) input,:is(#tab-nuova,#edit-fields) select{height:16.065px;padding-top:0;padding-bottom:0;font-size:12px;line-height:1.2}}
+@media(max-width:700px) and (min-height:501px) and (max-height:700px){:is(#tab-nuova,#edit-fields) input,:is(#tab-nuova,#edit-fields) select{font-size:12px;line-height:1.1}}
 /* Su schermi verticali, il modulo e la matrice occupano l'altezza disponibile. */
 @media(max-width:700px) and (min-height:501px){
   .card.operation-screen{padding-bottom:calc(8px + env(safe-area-inset-bottom))}
   #appCard .tabs{height:calc(clamp(36px,5.5vh,48px) * 1.875);margin-bottom:clamp(16px,2.5vh,24px);flex:none}
-  #tab-nuova .toggle{height:clamp(36px,5.5vh,48px);flex:none}
-  #tab-nuova>.field:has(#voceToggle){margin-bottom:clamp(10px,2vh,16px)}
+  :is(#tab-nuova,#edit-fields) .toggle{height:clamp(36px,5.5vh,48px);flex:none}
+  :is(#tab-nuova,#edit-fields)>.field:has(:is(#voceToggle,#edit-voceToggle)){margin-bottom:clamp(10px,2vh,16px)}
   /* L’altezza dei campi resta invariata: lo spazio recuperato è diviso tra le righe visibili. */
-  #tab-nuova{--white-comp:calc(clamp(36px,5.5vh,48px) * .083671875)}
-  #tab-nuova:has(#unitaField:not(.hidden)){--white-comp:calc(clamp(36px,5.5vh,48px) * .0669375)}
-  #tab-nuova:not(.hidden){display:flex;flex-direction:column;flex:1;min-height:0;gap:clamp(2px,.7vh,8px)}
-  #tab-nuova> .grid2,#tab-nuova> .field:not(.hidden){flex:1;min-height:0}
-  #tab-nuova>.field:has(.toggle){flex:none}
-  #tab-nuova .field{display:flex;flex-direction:column;margin-bottom:0;min-height:0}
-  #tab-nuova .grid2 .field{height:100%}
-  #tab-nuova .field:has(> input),#tab-nuova .field:has(> .select-wrapper){display:grid;grid-template-rows:auto minmax(0,1fr)}
-  #tab-nuova input,#tab-nuova select{height:calc(53.55% + var(--white-comp));min-height:0;align-self:start}
+  :is(#tab-nuova,#edit-fields){--white-comp:calc(clamp(36px,5.5vh,48px) * .083671875)}
+  :is(#tab-nuova,#edit-fields):has(:is(#unitaField,#edit-unitaField):not(.hidden)){--white-comp:calc(clamp(36px,5.5vh,48px) * .0669375)}
+  :is(#tab-nuova,#edit-fields):not(.hidden){display:flex;flex-direction:column;flex:1;min-height:0;gap:clamp(2px,.7vh,8px)}
+  :is(#tab-nuova,#edit-fields)> .grid2,:is(#tab-nuova,#edit-fields)> .field:not(.hidden){flex:1;min-height:0}
+  :is(#tab-nuova,#edit-fields)>.field:has(.toggle){flex:none}
+  :is(#tab-nuova,#edit-fields) .field{display:flex;flex-direction:column;margin-bottom:0;min-height:0}
+  :is(#tab-nuova,#edit-fields) .grid2 .field{height:100%}
+  :is(#tab-nuova,#edit-fields) .field:has(> input),:is(#tab-nuova,#edit-fields) .field:has(> .select-wrapper){display:grid;grid-template-rows:auto minmax(0,1fr)}
+  :is(#tab-nuova,#edit-fields) input,:is(#tab-nuova,#edit-fields) select{height:calc(53.55% + var(--white-comp));min-height:0;align-self:start}
   .operation-footer{position:static;transform:none;width:100%;padding:clamp(16px,3vh,28px) 0 0;flex:none}
   .save-grid .btn{height:clamp(36px,7vh,64px)}
 }
@@ -172,10 +172,10 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 .select-trigger{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;border-radius:8px;background:transparent;cursor:pointer}
 .select-trigger:disabled{cursor:not-allowed}
 .select-trigger:focus-visible{outline:2px solid #fdc500;outline-offset:1px}
-#tab-nuova .select-wrapper{height:20.349px}
-#tab-nuova .select-wrapper select{height:100%}
-@media(max-width:700px) and (max-height:500px){#tab-nuova .select-wrapper{height:16.065px}}
-@media(max-width:700px) and (min-height:501px){#tab-nuova .select-wrapper{height:calc(53.55% + var(--white-comp));align-self:start}#tab-nuova .select-wrapper select{height:100%}}
+:is(#tab-nuova,#edit-fields) .select-wrapper{height:20.349px}
+:is(#tab-nuova,#edit-fields) .select-wrapper select{height:100%}
+@media(max-width:700px) and (max-height:500px){:is(#tab-nuova,#edit-fields) .select-wrapper{height:16.065px}}
+@media(max-width:700px) and (min-height:501px){:is(#tab-nuova,#edit-fields) .select-wrapper{height:calc(53.55% + var(--white-comp));align-self:start}:is(#tab-nuova,#edit-fields) .select-wrapper select{height:100%}}
 
 /* Menu di selezione dell'app: testi completi e ricerca anche su Android. */
 .select-dialog{width:min(560px,calc(100% - 32px));max-width:none;max-height:min(80dvh,700px);padding:0;border:0;border-radius:14px;background:var(--card);color:var(--txt);box-shadow:0 12px 40px #0005}
@@ -190,6 +190,15 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 .select-option:last-child{border-bottom:0}.select-option[aria-selected="true"]{background:#f4edf9;color:#462678;font-weight:700}.select-option:disabled{color:var(--muted);opacity:.7;cursor:not-allowed}
 .dark-mode .select-option[aria-selected="true"]{background:#382b4b;color:#fff}
 .select-empty{font-size:14px;margin:0;padding:12px;color:var(--muted)}
+
+/* L'editor è un overlay indipendente dal modulo della nuova operazione. */
+#editScreen{z-index:120}
+#editScreen .operation-footer{pointer-events:auto}
+#editSave{width:100%;min-height:50px;background:#fdc500!important;color:#462678!important;border-color:#fdc500!important}
+#edit-fields .edit-title{margin:0;color:#fff;font-size:18px;line-height:1.2}
+@media(max-width:700px){#editScreen .operation-inner{height:100%;display:flex;flex-direction:column}#editScreen .operation-footer{position:static;transform:none;width:100%;padding:16px 0 0;flex:none}#editScreen{padding-bottom:calc(8px + env(safe-area-inset-bottom))}#edit-fields{display:flex;flex-direction:column;flex:1;min-height:0;gap:4px}#edit-fields>.grid2,#edit-fields>.field:not(.hidden){flex:1;min-height:0}#edit-fields>.field:has(.toggle){flex:none}#edit-fields .field{margin-bottom:0}#edit-fields input,#edit-fields .select-wrapper{min-height:25px}#edit-fields .edit-title{font-size:16px}}
+@media(max-width:700px) and (max-height:500px){#editScreen{overflow-y:auto}#edit-fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));height:auto}#edit-fields>*{grid-column:span 2}#edit-fields .edit-title{grid-column:1/-1}#editScreen .operation-inner{height:auto}#editScreen .operation-footer{position:static} }
+@media(max-width:700px){.keyboard-open #editScreen{overflow-y:auto}}
 </style>
 </head>
 <body>
@@ -277,6 +286,12 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
       </div>
     </div>
     </div>
+    <section class="card operation-screen hidden" id="editScreen" tabindex="-1" role="dialog" aria-modal="true" aria-label="Modifica modello">
+      <div class="operation-inner" id="editInner">
+        <div id="editFormSlot"></div>
+        <div class="operation-footer"><button type="button" class="btn" id="editSave">Salva modifiche</button></div>
+      </div>
+    </section>
   </section>
 
 </div>
@@ -879,7 +894,7 @@ function pushHistory(h){
 
 /* ---------- modelli ---------- */
 let editingTemplate=null;
-function cancelTemplateEdit(){ editingTemplate=null; $("btnSaveTpl").textContent="Salva modello"; $("btnClear").textContent="Pulisci"; }
+function cancelTemplateEdit(){ editingTemplate=null; $("editScreen").classList.add("hidden"); $("appCard").querySelector(":scope > .operation-inner").inert=false; }
 function getTemplates(){ return JSON.parse(localStorage.getItem(LS.tpl)||"[]"); }
 function saveTemplates(t){ localStorage.setItem(LS.tpl, JSON.stringify(t)); }
 function renderTemplates(){
@@ -890,43 +905,39 @@ function renderTemplates(){
     div.innerHTML="<div class=\"tpl-info\"><b>"+esc(t.name)+"</b><br><span>"+esc(t.contoLabel||"")+" · "+(t.tipo==="i"?"Entrata":"Uscita")+" · "+esc(t.tipoLabel||"")+(t.descrizione? " · "+esc(t.descrizione):"")+"</span></div>";
     const btns=document.createElement("div"); btns.className="tpl-actions";
     const bUse=document.createElement("button"); bUse.className="btn small"; bUse.textContent="Usa";
-    bUse.onclick=()=>{ cancelTemplateEdit(); applyTemplate(t); };
+    bUse.onclick=()=>applyTemplate(t);
     const bEdit=document.createElement("button"); bEdit.className="btn small"; bEdit.textContent="Modifica";
-    bEdit.onclick=()=>{ editingTemplate={index:i, snapshot:JSON.stringify(t), name:t.name}; $("btnSaveTpl").textContent="Aggiorna modello"; $("btnClear").textContent="Annulla modifica"; applyTemplate(t,true); };
+    bEdit.onclick=()=>openTemplateEdit(t,i);
     const bDel=document.createElement("button"); bDel.className="btn danger small tpl-delete"; bDel.textContent="Elimina";
     bDel.onclick=()=>{ const a=getTemplates(); if(JSON.stringify(a[i])!==JSON.stringify(t)){ renderTemplates(); showMsg("saveMsg","Elenco dei modelli aggiornato: riprova.","warn"); return; } a.splice(i,1); saveTemplates(a); renderTemplates(); };
     btns.append(bUse,bEdit,bDel); div.appendChild(btns); wrap.appendChild(div);
   });
 }
-function applyTemplate(t,editing=false){
+function applyTemplate(t){
   navigateTab("nuova");
   $("fConto").value=t.idconto??"";
   setTipo(t.tipo);
   const item=(state.tipo==="i"?state.tipiE:state.tipiU).find(x=>String(x.value)===String(t.idtipo));
   if(item) setVoceMode(isScout(item)?"scout":"ministero");
   $("fTipo").value=t.idtipo??"";
+  if(t.data_operazione) $("fData").value=t.data_operazione;
+  if(t.importo!=null) $("fImporto").value=t.importo;
   $("fDesc").value=t.descrizione||"";
   $("fCat").value=t.idcategoria??"";
   $("fNote").value=t.note||"";
   $("fUnita").value=t.unita_codice||"";
   updatePayloadPreview(); clearCorrectedFieldErrors();
-  showMsg("saveMsg",editing?"Modifica il modello e premi Aggiorna modello.":"Modello '"+t.name+"' applicato. Inserisci data e importo.","ok");
+  showMsg("saveMsg","Modello '"+t.name+"' applicato. Controlla data e importo.","ok");
 }
 function saveCurrentAsTemplate(){
   const {voce, contoObj, tipoObj}=readForm();
   if(!voce.idconto||!(state.tipo==="i"?voce.e_idtipo:voce.u_idtipo)){ ["fConto","fTipo"].forEach(id=>markRequiredField(id,requiredFieldMissing(id))); showMsg("saveMsg","Seleziona almeno conto e tipologia per salvare il modello.","err"); return; }
-  const tpls=getTemplates();
-  if(editingTemplate && JSON.stringify(tpls[editingTemplate.index])!==editingTemplate.snapshot){
-    showMsg("saveMsg","Il modello è cambiato o è stato eliminato. Riaprilo dall'elenco prima di aggiornarlo.","err");
-    cancelTemplateEdit(); renderTemplates(); return;
-  }
-  const name=prompt("Nome del modello:", editingTemplate?.name || (contoObj?.label||"Operazione")+" — "+(tipoObj?.label||""));
+  const name=prompt("Nome del modello:", (contoObj?.label||"Operazione")+" — "+(tipoObj?.label||""));
   if(name===null || !name.trim()) return;
-  const template={...(editingTemplate?tpls[editingTemplate.index]:{}), name:name.trim(), idconto:voce.idconto, contoLabel:contoObj?.label, tipo:state.tipo, idtipo:state.tipo==="i"?voce.e_idtipo:voce.u_idtipo, tipoLabel:tipoObj?.label, descrizione:voce.descrizione, idcategoria:voce.idcategoria, note:voce.note, unita_codice:voce.unita_codice};
-  const updating=!!editingTemplate;
-  if(updating) tpls[editingTemplate.index]=template; else tpls.unshift(template);
-  saveTemplates(tpls); cancelTemplateEdit(); renderTemplates();
-  showMsg("saveMsg","Modello '"+template.name+"' "+(updating?"aggiornato.":"salvato."),"ok");
+  const tpls=getTemplates();
+  tpls.unshift({name:name.trim(), idconto:voce.idconto, contoLabel:contoObj?.label, tipo:state.tipo, idtipo:state.tipo==="i"?voce.e_idtipo:voce.u_idtipo, tipoLabel:tipoObj?.label, descrizione:voce.descrizione, idcategoria:voce.idcategoria, note:voce.note, unita_codice:voce.unita_codice});
+  saveTemplates(tpls); renderTemplates();
+  showMsg("saveMsg","Modello '"+name.trim()+"' salvato.","ok");
 }
 
 /* ---------- tabs / tipo ---------- */
@@ -997,7 +1008,8 @@ $("btnAdd").onclick=()=>{ if(!state.user) return; pushView("nuova"); showOperati
 $("appCard").addEventListener("keydown",e=>{
   if(e.key==="Escape" || (e.key==="ArrowLeft" && e.altKey)){ e.preventDefault(); navigateBack(); return; }
   if(e.key!=="Tab") return;
-  const items=[...$("appCard").querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)')].filter(el=>el.tabIndex>=0 && !el.closest('.hidden'));
+  const scope=editingTemplate?$("editScreen"):$("appCard");
+  const items=[...scope.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)')].filter(el=>el.tabIndex>=0 && !el.closest('.hidden'));
   if(!items.length) return;
   if(e.shiftKey && document.activeElement===items[0]){ e.preventDefault(); items[items.length-1].focus(); }
   else if(!e.shiftKey && document.activeElement===items[items.length-1]){ e.preventDefault(); items[0].focus(); }
@@ -1028,7 +1040,7 @@ document.querySelectorAll("#tipoToggle button").forEach(b=>b.onclick=()=>setTipo
 $("btnSave").onclick=()=>saveOperation(false);
 $("btnSaveDup").onclick=()=>saveOperation(true);
 $("btnSaveTpl").onclick=saveCurrentAsTemplate;
-$("btnClear").onclick=()=>{ if(editingTemplate){ cancelTemplateEdit(); showMsg("saveMsg","Modifica del modello annullata. I campi restano disponibili.","warn"); return; } ["fDesc","fImporto","fNote"].forEach(id=>$(id).value=""); $("fTipo").value=""; clearFieldErrors(); updatePayloadPreview(); };
+$("btnClear").onclick=()=>{ ["fDesc","fImporto","fNote"].forEach(id=>$(id).value=""); $("fTipo").value=""; clearFieldErrors(); updatePayloadPreview(); };
 /* ---------- PWA: service worker + installazione ---------- */
 if("serviceWorker" in navigator){
   window.addEventListener("load", ()=>{
@@ -1077,6 +1089,74 @@ window.addEventListener("storage", (e)=>{
     }
   }
 });
+
+/* Modifica del modello: campi, selezioni e stato indipendenti dalla nuova operazione. */
+(function initTemplateEditor(){
+  const form=$("tab-nuova").cloneNode(true); form.id="edit-fields";
+  form.querySelectorAll("[id]").forEach(el=>{el.id="edit-"+el.id;});
+  form.querySelectorAll("label[for]").forEach(el=>{el.htmlFor="edit-"+el.htmlFor;});
+  const nameField=document.createElement("div"); nameField.className="field";
+  nameField.innerHTML='<label for="edit-name">Nome modello *</label><input id="edit-name" placeholder="Nome modello">';
+  form.prepend(nameField);
+  $("editFormSlot").replaceWith(form);
+  form.querySelector('[for="edit-fData"]').textContent="Data operazione (facoltativa)";
+  form.querySelector('[for="edit-fImporto"]').textContent="Importo (€) (facoltativo)";
+  form.querySelector('[for="edit-fDesc"]').textContent="Descrizione";
+  let editTipo="i",editMode="scout", editMarker=null, closing=false;
+  const e=id=>$("edit-"+id);
+  function renderTipo(value=""){
+    const arr=(editTipo==="i"?state.tipiE:state.tipiU).filter(x=>x.selezionabile!==false);
+    let choices=arr.filter(x=>editMode==="scout"?isScout(x):!isScout(x));
+    if(editMode==="scout"){const level=state.incarico?.tipoIncarico===1?"z":"g";const matching=choices.filter(x=>x.gruppoZona===level);if(matching.length) choices=matching;}
+    const sel=e("fTipo"); sel.innerHTML='<option value="">— Seleziona tipologia —</option>';
+    choices.forEach(x=>{const o=document.createElement("option");o.value=x.value;o.textContent=x.label+(x.codiceVoceMinistero?" ("+x.codiceVoceMinistero+")":"");sel.appendChild(o);});
+    sel.value=value;
+  }
+  function updateToggles(){
+    e("tipoToggle").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.t===editTipo));
+    e("voceToggle").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.mode===editMode));
+  }
+  e("tipoToggle").querySelectorAll("button").forEach(b=>b.onclick=()=>{editTipo=b.dataset.t;updateToggles();renderTipo();});
+  e("voceToggle").querySelectorAll("button").forEach(b=>b.onclick=()=>{editMode=b.dataset.mode;updateToggles();renderTipo();});
+  e("fNote").addEventListener("input",()=>{e("noteCount").textContent=e("fNote").value.length+"/150";});
+  ["name","fConto","fTipo","fImporto"].forEach(id=>e(id).addEventListener("input",()=>{e(id).classList.remove("field-invalid");e(id).removeAttribute("aria-invalid");}));
+  window.openTemplateEdit=(t,index)=>{
+    editingTemplate={index,snapshot:JSON.stringify(t)};
+    for(const id of ["fConto","fCat","fUnita"]){e(id).innerHTML=$(id).innerHTML; e(id).disabled=$(id).disabled;}
+    e("unitaField").classList.toggle("hidden",$("unitaField").classList.contains("hidden"));
+    e("name").value=t.name||""; e("fData").value=t.data_operazione||""; e("fImporto").value=t.importo??"";
+    e("fConto").value=t.idconto??"";e("fCat").value=t.idcategoria??"";e("fUnita").value=t.unita_codice||"";
+    e("fDesc").value=t.descrizione||"";e("fNote").value=t.note||"";e("noteCount").textContent=e("fNote").value.length+"/150";
+    form.querySelectorAll(".field-invalid").forEach(el=>{el.classList.remove("field-invalid");el.removeAttribute("aria-invalid");});
+    editTipo=t.tipo==="o"?"o":"i";
+    const item=(editTipo==="i"?state.tipiE:state.tipiU).find(x=>String(x.value)===String(t.idtipo));
+    editMode=item && !isScout(item)?"ministero":"scout";updateToggles();renderTipo(String(t.idtipo??""));
+    editMarker=Date.now().toString(36)+Math.random().toString(36).slice(2);
+    history.pushState({...history.state,abaEdit:editMarker},"");
+    $("appCard").querySelector(":scope > .operation-inner").inert=true;
+    $("editScreen").classList.remove("hidden"); $("editScreen").focus({preventScroll:true});
+  };
+  window.addEventListener("popstate",()=>{
+    if(editingTemplate && history.state?.abaEdit!==editMarker){cancelTemplateEdit();$("tab-modelli").querySelector(".tpl-actions button")?.focus({preventScroll:true});}
+    closing=false;
+  });
+  $("editSave").onclick=()=>{
+    if(!editingTemplate || closing) return;
+    let invalid=false;
+    for(const id of ["name","fConto","fTipo","fImporto"]){
+      const el=e(id),bad=id==="fImporto"?(el.value!=="" && (!Number.isFinite(Number(el.value)) || Number(el.value)<=0)):!el.value.trim();
+      el.classList.toggle("field-invalid",bad);if(bad){el.setAttribute("aria-invalid","true");invalid=true;}else el.removeAttribute("aria-invalid");
+    }
+    if(invalid){showMsg("saveMsg","Inserisci nome, conto e tipologia; l'importo, se presente, deve essere positivo.","err");return;}
+    const tpls=getTemplates(), old=tpls[editingTemplate.index];
+    if(JSON.stringify(old)!==editingTemplate.snapshot){showMsg("saveMsg","Il modello è cambiato o è stato eliminato. Torna indietro e riaprilo.","err");return;}
+    const conto=state.conti.find(x=>String(x.value)===e("fConto").value);
+    const tipo=(editTipo==="i"?state.tipiE:state.tipiU).find(x=>String(x.value)===e("fTipo").value);
+    tpls[editingTemplate.index]={...old,name:e("name").value.trim(),idconto:Number(e("fConto").value),contoLabel:conto?.label,tipo:editTipo,idtipo:Number(e("fTipo").value),tipoLabel:tipo?.label,descrizione:e("fDesc").value,idcategoria:e("fCat").value?Number(e("fCat").value):null,note:e("fNote").value,unita_codice:e("fUnita").value||null,data_operazione:e("fData").value||null,importo:e("fImporto").value?Number(e("fImporto").value):null};
+    saveTemplates(tpls);renderTemplates();showMsg("saveMsg","Modifiche al modello salvate.","ok");
+    closing=true; if(history.state?.abaEdit===editMarker) history.back(); else cancelTemplateEdit();
+  };
+})();
 
 /* Menu personalizzato: il select originale rimane fonte dei valori e degli eventi. */
 (function initSelectMenus(){
