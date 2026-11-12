@@ -23,11 +23,11 @@
 @media(max-width:700px){.wrap{padding:20px 16px 50px}.card{padding:20px}.grid2,.grid3{grid-template-columns:1fr;gap:0}.hero{margin:5vh auto}.section-heading .btn{width:100%}.tabs button{flex:none}.context-actions{width:100%}.context-head{align-items:flex-start}}
 /* Spaziatura compatta e comandi sempre raggiungibili nella schermata operazione. */
 .card.operation-screen{padding:calc(20px + env(safe-area-inset-top)) 20px calc(180px + env(safe-area-inset-bottom));scroll-padding-bottom:calc(180px + env(safe-area-inset-bottom))}
-.operation-screen .field{margin-bottom:12px}.operation-screen .grid2{column-gap:12px}.operation-screen .tabs{margin-bottom:16px}
+.operation-screen input:not(.switch),.operation-screen select,.operation-screen textarea{padding:8px 10px}.operation-screen .field{margin-bottom:12px}.operation-screen .grid2{column-gap:12px}.operation-screen .tabs{margin-bottom:16px}
 .operation-footer{position:fixed;z-index:1;bottom:0;left:50%;transform:translateX(-50%);width:min(100%, 800px);padding:8px 20px calc(8px + env(safe-area-inset-bottom));background:transparent;pointer-events:none}
 .operation-footer .msg{pointer-events:auto;margin:0 0 8px;background:var(--card);max-height:25vh;overflow-y:auto}
 .operation-actions{display:flex;gap:10px;align-items:stretch}.operation-actions .btn{pointer-events:auto}.back-btn{width:44px;min-width:44px;height:44px;align-self:center;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 8px #1018281a}.save-grid{flex:1;gap:6px}.save-grid .btn{min-height:36px;padding:2px 4px;box-shadow:0 2px 8px #1018281a}
-@media(max-width:700px){.operation-screen .paired-fields{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:8px}.operation-screen .paired-fields input,.operation-screen .paired-fields select{min-width:0;padding-left:8px;padding-right:8px}.card.operation-screen{padding-left:16px;padding-right:16px}.operation-footer{padding-left:16px;padding-right:16px}.save-grid .btn{font-size:13px}}
+@media(max-width:700px){.operation-screen .paired-fields{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:8px}.operation-screen .paired-fields input,.operation-screen .paired-fields select{min-width:0;padding-left:7px;padding-right:7px}.card.operation-screen{padding-left:16px;padding-right:16px}.operation-footer{padding-left:16px;padding-right:16px}.save-grid .btn{font-size:13px}}
 </style>
 </head>
 <body>
