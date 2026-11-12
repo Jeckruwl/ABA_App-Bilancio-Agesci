@@ -12,7 +12,7 @@ Per rinnovare automaticamente la sessione, il nome utente e la password vengono 
 
 ## Lettura scontrino
 
-Nella schermata della nuova operazione, premi il pulsante con la fotocamera sotto quello indietro e scatta o seleziona una foto. L'OCR viene eseguito sul dispositivo: la foto non viene inviata a un servizio OCR e non viene conservata dall'app. Il motore OCR è distribuito insieme all'app e scaricato al primo utilizzo; se il browser mantiene la cache, può essere riutilizzato offline. La cache può essere eliminata dal browser o dall'utente, rendendo necessario un nuovo download.
+Nella schermata della nuova operazione, premi il pulsante con la fotocamera sotto quello indietro e scegli **Fotocamera** per scattare oppure **Galleria** per selezionare una foto. Il comportamento finale della fotocamera dipende dal browser e dal dispositivo. L'OCR viene eseguito sul dispositivo: la foto non viene inviata a un servizio OCR e non viene conservata dall'app. Il motore OCR è distribuito insieme all'app e scaricato al primo utilizzo; se il browser mantiene la cache, può essere riutilizzato offline. La cache può essere eliminata dal browser o dall'utente, rendendo necessario un nuovo download.
 
 L'app prova a proporre data, totale e descrizione, e suggerisce un'uscita se non è già stata scelta una tipologia. Non sostituisce i campi già compilati. Se rileva più date o totali diversi, lascia il valore da inserire manualmente. Controlla sempre tutti i campi, inclusi tipo, conto, tipologia e categoria, prima di salvare: la lettura può sbagliare o non riconoscere alcuni dati. Non viene mai salvata automaticamente un'operazione.
 

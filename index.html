@@ -68,6 +68,7 @@
 #loginCard .btn.primary-wide{padding:10px;margin-top:0}#loginCard .msg{margin:6px 0 0;padding:7px;font-size:12px;line-height:1.25}
 @media(max-height:500px){.login-active .wrap{justify-content:flex-start;overflow-y:auto}}
 .operation-side{display:flex;flex-direction:column;gap:6px;justify-content:center}.operation-side .back-btn,.operation-side .camera-btn{width:44px;min-width:44px;height:36px;padding:0;display:flex;justify-content:center;align-items:center}.operation-side .camera-btn{box-shadow:0 2px 8px #1018281a}
+.receipt-choices{pointer-events:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:0 4px 16px #10182826}.receipt-choices p{font-size:14px;font-weight:600;margin:0 0 10px}.receipt-choice-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}.receipt-choice-buttons .btn,.receipt-cancel{min-height:40px}.receipt-cancel{width:100%;margin-top:8px}
 </style>
 </head>
 <body>
@@ -145,11 +146,17 @@
     <div class="operation-footer">
       <div class="msg" id="saveMsg" role="status" aria-live="polite"></div>
       <div class="msg" id="ocrMsg" role="status" aria-live="polite"></div>
+      <div class="receipt-choices hidden" id="receiptChoices" role="group" aria-label="Scegli come aggiungere lo scontrino">
+        <p>Come vuoi aggiungere lo scontrino?</p>
+        <div class="receipt-choice-buttons"><button type="button" class="btn" id="chooseCamera">Fotocamera</button><button type="button" class="btn ghost" id="chooseGallery">Galleria</button></div>
+        <button type="button" class="btn ghost receipt-cancel" id="cancelReceiptChoice">Annulla</button>
+      </div>
       <div class="operation-actions">
         <div class="operation-side">
           <button type="button" class="btn ghost back-btn" id="btnClose" aria-label="Torna alla dashboard"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
-          <button type="button" class="btn ghost camera-btn" id="btnReceipt" aria-label="Fotografa o scegli uno scontrino" title="Fotografa o scegli uno scontrino"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7.5 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3.5z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
+          <button type="button" class="btn ghost camera-btn" id="btnReceipt" aria-label="Fotografa o scegli uno scontrino" aria-controls="receiptChoices" aria-expanded="false" title="Fotografa o scegli uno scontrino"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7.5 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3.5z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
           <input id="receiptFile" class="hidden" type="file" accept="image/*" tabindex="-1">
+          <input id="receiptCamera" class="hidden" type="file" accept="image/*" capture="environment" tabindex="-1">
         </div>
         <div class="save-grid" id="saveActions">
           <button type="button" class="btn" id="btnSave">Salva</button>
@@ -795,7 +802,8 @@ $("btnAdd").onclick=()=>{ $("appCard").classList.remove("hidden"); $("btnAdd").s
 $("btnClose").onclick=closeOperation;
 /* La foto viene elaborata solo in memoria, sul dispositivo. Il motore si scarica al primo utilizzo. */
 let receiptGeneration=0, receiptBusy=false, tesseractLoad=null;
-function cancelReceiptRead(){ receiptGeneration++; hideMsg("ocrMsg"); }
+function closeReceiptChoices(restoreFocus=false){ $("receiptChoices").classList.add("hidden"); $("btnReceipt").setAttribute("aria-expanded","false"); if(restoreFocus) $("btnReceipt").focus(); }
+function cancelReceiptRead(){ receiptGeneration++; hideMsg("ocrMsg"); closeReceiptChoices(); }
 function loadTesseract(){
   if(window.Tesseract) return Promise.resolve(window.Tesseract);
   if(!tesseractLoad){
@@ -825,8 +833,15 @@ function prepareReceiptImage(file){
     image.src=url;
   });
 }
-$("btnReceipt").onclick=()=>{ if(!receiptBusy) $("receiptFile").click(); };
-$("receiptFile").onchange=async e=>{
+$("btnReceipt").onclick=()=>{
+  if(receiptBusy) return;
+  if(!$("receiptChoices").classList.contains("hidden")){ closeReceiptChoices(true); return; }
+  $("receiptChoices").classList.remove("hidden"); $("btnReceipt").setAttribute("aria-expanded","true"); $("chooseCamera").focus();
+};
+$("chooseCamera").onclick=()=>{ closeReceiptChoices(true); $("receiptCamera").click(); };
+$("chooseGallery").onclick=()=>{ closeReceiptChoices(true); $("receiptFile").click(); };
+$("cancelReceiptChoice").onclick=()=>closeReceiptChoices(true);
+async function readReceiptFile(e){
   const file=e.target.files?.[0]; e.target.value="";
   if(!file || receiptBusy) return;
   if((file.type && !file.type.startsWith("image/")) || file.size>25*1024*1024){ showMsg("ocrMsg","Scegli un'immagine di massimo 25 MB.","err"); return; }
@@ -873,9 +888,11 @@ $("receiptFile").onchange=async e=>{
     if(worker) try{ await worker.terminate(); }catch(_){}
     receiptBusy=false; $("btnReceipt").disabled=false;
   }
-};
+}
+$("receiptFile").onchange=readReceiptFile;
+$("receiptCamera").onchange=readReceiptFile;
 $("appCard").addEventListener("keydown",e=>{
-  if(e.key==="Escape"){ e.preventDefault(); closeOperation(); return; }
+  if(e.key==="Escape"){ e.preventDefault(); if(!$("receiptChoices").classList.contains("hidden")) closeReceiptChoices(true); else closeOperation(); return; }
   if(e.key!=="Tab") return;
   const items=[...$("appCard").querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)')].filter(el=>!el.closest('.hidden'));
   if(!items.length) return;
