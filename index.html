@@ -67,10 +67,10 @@
   <!-- APP -->
   <section class="card hidden" id="appCard">
     <div class="tabs">
-      <button class="on" data-tab="nuova">➕ Nuova operazione</button>
-      <button data-tab="modelli">⭐ Modelli</button>
-      <button data-tab="massivo">📥 Import massivo CSV</button>
-      <button data-tab="recenti">🕘 Operazioni recenti</button>
+      <button class="on" data-tab="nuova">Nuova operazione</button>
+      <button data-tab="modelli">Modelli</button>
+      <button data-tab="massivo">Import massivo CSV</button>
+      <button data-tab="recenti">Operazioni recenti</button>
     </div>
 
     <!-- NUOVA OPERAZIONE -->
@@ -84,9 +84,9 @@
       <div class="grid2"><div class="field"><label for="fCat">Categoria</label><select id="fCat"><option value="">— Nessuna —</option></select></div><div class="field hidden" id="unitaField"><label for="fUnita">Unità</label><select id="fUnita"></select></div></div>
       <div class="field"><label for="fNote">Note</label><input id="fNote" maxlength="150" placeholder="Facoltative"><div class="muted count" id="noteCount">0/150</div></div>
       <div class="row">
-        <button class="btn" id="btnSave">💾 Salva operazione</button>
+        <button class="btn" id="btnSave">Salva operazione</button>
         <button class="btn ghost" id="btnSaveDup">Salva e duplica (per la prossima)</button>
-        <button class="btn ghost" id="btnSaveTpl">⭐ Salva come modello</button>
+        <button class="btn ghost" id="btnSaveTpl">Salva come modello</button>
         <button class="btn ghost" id="btnClear">Pulisci</button>
       </div>
       <div class="msg" id="saveMsg"></div>
@@ -95,7 +95,7 @@
 
     <!-- MODELLI -->
     <div id="tab-modelli" class="hidden">
-      <h2>⭐ Modelli rapidi</h2>
+      <h2>Modelli rapidi</h2>
       <p class="sub">Salva le combinazioni che usi spesso (es. "Quota Lupetti", "Spesa cancelleria") e applicale in un click. Restano solo su questo browser.</p>
       <div id="tplList"></div>
       <p class="muted" id="tplEmpty">Nessun modello ancora. Compila una operazione e premi "Salva come modello".</p>
@@ -103,10 +103,10 @@
 
     <!-- MASSIVO -->
     <div id="tab-massivo" class="hidden">
-      <h2>📥 Import massivo da CSV</h2>
+      <h2>Import massivo da CSV</h2>
       <p class="sub">Incolla o carica un CSV con una operazione per riga. Controlla l'anteprima e invia in sequenza.</p>
       <div class="row" style="margin-bottom:10px">
-        <button class="btn ghost small" id="btnTplCsv">⬇ Scarica modello CSV</button>
+        <button class="btn ghost small" id="btnTplCsv">Scarica modello CSV</button>
         <button class="btn ghost small" id="btnExample">Carica esempio</button>
         <input type="file" id="fileCsv" accept=".csv,text/csv" style="width:auto">
       </div>
@@ -115,8 +115,8 @@
       </div>
       <p class="muted">Colonne: <code>data</code> (GG/MM/AAAA), <code>descrizione</code>, <code>tipo</code> (E/U, Entrata/Uscita), <code>importo</code>, <code>tipologia</code> (label, codice o ID), <code>conto</code> (label o ID), <code>categoria</code>, <code>note</code>. Separatore <code>;</code> o <code>,</code>.</p>
       <div class="row">
-        <button class="btn ghost" id="btnPreviewCsv">👁 Anteprima</button>
-        <button class="btn" id="btnSendCsv" disabled>🚀 Invia tutto</button>
+        <button class="btn ghost" id="btnPreviewCsv">Anteprima</button>
+        <button class="btn" id="btnSendCsv" disabled>Invia tutto</button>
       </div>
       <div class="progress hidden" id="csvProgressWrap"><div id="csvProgress"></div></div>
       <div id="csvPreview"></div>
@@ -126,7 +126,7 @@
     <!-- RECENTI -->
     <div id="tab-recenti" class="hidden">
       <div class="row" style="justify-content:space-between">
-        <div><h2>🕘 Operazioni recenti</h2><p class="sub">Ultime operazioni lette dal sito ufficiale per il contesto selezionato.</p></div>
+        <div><h2>Operazioni recenti</h2><p class="sub">Ultime operazioni lette dal sito ufficiale per il contesto selezionato.</p></div>
         <button class="btn ghost small" id="btnLoadRecent">↻ Aggiorna</button>
       </div>
       <div id="recentWrap"><p class="muted">Premi "Aggiorna" per caricare le operazioni.</p></div>
@@ -287,7 +287,7 @@ async function api(path, opts={}){
       }
       // Rinnovo non possibile o fallito: disconnetti una sola volta in modo pulito.
       const msg = autoLoginBlocked
-        ? "⚠️ Rinnovo automatico non riuscito (credenziali rifiutate dal server). Accedi di nuovo."
+        ? "Rinnovo automatico non riuscito (credenziali rifiutate dal server). Accedi di nuovo."
         : "⏰ Il token è scaduto. Fai di nuovo l'accesso per continuare.";
       handleSessionLost(msg, "warn");
       const err = new Error("Sessione scaduta (401).");
@@ -401,11 +401,11 @@ async function doLogin(){
     localStorage.setItem(LS.lastName, $("lastName").value.trim());
     setSession(data);
     $("password").value="";
-    showMsg("loginMsg","✅ Accesso riuscito. Caricamento dati…","ok");
+    showMsg("loginMsg","Accesso riuscito. Caricamento dati…","ok");
     await initAfterLogin();
     hideMsg("loginMsg");
   }catch(err){
-    showMsg("loginMsg","❌ "+err.message,"err");
+    showMsg("loginMsg",""+err.message,"err");
   }finally{
     $("btnLogin").disabled=false; $("btnLogin").textContent="Accedi e resta collegato";
   }
@@ -509,7 +509,7 @@ async function checkEditable(){
     const noAccess = state.incarico && ([11,12,13].includes(state.incarico.accessoTipo) || [4,5].includes(state.incarico.tipoIncarico));
     const dis = blocked||noAccess;
     $("btnSave").disabled=dis; $("btnSaveDup").disabled=dis; $("btnSendCsv").disabled=dis||state.csvRows.length===0;
-    $("editableInfo").textContent = dis? "⚠️ Anno bloccato o accesso in sola lettura: inserimento disabilitato." : "✅ Anno modificabile.";
+    $("editableInfo").textContent = dis? "Anno bloccato o accesso in sola lettura: inserimento disabilitato." : "Anno modificabile.";
     $("editableInfo").style.color = dis? "var(--err)":"var(--ok)";
   }catch(e){ $("editableInfo").textContent=""; }
 }
@@ -550,7 +550,7 @@ async function loadContextData(){
     unitaList.forEach(u=>{ const o=document.createElement("option"); o.value=u.cun+u.prog; o.textContent=(u.cun==="G"?"Gruppo ":"")+u.cun+u.prog+" — "+u.nome; sel.appendChild(o); });
   }
   updatePayloadPreview();
-  if(errs.length) showMsg("ctxMsg","⚠️ Caricamento parziale — "+errs.join(" · "),"err");
+  if(errs.length) showMsg("ctxMsg","Caricamento parziale — "+errs.join(" · "),"err");
 }
 function fillSelect(sel, arr, placeholder){
   sel.innerHTML="";
@@ -638,13 +638,13 @@ async function saveOperation(duplicateAfter=false){
   hideMsg("saveMsg");
   const {voce, contoObj}=readForm();
   const errs=validateForm(voce, contoObj);
-  if(errs.length){ showMsg("saveMsg","⚠️ "+errs.join(" "),"err"); return false; }
+  if(errs.length){ showMsg("saveMsg",""+errs.join(" "),"err"); return false; }
   $("btnSave").disabled=true;
   try{
     const req=buildReq(voce.idconto);
     const res=await api("/api/vocecassa/save",{body:{req, vocecassa:voce}});
-    if(typeof res==="string"){ showMsg("saveMsg","❌ "+res,"err"); return false; }
-    showMsg("saveMsg","✅ Operazione inserita: "+voce.descrizione+" — "+fmtEUR(state.tipo==="i"?voce.e_importo:voce.u_importo),"ok");
+    if(typeof res==="string"){ showMsg("saveMsg",""+res,"err"); return false; }
+    showMsg("saveMsg","Operazione inserita: "+voce.descrizione+" — "+fmtEUR(state.tipo==="i"?voce.e_importo:voce.u_importo),"ok");
     pushHistory({data:voce.data_operazione, descrizione:voce.descrizione, tipo:state.tipo, importo:state.tipo==="i"?voce.e_importo:voce.u_importo, conto:voce.conto, ok:true});
     if(!duplicateAfter){
       $("fDesc").value=""; $("fImporto").value=""; $("fNote").value="";
@@ -654,7 +654,7 @@ async function saveOperation(duplicateAfter=false){
     updatePayloadPreview();
     return true;
   }catch(err){
-    showMsg("saveMsg","❌ Errore: "+err.message,"err");
+    showMsg("saveMsg","Errore: "+err.message,"err");
     pushHistory({data:voce.data_operazione, descrizione:voce.descrizione, tipo:state.tipo, importo:state.tipo==="i"?voce.e_importo:voce.u_importo, conto:voce.conto, ok:false, error:err.message});
     return false;
   }finally{ $("btnSave").disabled=false; }
@@ -678,7 +678,7 @@ function renderTemplates(){
     const btns=document.createElement("div"); btns.className="row";
     const bUse=document.createElement("button"); bUse.className="btn small"; bUse.textContent="Usa";
     bUse.onclick=()=>applyTemplate(t);
-    const bDel=document.createElement("button"); bDel.className="btn danger small"; bDel.textContent="✕";
+    const bDel=document.createElement("button"); bDel.className="btn danger small"; bDel.textContent="Elimina";
     bDel.onclick=()=>{ const a=getTemplates(); a.splice(i,1); saveTemplates(a); renderTemplates(); };
     btns.append(bUse,bDel); div.appendChild(btns); wrap.appendChild(div);
   });
@@ -695,17 +695,17 @@ function applyTemplate(t){
   $("fNote").value=t.note||"";
   if(t.unita_codice) $("fUnita").value=t.unita_codice;
   updatePayloadPreview();
-  showMsg("saveMsg","⭐ Modello '"+t.name+"' applicato. Inserisci data e importo.","ok");
+  showMsg("saveMsg","Modello '"+t.name+"' applicato. Inserisci data e importo.","ok");
 }
 function saveCurrentAsTemplate(){
   const {voce, contoObj, tipoObj}=readForm();
-  if(!voce.idconto||!(state.tipo==="i"?voce.e_idtipo:voce.u_idtipo)){ showMsg("saveMsg","⚠️ Seleziona almeno conto e tipologia per salvare il modello.","err"); return; }
+  if(!voce.idconto||!(state.tipo==="i"?voce.e_idtipo:voce.u_idtipo)){ showMsg("saveMsg","Seleziona almeno conto e tipologia per salvare il modello.","err"); return; }
   const name=prompt("Nome del modello:", (contoObj?.label||"Operazione")+" — "+(tipoObj?.label||""));
   if(!name) return;
   const tpls=getTemplates();
   tpls.unshift({name, idconto:voce.idconto, contoLabel:contoObj?.label, tipo:state.tipo, idtipo:state.tipo==="i"?voce.e_idtipo:voce.u_idtipo, tipoLabel:tipoObj?.label, descrizione:voce.descrizione, idcategoria:voce.idcategoria, note:voce.note, unita_codice:voce.unita_codice});
   saveTemplates(tpls); renderTemplates();
-  showMsg("saveMsg","⭐ Modello '"+name+"' salvato.","ok");
+  showMsg("saveMsg","Modello '"+name+"' salvato.","ok");
 }
 
 /* ---------- CSV massivo ---------- */
@@ -787,13 +787,13 @@ function previewCSV(){
   state.csvRows.forEach(x=>{
     const ok=x.errs.length===0;
     html+="<tr><td>"+x.__i+"</td><td>"+esc(x.voce.data_operazione?fmtDateIT(x.voce.data_operazione):"—")+"</td><td>"+esc(x.voce.descrizione||"—")+"</td><td><span class='pill "+(x.tipo==="i"?"e":"u")+"'>"+(x.tipo==="i"?"Entrata":"Uscita")+"</span></td><td>"+fmtEUR(x.tipo==="i"?x.voce.e_importo:x.voce.u_importo)+"</td><td>"+esc(x.voce.conto||"—")+"</td><td>"+esc(x.tipo==="i"?x.voce.e_descrizionetipo:x.voce.u_descrizionetipo||"—")+"</td><td>"+(ok?'<span class="pill ok">OK</span>':'<span class="pill ko" title="'+esc(x.errs.join("; "))+'">Errori</span>')+"</td></tr>";
-    if(!ok) html+="<tr><td></td><td colspan='7' class='muted'>⚠️ "+esc(x.errs.join(" · "))+"</td></tr>";
+    if(!ok) html+="<tr><td></td><td colspan='7' class='muted'>"+esc(x.errs.join(" · "))+"</td></tr>";
   });
   html+="</tbody></table>";
   $("csvPreview").innerHTML=html;
   const valid=state.csvRows.filter(x=>x.errs.length===0).length;
   $("btnSendCsv").disabled = valid===0 || state.csvSending;
-  $("btnSendCsv").textContent="🚀 Invia "+valid+" operazioni valide";
+  $("btnSendCsv").textContent="Invia "+valid+" operazioni valide";
 }
 async function sendCSV(){
   if(state.csvSending) return;
@@ -813,10 +813,10 @@ async function sendCSV(){
       const req=buildReq(x.voce.idconto);
       const res=await api("/api/vocecassa/save",{body:{req, vocecassa:x.voce}});
       if(typeof res==="string") throw new Error(res);
-      ok++; log.innerHTML+='<span class="ok">  ✅ OK</span>\n';
+      ok++; log.innerHTML+='<span class="ok">  OK</span>\n';
       pushHistory({data:x.voce.data_operazione, descrizione:x.voce.descrizione, tipo:x.tipo, importo:x.tipo==="i"?x.voce.e_importo:x.voce.u_importo, conto:x.voce.conto, ok:true});
     }catch(err){
-      ko++; log.innerHTML+='<span class="ko">  ❌ '+esc(err.message)+'</span>\n';
+      ko++; log.innerHTML+='<span class="ko">  '+esc(err.message)+'</span>\n';
       pushHistory({data:x.voce.data_operazione, descrizione:x.voce.descrizione, tipo:x.tipo, importo:x.tipo==="i"?x.voce.e_importo:x.voce.u_importo, conto:x.voce.conto, ok:false, error:err.message});
     }
     log.scrollTop=log.scrollHeight;
@@ -840,7 +840,7 @@ async function loadRecent(){
     const sorted=[...arr].sort((a,b)=>new Date(b.data_operazione)-new Date(a.data_operazione)).slice(0,30);
     let html='<table><thead><tr><th>Data</th><th>Descrizione</th><th>Entrata</th><th>Uscita</th><th>Tipologia</th><th>Saldo</th><th>Azioni</th></tr></thead><tbody>';
     sorted.forEach(r=>{
-      html+="<tr><td>"+fmtDateIT(r.data_operazione)+"</td><td>"+esc(r.descrizione||"")+(r.unitaFullName? "<br><span class='muted'>"+esc(r.unitaFullName)+"</span>":"")+"</td><td>"+(r.e_importo?fmtEUR(r.e_importo):"—")+"</td><td>"+(r.u_importo?fmtEUR(r.u_importo):"—")+"</td><td>"+esc(r.e_descrizionetipo||r.u_descrizionetipo||"—")+"</td><td>"+(r.saldo!=null?fmtEUR(r.saldo):"—")+"</td><td><button class='btn ghost small' data-dup='"+r.id+"'>⧉ Duplica</button> <button class='btn danger small' data-del='"+r.id+"' data-conto='"+(r.idconto||0)+"'>🗑</button></td></tr>";
+      html+="<tr><td>"+fmtDateIT(r.data_operazione)+"</td><td>"+esc(r.descrizione||"")+(r.unitaFullName? "<br><span class='muted'>"+esc(r.unitaFullName)+"</span>":"")+"</td><td>"+(r.e_importo?fmtEUR(r.e_importo):"—")+"</td><td>"+(r.u_importo?fmtEUR(r.u_importo):"—")+"</td><td>"+esc(r.e_descrizionetipo||r.u_descrizionetipo||"—")+"</td><td>"+(r.saldo!=null?fmtEUR(r.saldo):"—")+"</td><td><button class='btn ghost small' data-dup='"+r.id+"'>Duplica</button> <button class='btn danger small' data-del='"+r.id+"' data-conto='"+(r.idconto||0)+"'>Elimina</button></td></tr>";
     });
     html+="</tbody></table><p class='muted'>Mostrate "+sorted.length+" di "+arr.length+" operazioni.</p>";
     wrap.innerHTML=html;
@@ -850,8 +850,8 @@ async function loadRecent(){
         const req2=buildReq(0);
         const res=await api("/api/vocecassa/duplicate",{body:{req:req2, voceCassaToDuplicateId:Number(b.dataset.dup)}});
         if(typeof res==="string") throw new Error(res);
-        alert("✅ Operazione duplicata."); loadRecent();
-      }catch(e){ alert("❌ "+e.message); }
+        alert("Operazione duplicata."); loadRecent();
+      }catch(e){ alert(""+e.message); }
     });
     wrap.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{
       if(!confirm("Eliminare questa operazione? Azione irreversibile.")) return;
@@ -859,8 +859,8 @@ async function loadRecent(){
         const req2=buildReq(Number(b.dataset.conto));
         const res=await api("/api/vocecassa/delete",{body:{req:req2, voceCassaToDeleteId:Number(b.dataset.del)}});
         if(typeof res==="string") throw new Error(res);
-        alert("✅ Operazione eliminata."); loadRecent();
-      }catch(e){ alert("❌ "+e.message); }
+        alert("Operazione eliminata."); loadRecent();
+      }catch(e){ alert(""+e.message); }
     });
   }catch(err){ wrap.innerHTML='<div class="msg err" style="display:block">Errore: '+esc(err.message)+'</div>'; }
 }
@@ -895,7 +895,7 @@ $("btnLogout").onclick=()=>{
   localStorage.removeItem(LS.user);
   state.user=null;
   updateConnUI();
-  showMsg("loginMsg","👋 Sei uscito. Premi 'Accedi e resta collegato' quando vuoi rientrare.","ok");
+  showMsg("loginMsg","Sei uscito. Premi 'Accedi e resta collegato' quando vuoi rientrare.","ok");
 };
 $("btnForget").onclick=()=>{
   localStorage.removeItem(LS.creds);
@@ -904,7 +904,7 @@ $("btnForget").onclick=()=>{
   autoLoginBlocked=false;
   state.user=null;
   updateConnUI();
-  showMsg("loginMsg","🗑 Password salvata dimenticata. Dovrai accedere di nuovo con la password.","warn");
+  showMsg("loginMsg","Password salvata dimenticata. Dovrai accedere di nuovo con la password.","warn");
 };
 $("btnRefresh").onclick=async()=>{ await loadYears(true); await loadContextData(); };
 $("selYear").onchange=async e=>{ state.year=state.years.find(y=>String(y.value)===e.target.value)||null; if(state.year) localStorage.setItem(LS.year, JSON.stringify(state.year)); await loadContextData(); await checkEditable(); };
@@ -1005,7 +1005,7 @@ window.addEventListener("storage", (e)=>{
   if(creds){
     updateConnUI();
     $("btnLogin").disabled=true;
-    showMsg("loginMsg","🔄 Riconnessione automatica in corso…","ok");
+    showMsg("loginMsg","Riconnessione automatica in corso…","ok");
     const ok=await ensureFreshToken(true);
     $("btnLogin").disabled=false;
     hideMsg("loginMsg");
@@ -1014,8 +1014,8 @@ window.addEventListener("storage", (e)=>{
       return;
     }
     const msg = autoLoginBlocked
-      ? "⚠️ Rinnovo automatico non riuscito (verifica la password). Fai di nuovo l'accesso."
-      : "⚠️ Riconnessione automatica non riuscita (controlla la rete o accedi di nuovo).";
+      ? "Rinnovo automatico non riuscito (verifica la password). Fai di nuovo l'accesso."
+      : "Riconnessione automatica non riuscita (controlla la rete o accedi di nuovo).";
     handleSessionLost(msg, "warn");
     return;
   }
