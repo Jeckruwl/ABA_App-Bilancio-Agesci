@@ -31,6 +31,11 @@
 /* Azioni del contesto e selettore tema */
 .context-actions{flex-wrap:nowrap}.context-actions .btn{white-space:nowrap}.context-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px}.context-bottom p{margin:0;flex:1}.theme-switch{position:relative;display:block;width:64px;height:32px;flex:none;margin:0;cursor:pointer}.theme-switch input{position:absolute;width:1px;height:1px;opacity:0}.theme-track{position:absolute;inset:0;border:1px solid var(--border);border-radius:999px;background:var(--surface);display:flex;align-items:center;justify-content:space-around}.theme-track:before{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:var(--card);box-shadow:0 1px 4px #10182833;transition:transform .15s}.theme-switch input:checked+.theme-track:before{transform:translateX(32px)}.theme-switch input:focus-visible+.theme-track{outline:3px solid #aeb0d9}.theme-track svg{width:16px;height:16px;position:relative;color:var(--muted)}
 @media(max-width:700px){.context-actions{width:100%;gap:6px}.context-actions .btn{flex:1;min-width:0;white-space:normal;padding:8px 4px;font-size:12px}.context-head{gap:14px}}
+/* Comandi allineati e pulsante che occupa lo spazio residuo. */
+.context-bottom{gap:8px}.context-actions{flex:1;min-width:0;align-items:stretch}.context-actions .btn{height:40px;min-width:0}.context-bottom .theme-switch{flex:none}.context-head{margin-bottom:20px}#editableInfo:empty{display:none}
+.dashboard-active .wrap{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding-bottom:20px}.dashboard-active #operationHeading:not(.hidden){flex:1 1 auto;align-items:stretch;margin:0;min-height:90px}.dashboard-active .add-btn{height:auto;min-height:90px}
+#tab-nuova input,#tab-nuova select,#tab-nuova .toggle{height:38px}#tab-nuova .toggle button{padding:0 8px}
+@media(max-width:700px){.context-bottom{gap:6px}.context-actions{gap:4px}.context-actions .btn{height:40px;padding:4px 2px;font-size:12px;line-height:1.15}.context-bottom .theme-switch{width:64px}.dashboard-active .wrap{padding-bottom:16px}}
 </style>
 </head>
 <body>
@@ -63,7 +68,6 @@
   <section class="card hidden" id="ctxCard">
     <div class="context-head">
       <div class="greeting"><h2 id="helloName">Ciao</h2></div>
-      <div class="context-actions"><button class="btn ghost small" id="btnRefresh">Ricarica</button><button class="btn ghost small" id="btnForget">Dimentica password</button><button class="btn danger small" id="btnLogout">Esci</button></div>
     </div>
     <div class="grid3">
       <div class="field"><label>Anno sociale</label><select id="selYear"></select></div>
@@ -71,7 +75,8 @@
       <div class="field"><label>Unità (se richiesto)</label><select id="selUnita"><option value="">— Nessuna —</option></select></div>
     </div>
     <div class="msg" id="ctxMsg"></div>
-    <div class="context-bottom"><p class="muted" id="editableInfo" role="status"></p><label class="theme-switch"><input id="darkToggle" type="checkbox" role="switch" aria-label="Attiva modalità scura"><span class="theme-track" aria-hidden="true"><svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg><svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></svg></span></label></div>
+    <p class="muted" id="editableInfo" role="status"></p>
+    <div class="context-bottom"><div class="context-actions"><button class="btn ghost small" id="btnRefresh">Ricarica</button><button class="btn ghost small" id="btnForget">Dimentica password</button><button class="btn danger small" id="btnLogout">Esci</button></div><label class="theme-switch"><input id="darkToggle" type="checkbox" role="switch" aria-label="Attiva modalità scura"><span class="theme-track" aria-hidden="true"><svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg><svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></svg></span></label></div>
   </section>
 
   <div id="operationHeading" class="section-heading hidden"><button class="btn add-btn" id="btnAdd" aria-expanded="false" aria-controls="appCard"><span>+</span> Aggiungi entrata/uscita</button></div>
@@ -413,6 +418,7 @@ function restoreSession(){
 function isStandalone(){ return window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true; }
 function updateConnUI(){
   const onboarding=!localStorage.getItem(LS.onboarded) && !isStandalone() && !state.user;
+  document.body.classList.toggle("dashboard-active",!!state.user);
   $("installScreen").classList.toggle("hidden",!onboarding);
   $("loginCard").classList.toggle("hidden",!!state.user || onboarding);
   $("ctxCard").classList.toggle("hidden",!state.user);
