@@ -69,6 +69,7 @@
 @media(max-height:500px){.login-active .wrap{justify-content:flex-start;overflow-y:auto}}
 .operation-side{display:flex;flex-direction:column;gap:6px;justify-content:center}.operation-side .back-btn,.operation-side .camera-btn{width:44px;min-width:44px;height:36px;padding:0;display:flex;justify-content:center;align-items:center}.operation-side .camera-btn{box-shadow:0 2px 8px #1018281a}
 .receipt-choices{pointer-events:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:0 4px 16px #10182826}.receipt-choices p{font-size:14px;font-weight:600;margin:0 0 10px}.receipt-choice-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}.receipt-choice-buttons .btn,.receipt-cancel{min-height:40px}.receipt-cancel{width:100%;margin-top:8px}
+.ocr-text{margin:10px 0}.ocr-text pre{white-space:pre-wrap;overflow:auto;max-height:220px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:8px;font:13px/1.5 monospace;color:var(--txt)}
 </style>
 </head>
 <body>
@@ -131,6 +132,7 @@
       <div class="field"><label for="fDesc">Descrizione *</label><input id="fDesc" placeholder="Descrivi l'operazione"></div>
       <div class="grid2"><div class="field"><label for="fCat">Categoria</label><select id="fCat"><option value="">— Nessuna —</option></select></div><div class="field"><label class="note-label" for="fNote"><span>Note</span><span class="muted" id="noteCount">0/150</span></label><input id="fNote" maxlength="150" placeholder="Facoltative"></div></div>
       <div class="field hidden" id="unitaField"><label for="fUnita">Unità</label><select id="fUnita"></select></div>
+      <details class="ocr-text hidden" id="ocrDetails"><summary>Mostra il testo riconosciuto</summary><p class="muted">Il testo resta sul dispositivo e può contenere dati personali.</p><pre id="ocrText"></pre></details>
 
 
     </div>
@@ -171,7 +173,7 @@
 
 </div>
 
-<script src="receipt-ocr.js"></script>
+<script src="receipt-ocr.js?v=21"></script>
 <script>
 "use strict";
 const API = "https://bilancio.agesci.it";
@@ -803,7 +805,7 @@ $("btnClose").onclick=closeOperation;
 /* La foto viene elaborata solo in memoria, sul dispositivo. Il motore si scarica al primo utilizzo. */
 let receiptGeneration=0, receiptBusy=false, tesseractLoad=null;
 function closeReceiptChoices(restoreFocus=false){ $("receiptChoices").classList.add("hidden"); $("btnReceipt").setAttribute("aria-expanded","false"); if(restoreFocus) $("btnReceipt").focus(); }
-function cancelReceiptRead(){ receiptGeneration++; hideMsg("ocrMsg"); closeReceiptChoices(); }
+function cancelReceiptRead(){ receiptGeneration++; hideMsg("ocrMsg"); closeReceiptChoices(); $("ocrDetails").classList.add("hidden"); $("ocrDetails").open=false; $("ocrText").textContent=""; }
 function loadTesseract(){
   if(window.Tesseract) return Promise.resolve(window.Tesseract);
   if(!tesseractLoad){
@@ -822,7 +824,7 @@ function prepareReceiptImage(file){
     const url=URL.createObjectURL(file), image=new Image();
     image.onload=()=>{
       try{
-        const scale=Math.min(1,3200/Math.max(image.naturalWidth,image.naturalHeight));
+        const scale=Math.min(1,2200/Math.max(image.naturalWidth,image.naturalHeight),Math.sqrt(3000000/(image.naturalWidth*image.naturalHeight)));
         const canvas=document.createElement("canvas"); canvas.width=Math.max(1,Math.round(image.naturalWidth*scale)); canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));
         const context=canvas.getContext("2d"); if(!context) throw new Error("Impossibile preparare l'immagine");
         context.fillStyle="#fff"; context.fillRect(0,0,canvas.width,canvas.height); context.drawImage(image,0,0,canvas.width,canvas.height);
@@ -839,7 +841,7 @@ function preprocessReceipt(image){
     let task, timer, done=false;
     const finish=result=>{ if(done) return; done=true; clearTimeout(timer); if(task) task.terminate(); resolve(result); };
     try{
-      task=new Worker(new URL("vendor/ocr/receipt-preprocess-worker.js",document.baseURI));
+      task=new Worker(new URL("vendor/ocr/receipt-preprocess-worker.js?v=21",document.baseURI));
       timer=setTimeout(()=>finish(null),30000);
       task.onmessage=e=>finish(e.data?.ok && e.data.image ? e.data : null);
       task.onerror=()=>finish(null);
@@ -861,47 +863,67 @@ async function readReceiptFile(e){
   if((file.type && !file.type.startsWith("image/")) || file.size>25*1024*1024){ showMsg("ocrMsg","Scegli un'immagine di massimo 25 MB.","err"); return; }
   const generation=++receiptGeneration;
   const initial={date:$("fData").value, amount:$("fImporto").value, desc:$("fDesc").value, tipo:state.tipo, tipoId:$("fTipo").value};
-  let worker;
+  let worker, stage="preparazione della foto";
   receiptBusy=true; $("btnReceipt").disabled=true;
+  $("ocrDetails").classList.add("hidden"); $("ocrDetails").open=false; $("ocrText").textContent="";
   showMsg("ocrMsg","Lettura sul dispositivo. Al primo utilizzo è necessaria una connessione per scaricare il motore OCR…","ok");
   try{
     const image=await prepareReceiptImage(file);
     if(generation!==receiptGeneration || !state.user) return;
     showMsg("ocrMsg","Preparazione dello scontrino sul dispositivo…","ok");
-    const prepared=preprocessReceipt(image);
+    // Preprocessing e riconoscimento sono sequenziali per ridurre la memoria sui telefoni.
+    const processed=await preprocessReceipt(image);
+    if(generation!==receiptGeneration || !state.user) return;
+    stage="caricamento del motore";
     const tesseract=await loadTesseract();
     if(generation!==receiptGeneration || !state.user) return;
     const base=new URL("vendor/ocr/",document.baseURI).href.replace(/\/$/,"");
-    // Verifica esplicita del modello: in alcune versioni del motore un download fallito non completa l'inizializzazione.
+    stage="download del modello italiano";
     const model=await fetch(base+"/ita.traineddata.gz");
-    if(!model.ok) throw new Error("Modello OCR non disponibile");
+    if(!model.ok) throw new Error("HTTP "+model.status);
     await model.arrayBuffer();
     if(generation!==receiptGeneration || !state.user) return;
-    let rejectInit, timer, abandoned=false;
-    const failure=new Promise((_,reject)=>{ rejectInit=reject; timer=setTimeout(()=>reject(new Error("Tempo di inizializzazione OCR scaduto")),90000); });
     let readingPass="originale";
-    const creating=tesseract.createWorker("ita",1,{
-      workerPath:base+"/worker.min.js", corePath:base, langPath:base,
-      workerBlobURL:false, cacheMethod:"none", errorHandler:err=>rejectInit(new Error(String(err))),
-      logger: m=>{ if(generation===receiptGeneration && m.status==="recognizing text") showMsg("ocrMsg","Lettura "+readingPass+": "+Math.round(m.progress*100)+"%. L'immagine resta sul dispositivo.","ok"); }
-    }).then(w=>{ if(abandoned) w.terminate(); return w; });
-    try{ worker=await Promise.race([creating,failure]); }catch(err){ abandoned=true; throw err; }finally{ clearTimeout(timer); }
+    async function startWorker(){
+      let rejectInit, timer, abandoned=false;
+      const failure=new Promise((_,reject)=>{ rejectInit=reject; timer=setTimeout(()=>reject(new Error("Tempo di inizializzazione OCR scaduto")),90000); });
+      const creating=tesseract.createWorker("ita",1,{
+        workerPath:base+"/worker.min.js", corePath:base, langPath:base,
+        workerBlobURL:false, cacheMethod:"none", errorHandler:err=>rejectInit(new Error(String(err))),
+        logger:m=>{ if(generation===receiptGeneration && m.status==="recognizing text") showMsg("ocrMsg","Lettura "+readingPass+": "+Math.round(m.progress*100)+"%. L'immagine resta sul dispositivo.","ok"); }
+      }).then(w=>{ if(abandoned) w.terminate(); return w; });
+      try{ return await Promise.race([creating,failure]); }catch(err){ abandoned=true; throw err; }finally{ clearTimeout(timer); }
+    }
+    async function recognizeWithTimeout(ocrWorker,source){
+      let timer;
+      const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error("Tempo di lettura OCR scaduto")),90000);});
+      try{ return await Promise.race([ocrWorker.recognize(source),timeout]); }finally{ clearTimeout(timer); }
+    }
+    stage="avvio del motore OCR";
+    worker=await startWorker();
     if(generation!==receiptGeneration || !state.user) return;
-    const result=await worker.recognize(image);
-    if(generation!==receiptGeneration || !state.user || $("appCard").classList.contains("hidden")) return;
-    let enhanced=null;
-    const processed=await prepared;
+    stage="lettura della foto";
+    let result=null, enhancedResult=null, firstError=null;
+    try{ result=await recognizeWithTimeout(worker,image); }catch(err){ firstError=err; }
     if(generation!==receiptGeneration || !state.user || $("appCard").classList.contains("hidden")) return;
     if(processed){
       try{
-        readingPass="immagine migliorata";
+        // Se la prima lettura ha fallito o si è bloccata, usa un worker pulito.
+        if(firstError){ await worker.terminate(); worker=null; stage="riavvio del motore OCR"; worker=await startWorker(); }
+        if(generation!==receiptGeneration || !state.user) return;
+        stage="lettura dell'immagine migliorata"; readingPass="immagine migliorata";
         showMsg("ocrMsg","Lettura dell'immagine migliorata…","ok");
-        const second=await worker.recognize(processed.image);
-        enhanced=ReceiptOCR.parseReceipt(second.data.text);
-      }catch(err){ console.warn("Lettura immagine migliorata non riuscita:",err); }
+        enhancedResult=await recognizeWithTimeout(worker,processed.image);
+      }catch(err){ if(!result) throw err; console.warn("Lettura immagine migliorata non riuscita:",err); }
     }
     if(generation!==receiptGeneration || !state.user || $("appCard").classList.contains("hidden")) return;
-    const found=ReceiptOCR.mergeReceipts(ReceiptOCR.parseReceipt(result.data.text),enhanced);
+    if(!result && !enhancedResult) throw firstError || new Error("Nessuna lettura disponibile");
+    const originalText=result?.data?.text || "", enhancedText=enhancedResult?.data?.text || "";
+    const visibleText=originalText.trim() || enhancedText.trim();
+    if(visibleText){ $("ocrText").textContent=visibleText; $("ocrDetails").classList.remove("hidden"); }
+    stage="interpretazione del testo";
+    if(!window.ReceiptOCR || typeof ReceiptOCR.parseReceipt!=="function" || typeof ReceiptOCR.mergeReceipts!=="function") throw new Error("Versione dell'analisi OCR non disponibile");
+    const found=ReceiptOCR.mergeReceipts(ReceiptOCR.parseReceipt(originalText),enhancedResult?ReceiptOCR.parseReceipt(enhancedText):null);
     const filled=[];
     if(found.date && initial.date===isoToInputDate(new Date()) && $("fData").value===initial.date){ $("fData").value=found.date; filled.push("data"); }
     if(found.amount && !initial.amount && !$("fImporto").value){ $("fImporto").value=found.amount; filled.push("importo"); }
@@ -909,11 +931,16 @@ async function readReceiptFile(e){
     if(filled.length && initial.tipo==="i" && state.tipo===initial.tipo && !initial.tipoId && !$("fTipo").value) setTipo("o");
     let message=filled.length ? "Proposti: "+filled.join(", ")+". Controlla i dati prima di salvare." : "Nessun campo compilato: dati non riconosciuti o campi già compilati. Controlla lo scontrino e inseriscili manualmente.";
     if(found.ambiguousAmount || found.ambiguousDate) message+=" Più "+(found.ambiguousAmount && found.ambiguousDate?"date e totali":found.ambiguousAmount?"totali":"date")+" rilevati: verifica e inserisci i valori corretti.";
-    if(!processed) message+=" Miglioramento immagine non disponibile: usata la foto originale.";
+    if(!enhancedResult) message+=" Miglioramento immagine non disponibile: usata la foto originale.";
+    if(!result && enhancedResult) message+=" Usata la lettura dell'immagine migliorata.";
+    if(visibleText) message+=" Puoi vedere il testo riconosciuto sotto i campi.";
     message+=" Conto, tipologia e categoria restano da verificare.";
     showMsg("ocrMsg",message,"warn");
   }catch(err){
-    if(generation===receiptGeneration && state.user) showMsg("ocrMsg","Lettura non riuscita. Controlla la connessione al primo utilizzo o prova una foto più nitida. Puoi compilare i campi manualmente.","err");
+    if(generation===receiptGeneration && state.user){
+      const advice=stage.includes("download") || stage.includes("caricamento") ? "Controlla la connessione e riapri l'app." : stage==="preparazione della foto" ? "Prova una foto JPEG o PNG dalla galleria." : "Riprova; se il problema continua, comunica questa fase dell'errore.";
+      showMsg("ocrMsg","Lettura non riuscita durante: "+stage+". "+advice,"err");
+    }
     console.warn("OCR non disponibile:",err);
   }finally{
     if(worker) try{ await worker.terminate(); }catch(_){}
