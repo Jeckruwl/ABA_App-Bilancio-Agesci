@@ -1,6 +1,6 @@
 {
-  "name": "AGESCI Tool Bilancio — Helper personale",
-  "short_name": "Bilancio Helper",
+  "name": "Helper Bilancio Agesci",
+  "short_name": "Helper Bilancio Agesci",
   "description": "Helper personale per inserire operazioni di Prima Nota su bilancio.agesci.it senza accedere ogni volta. Accedi una volta, poi lavora offline dalla home.",
   "id": "./index.html",
   "start_url": "./index.html",
