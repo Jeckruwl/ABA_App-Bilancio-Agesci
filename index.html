@@ -70,9 +70,43 @@
 .operation-side{display:flex;flex-direction:column;gap:6px;justify-content:center}.operation-side .back-btn,.operation-side .camera-btn{width:44px;min-width:44px;height:36px;padding:0;display:flex;justify-content:center;align-items:center}.operation-side .camera-btn{box-shadow:0 2px 8px #1018281a}
 .receipt-choices{pointer-events:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:0 4px 16px #10182826}.receipt-choices p{font-size:14px;font-weight:600;margin:0 0 10px}.receipt-choice-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}.receipt-choice-buttons .btn,.receipt-cancel{min-height:40px}.receipt-cancel{width:100%;margin-top:8px}
 .ocr-text{margin:10px 0}.ocr-text pre{white-space:pre-wrap;overflow:auto;max-height:220px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:8px;font:13px/1.5 monospace;color:var(--txt)}
+/* Selettore a due sezioni e notifiche indipendenti dal layout. */
+.tabs button{flex:1 1 0;min-width:0;text-align:center}
+.notifications{position:fixed;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:min(480px,calc(100% - 32px));z-index:1000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.notifications .toast{pointer-events:auto;display:flex;align-items:flex-start;gap:10px;margin:0;padding:12px 12px 12px 14px;background:var(--card);border:1px solid var(--border);box-shadow:0 8px 24px #10182830;touch-action:pan-y;overflow-wrap:anywhere}
+.toast-text{flex:1;min-width:0}.toast-close{flex:none;border:0;background:transparent;color:inherit;cursor:pointer;font-size:22px;line-height:20px;padding:0 2px}
+@media(max-width:700px){
+  .tabs button{flex:1 1 0}
+  .card.operation-screen{height:100vh;height:100dvh;overflow:hidden;padding:calc(12px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom))}
+  .operation-inner{height:100%;display:flex;flex-direction:column;min-height:0}
+  .operation-screen .tabs{flex:none;margin-bottom:10px}
+  .operation-screen .field{margin-bottom:8px}
+  .operation-screen label{margin-bottom:3px}
+  #tab-nuova>.grid2:not(.paired-fields){grid-template-columns:repeat(2,minmax(0,1fr));column-gap:8px}
+  #tab-modelli{min-height:0;overflow-y:auto;overscroll-behavior:contain}
+  .operation-screen .ocr-text:not(.hidden){position:fixed;z-index:2;bottom:calc(92px + env(safe-area-inset-bottom));left:16px;right:16px;margin:0;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card);box-shadow:0 2px 8px #1018281a}
+  .operation-screen .ocr-text pre{max-height:20vh;margin:6px 0 0}.operation-screen .ocr-text p{margin:4px 0}
+}
+@media(max-width:700px) and (max-height:700px){
+  .card.operation-screen{padding-top:calc(8px + env(safe-area-inset-top));padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+  .operation-screen .field{margin-bottom:5px}.operation-screen label{font-size:12px;line-height:16px;margin-bottom:2px}
+  #tab-nuova input,#tab-nuova select,#tab-nuova .toggle{height:33px}
+  #tab-nuova input,#tab-nuova select{padding-top:4px;padding-bottom:4px}
+  .operation-screen .tabs{margin-bottom:7px}.operation-screen .tabs button{padding:6px 8px}
+}
+@media(max-width:700px) and (max-height:500px){
+  #tab-nuova{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:8px}
+  #tab-nuova>.grid2,#tab-nuova>#unitaField,#tab-nuova>.field:has(#fDesc){grid-column:1 / -1}
+}
+@media(min-width:500px) and (max-width:700px) and (max-height:500px){
+  #tab-nuova{grid-template-columns:repeat(4,minmax(0,1fr))}
+  #tab-nuova>*{grid-column:span 2!important}
+}
+@media(max-width:700px){.keyboard-open .card.operation-screen{overflow-y:auto}}
 </style>
 </head>
 <body>
+<div id="notifications" class="notifications" aria-label="Notifiche"></div>
 <div class="wrap">
   <div class="msg warn hidden" id="fileWarn">Apri l'app tramite HTTPS per utilizzare installazione e rinnovo automatico.</div>
   <section class="card hero hidden" id="installScreen">
@@ -195,8 +229,27 @@ function parseITDate(s){ // "15/03/2026" -> Date
   const d=new Date(Number(p[2]), Number(p[1])-1, Number(p[0])); return isNaN(d)?null:d;
 }
 function isoToInputDate(iso){ const d=new Date(iso); if(isNaN(d)) return ""; const p=n=>String(n).padStart(2,"0"); return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); }
-function showMsg(id, text, kind){ const el=$(id); el.className="msg "+kind; el.textContent=text; el.style.display="block"; }
-function hideMsg(id){ const el=$(id); el.style.display="none"; }
+const toastTimers=new Map(), toastBound=new WeakSet();
+function hideMsg(id){ const el=$(id); if(!el) return; clearTimeout(toastTimers.get(id)); toastTimers.delete(id); el.style.display="none"; el.style.transform=""; }
+function showMsg(id, text, kind){
+  const el=$(id); if(!el) return;
+  clearTimeout(toastTimers.get(id));
+  el.className="msg toast "+kind; el.style.display="flex"; el.style.transform="";
+  el.setAttribute("role",kind==="err"?"alert":"status");
+  el.textContent="";
+  const content=document.createElement("span"); content.className="toast-text"; content.textContent=text;
+  const close=document.createElement("button"); close.type="button"; close.className="toast-close"; close.setAttribute("aria-label","Chiudi notifica"); close.textContent="×"; close.onclick=()=>hideMsg(id);
+  el.append(content,close); $("notifications").appendChild(el);
+  if(!toastBound.has(el)){
+    let start=null;
+    el.addEventListener("pointerdown",e=>{ if(e.target.closest("button")) return; start={x:e.clientX,y:e.clientY,id:e.pointerId}; try{el.setPointerCapture(e.pointerId);}catch(_){} });
+    el.addEventListener("pointermove",e=>{ if(!start || e.pointerId!==start.id) return; const dx=e.clientX-start.x,dy=e.clientY-start.y; if(Math.abs(dx)>Math.abs(dy) && Math.abs(dx)>8) el.style.transform="translateX("+dx+"px)"; });
+    el.addEventListener("pointerup",e=>{ if(!start || e.pointerId!==start.id) return; const dx=e.clientX-start.x,dy=e.clientY-start.y; start=null; if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)) hideMsg(id); else el.style.transform=""; });
+    el.addEventListener("pointercancel",()=>{start=null;el.style.transform="";});
+    toastBound.add(el);
+  }
+  toastTimers.set(id,setTimeout(()=>hideMsg(id),3000));
+}
 function decodeJWT(t){
   try{
     if(!t || typeof t!=="string") return null;
@@ -472,7 +525,7 @@ function updateConnUI(){
   $("loginCard").classList.toggle("hidden",!!state.user || onboarding);
   $("ctxCard").classList.toggle("hidden",!state.user);
   $("operationHeading").classList.toggle("hidden",!state.user);
-  if(!state.user){ cancelReceiptRead(); $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open"); }
+  if(!state.user){ invalidateNavigation(); cancelReceiptRead(); $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open","keyboard-open"); }
   else { const name=localStorage.getItem(LS.firstName) || (state.user?.userInfo?.codiceSocio ? "Socio "+state.user.userInfo.codiceSocio : "Utente"); $("helloName").textContent="Ciao, "+name; }
 }
 let initPromise = null;
@@ -555,7 +608,7 @@ async function filterEditableYears(){
   setOperationEnabled(false);
   state.year=null; state.years=[];
   sel.innerHTML='<option value="">Verifica anni…</option>'; sel.disabled=true;
-  $("editableInfo").textContent="";
+  hideMsg("editableInfo");
   const results=readOnlyRole()? [] : await Promise.allSettled(state.allYears.map(async year=>({year, editable:editableResult(await postReq("/api/rendiconto/checkifnoteditable", {...req, rendicontoid:year.value}))})));
   if(version!==yearsCheckVersion || !state.user) return;
   const failed=results.some(r=>r.status==="rejected");
@@ -566,8 +619,8 @@ async function filterEditableYears(){
   else { state.years.forEach(y=>{ const o=document.createElement("option"); o.value=y.value; o.textContent=y.label; sel.appendChild(o); }); sel.value=state.year.value; localStorage.setItem(LS.year,JSON.stringify(state.year)); }
   sel.disabled=!state.year;
   setOperationEnabled(!!state.year);
-  if(failed) $("editableInfo").textContent="Impossibile verificare alcuni anni. Ricarica per riprovare.";
-  else if(!state.year) $("editableInfo").textContent=readOnlyRole()?"Accesso in sola lettura.":"Nessun anno disponibile per l'inserimento.";
+  if(failed) showMsg("editableInfo","Impossibile verificare alcuni anni. Ricarica per riprovare.","warn");
+  else if(!state.year) showMsg("editableInfo",readOnlyRole()?"Accesso in sola lettura.":"Nessun anno disponibile per l'inserimento.","warn");
 }
 async function checkEditable(){
   if(!state.year){ setOperationEnabled(false); return; }
@@ -575,7 +628,7 @@ async function checkEditable(){
     const editable=!readOnlyRole() && editableResult(await postReq("/api/rendiconto/checkifnoteditable", {...buildReq(0), rendicontoid:state.year.value}));
     setOperationEnabled(editable);
     if(!editable){ await filterEditableYears(); return; }
-  }catch(e){ setOperationEnabled(false); $("editableInfo").textContent="Impossibile verificare l'anno. Ricarica per riprovare."; }
+  }catch(e){ setOperationEnabled(false); showMsg("editableInfo","Impossibile verificare l'anno. Ricarica per riprovare.","warn"); }
 }
 async function loadContextData(){
   if(!state.year || !state.user) return;
@@ -749,7 +802,7 @@ function renderTemplates(){
   });
 }
 function applyTemplate(t){
-  switchTab("nuova");
+  navigateTab("nuova");
   $("fConto").value=t.idconto??"";
   setTipo(t.tipo);
   const item=(state.tipo==="i"?state.tipiE:state.tipiU).find(x=>String(x.value)===String(t.idtipo));
@@ -778,7 +831,7 @@ function switchTab(name){
   document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on", b.dataset.tab===name));
   ["nuova","modelli"].forEach(t=>$("tab-"+t).classList.toggle("hidden", t!==name));
   $("saveActions").classList.toggle("hidden",name!=="nuova");
-  if(name!=="nuova"){ cancelReceiptRead(); hideMsg("saveMsg"); }
+  if(name!=="nuova") cancelReceiptRead();
   $("btnReceipt").classList.toggle("hidden",name!=="nuova");
 }
 function setTipo(t){
@@ -799,9 +852,55 @@ applyTheme(savedTheme==="dark" || (savedTheme!=="light" && systemTheme.matches))
 if(systemTheme.addEventListener) systemTheme.addEventListener("change", e=>{ if(!localStorage.getItem(LS.theme)) applyTheme(e.matches); });
 else if(systemTheme.addListener) systemTheme.addListener(e=>{ if(!localStorage.getItem(LS.theme)) applyTheme(e.matches); });
 $("darkToggle").onchange=e=>{ localStorage.setItem(LS.theme,e.target.checked?"dark":"light"); applyTheme(e.target.checked); };
-function closeOperation(){ cancelReceiptRead(); $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open"); if(state.user) $("btnAdd").focus(); }
-$("btnAdd").onclick=()=>{ $("appCard").classList.remove("hidden"); $("btnAdd").setAttribute("aria-expanded","true"); document.body.classList.add("modal-open"); $("fData").value=isoToInputDate(new Date()); switchTab("nuova"); $("btnClose").focus(); };
-$("btnClose").onclick=closeOperation;
+// La cronologia rappresenta le schermate interne, così anche il tasto/gesto indietro di sistema funziona.
+function newNavSession(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
+let navSession=newNavSession();
+function invalidateNavigation(){
+  if(navEntry()){ const updated={...history.state}; delete updated.abaNavigation; history.replaceState(updated,""); }
+  navSession=newNavSession();
+}
+function navEntry(){ const n=history.state?.abaNavigation; return n?.session===navSession?n:null; }
+function pushView(view){ history.pushState({...history.state,abaNavigation:{session:navSession,view}},""); }
+function closeOperation(){ cancelReceiptRead(); $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open","keyboard-open"); if(state.user) $("btnAdd").focus(); }
+let operationViewportHeight=0;
+function showOperation(resetDate){ operationViewportHeight=window.visualViewport?.height || window.innerHeight; $("appCard").classList.remove("hidden"); $("btnAdd").setAttribute("aria-expanded","true"); document.body.classList.add("modal-open"); if(resetDate) $("fData").value=isoToInputDate(new Date()); }
+function updateKeyboardViewport(){
+  const active=document.activeElement, editing=active && $("appCard").contains(active) && (active.tagName==="INPUT" || active.tagName==="TEXTAREA") && active.type!=="file";
+  const height=window.visualViewport?.height || window.innerHeight;
+  const keyboard=!!(editing && operationViewportHeight-height>120);
+  document.body.classList.toggle("keyboard-open",keyboard);
+  if(keyboard) requestAnimationFrame(()=>{ if(document.body.classList.contains("keyboard-open")) active.scrollIntoView({block:"nearest"}); });
+}
+window.visualViewport?.addEventListener("resize",updateKeyboardViewport);
+$("appCard").addEventListener("focusin",updateKeyboardViewport);
+$("appCard").addEventListener("focusout",()=>setTimeout(updateKeyboardViewport,0));
+function navigateBack(){
+  if(!$("receiptChoices").classList.contains("hidden")){ closeReceiptChoices(true); return; }
+  if($("ocrDetails").open){ $("ocrDetails").open=false; return; }
+  const current=navEntry();
+  if(current){ history.back(); }
+  else if(!$("appCard").classList.contains("hidden")) closeOperation();
+}
+function navigateTab(name){
+  const current=navEntry();
+  if(name==="modelli" && current?.view==="nuova") pushView("modelli");
+  else if(name==="nuova" && current?.view==="modelli") history.back();
+  switchTab(name);
+}
+window.addEventListener("popstate",e=>{
+  const entry=e.state?.abaNavigation;
+  if(state.user && !$("appCard").classList.contains("hidden") && (!$("receiptChoices").classList.contains("hidden") || $("ocrDetails").open)){
+    closeReceiptChoices(); $("ocrDetails").open=false;
+    pushView($("tab-modelli").classList.contains("hidden")?"nuova":"modelli");
+    return;
+  }
+  if(state.user && entry?.session===navSession && ["nuova","modelli"].includes(entry.view)){
+    if($("appCard").classList.contains("hidden")) showOperation(false);
+    switchTab(entry.view);
+  }else if(!$("appCard").classList.contains("hidden")) closeOperation();
+});
+$("btnAdd").onclick=()=>{ if(!state.user) return; pushView("nuova"); showOperation(true); switchTab("nuova"); $("btnClose").focus(); };
+$("btnClose").onclick=navigateBack;
 /* La foto viene elaborata solo in memoria, sul dispositivo. Il motore si scarica al primo utilizzo. */
 let receiptGeneration=0, receiptBusy=false, tesseractLoad=null;
 function closeReceiptChoices(restoreFocus=false){ $("receiptChoices").classList.add("hidden"); $("btnReceipt").setAttribute("aria-expanded","false"); if(restoreFocus) $("btnReceipt").focus(); }
@@ -950,13 +1049,18 @@ async function readReceiptFile(e){
 $("receiptFile").onchange=readReceiptFile;
 $("receiptCamera").onchange=readReceiptFile;
 $("appCard").addEventListener("keydown",e=>{
-  if(e.key==="Escape"){ e.preventDefault(); if(!$("receiptChoices").classList.contains("hidden")) closeReceiptChoices(true); else closeOperation(); return; }
+  if(e.key==="Escape" || (e.key==="ArrowLeft" && e.altKey)){ e.preventDefault(); navigateBack(); return; }
   if(e.key!=="Tab") return;
   const items=[...$("appCard").querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)')].filter(el=>!el.closest('.hidden'));
   if(!items.length) return;
   if(e.shiftKey && document.activeElement===items[0]){ e.preventDefault(); items[items.length-1].focus(); }
   else if(!e.shiftKey && document.activeElement===items[items.length-1]){ e.preventDefault(); items[0].focus(); }
 });
+let edgeSwipe=null;
+$("appCard").addEventListener("touchstart",e=>{ const t=e.touches[0]; edgeSwipe=e.touches.length===1 && t.clientX<=24 ? {x:t.clientX,y:t.clientY,active:false}:null; },{passive:true});
+$("appCard").addEventListener("touchmove",e=>{ if(!edgeSwipe || e.touches.length!==1) return; const dx=e.touches[0].clientX-edgeSwipe.x,dy=e.touches[0].clientY-edgeSwipe.y; if(dx>15 && dx>Math.abs(dy)*1.5){ edgeSwipe.active=true; if(e.cancelable) e.preventDefault(); } },{passive:false});
+$("appCard").addEventListener("touchend",e=>{ if(!edgeSwipe) return; const t=e.changedTouches[0], dx=t.clientX-edgeSwipe.x,dy=t.clientY-edgeSwipe.y, active=edgeSwipe.active; edgeSwipe=null; if(active && dx>70 && dx>Math.abs(dy)*1.5) navigateBack(); },{passive:true});
+$("appCard").addEventListener("touchcancel",()=>{edgeSwipe=null;},{passive:true});
 document.querySelectorAll("#voceToggle button").forEach(b=>b.onclick=()=>setVoceMode(b.dataset.mode));
 $("fData").value=isoToInputDate(new Date());
 $("password").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
@@ -981,7 +1085,7 @@ $("btnRefresh").onclick=async()=>{ await loadYears(true); await loadContextData(
 $("selYear").onchange=async e=>{ state.year=state.years.find(y=>String(y.value)===e.target.value)||null; if(state.year) localStorage.setItem(LS.year, JSON.stringify(state.year)); await loadContextData(); await checkEditable(); };
 $("selIncarico").onchange=async e=>{ const list=state.user?.userInfo?.incarichiSocio||[]; state.incarico=list[Number(e.target.value)]||null; if(state.incarico) localStorage.setItem(LS.incarico, JSON.stringify(state.incarico)); updateUnitaSelect(); await filterEditableYears(); await loadContextData(); };
 $("selUnita").onchange=async e=>{ const unita=state.incarico?.dati?.unita||[]; state.unita=unita.find(u=>(u.cun+u.prog)===e.target.value)||null; if(state.unita) localStorage.setItem(LS.unita, JSON.stringify(state.unita)); else localStorage.removeItem(LS.unita); await filterEditableYears(); await loadContextData(); };
-document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>navigateTab(b.dataset.tab));
 document.querySelectorAll("#tipoToggle button").forEach(b=>b.onclick=()=>setTipo(b.dataset.t));
 ["fConto","fData","fImporto","fTipo","fDesc","fCat","fNote","fUnita"].forEach(id=>$(id).addEventListener("input",updatePayloadPreview));
 $("btnSave").onclick=()=>saveOperation(false);
@@ -1039,8 +1143,8 @@ window.addEventListener("storage", (e)=>{
 
 /* ---------- boot ---------- */
 (async function boot(){
-  if(location.protocol==="file:") $("fileWarn").classList.remove("hidden");
-  else $("fileWarn").classList.add("hidden");
+  if(location.protocol==="file:") showMsg("fileWarn","Apri l'app tramite HTTPS per utilizzare installazione e rinnovo automatico.","warn");
+  else hideMsg("fileWarn");
   const creds=getSavedCreds();
   if(creds?.username && !$("username").value) $("username").value=creds.username;
 
