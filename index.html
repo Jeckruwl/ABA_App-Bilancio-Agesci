@@ -143,11 +143,23 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
   #tab-nuova>.field:has(.toggle){flex:none}
   #tab-nuova .field{display:flex;flex-direction:column;margin-bottom:0;min-height:0}
   #tab-nuova .grid2 .field{height:100%}
-  #tab-nuova .field:has(> input),#tab-nuova .field:has(> select){display:grid;grid-template-rows:auto minmax(0,1fr)}
+  #tab-nuova .field:has(> input),#tab-nuova .field:has(> .select-wrapper){display:grid;grid-template-rows:auto minmax(0,1fr)}
   #tab-nuova input,#tab-nuova select{height:76.5%;min-height:0;align-self:start}
   .operation-footer{position:static;transform:none;width:100%;padding:clamp(16px,3vh,28px) 0 0;flex:none}
   .save-grid .btn{height:clamp(36px,7vh,64px)}
 }
+
+
+/* Un pulsante reale intercetta il tocco: Android non apre il menu nativo. */
+.select-wrapper{position:relative;width:100%;min-width:0}
+.select-wrapper select{display:block;width:100%;pointer-events:none}
+.select-trigger{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;border-radius:8px;background:transparent;cursor:pointer}
+.select-trigger:disabled{cursor:not-allowed}
+.select-trigger:focus-visible{outline:2px solid #fdc500;outline-offset:1px}
+#tab-nuova .select-wrapper{height:29.07px}
+#tab-nuova .select-wrapper select{height:100%}
+@media(max-width:700px) and (max-height:500px){#tab-nuova .select-wrapper{height:22.95px}}
+@media(max-width:700px) and (min-height:501px){#tab-nuova .select-wrapper{height:76.5%;align-self:start}#tab-nuova .select-wrapper select{height:100%}}
 
 /* Menu di selezione dell'app: testi completi e ricerca anche su Android. */
 .select-dialog{width:min(560px,calc(100% - 32px));max-width:none;max-height:min(80dvh,700px);padding:0;border:0;border-radius:14px;background:var(--card);color:var(--txt);box-shadow:0 12px 40px #0005}
@@ -959,7 +971,7 @@ $("btnAdd").onclick=()=>{ if(!state.user) return; pushView("nuova"); showOperati
 $("appCard").addEventListener("keydown",e=>{
   if(e.key==="Escape" || (e.key==="ArrowLeft" && e.altKey)){ e.preventDefault(); navigateBack(); return; }
   if(e.key!=="Tab") return;
-  const items=[...$("appCard").querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)')].filter(el=>!el.closest('.hidden'));
+  const items=[...$("appCard").querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)')].filter(el=>el.tabIndex>=0 && !el.closest('.hidden'));
   if(!items.length) return;
   if(e.shiftKey && document.activeElement===items[0]){ e.preventDefault(); items[items.length-1].focus(); }
   else if(!e.shiftKey && document.activeElement===items[items.length-1]){ e.preventDefault(); items[0].focus(); }
@@ -1078,7 +1090,7 @@ window.addEventListener("storage", (e)=>{
   function open(select){
     if(select.disabled || dialog.open) return;
     active=select;
-    const label=select.labels?.[0] || select.parentElement.querySelector("label");
+    const label=select.labels?.[0] || select.closest(".field")?.querySelector("label");
     $("selectDialogTitle").textContent=label?.textContent.trim() || "Seleziona una voce";
     search.value=""; render();
     marker=Date.now().toString(36)+Math.random().toString(36).slice(2);
@@ -1089,7 +1101,7 @@ window.addEventListener("storage", (e)=>{
     if(!active) return;
     const select=active; active=null; marker=null;
     if(dialog.open) dialog.close();
-    if(select.isConnected && !select.disabled && !select.closest(".hidden")) select.focus({preventScroll:true});
+    if(select.isConnected && !select.disabled && !select.closest(".hidden")) select.nextElementSibling?.focus({preventScroll:true});
   }
   function dismiss(){
     if(!active || returning) return;
@@ -1108,10 +1120,26 @@ window.addEventListener("storage", (e)=>{
     if(index<0) return;
     e.preventDefault(); options[Math.max(0,Math.min(options.length-1,index+(e.key==="ArrowDown"?1:-1)))].focus();
   });
+  if(typeof dialog.showModal!=="function") return; // Fallback al selettore nativo sui browser meno recenti.
   document.querySelectorAll("select").forEach(select=>{
-    select.addEventListener("pointerdown",e=>{ if(e.button!==0 || select.disabled) return; e.preventDefault(); });
-    select.addEventListener("click",e=>{ e.preventDefault(); if(!dialog.open) open(select); });
-    select.addEventListener("keydown",e=>{ if(["Enter"," ","ArrowDown","ArrowUp"].includes(e.key)){ e.preventDefault(); open(select); } });
+    const label=select.labels?.[0] || select.closest(".field")?.querySelector("label");
+    const wrapper=document.createElement("div"), trigger=document.createElement("button");
+    wrapper.className="select-wrapper"; trigger.type="button"; trigger.className="select-trigger";
+    trigger.setAttribute("aria-haspopup","dialog");
+    select.before(wrapper); wrapper.append(select,trigger);
+    select.tabIndex=-1; select.setAttribute("aria-hidden","true");
+    function sync(){
+      trigger.disabled=select.disabled;
+      trigger.setAttribute("aria-label",(label?.textContent.trim() || "Seleziona")+": "+(select.selectedOptions[0]?.textContent || "nessuna selezione"));
+      if(select.hasAttribute("aria-invalid")) trigger.setAttribute("aria-invalid",select.getAttribute("aria-invalid"));
+      else trigger.removeAttribute("aria-invalid");
+    }
+    new MutationObserver(sync).observe(select,{attributes:true,childList:true,subtree:true,characterData:true});
+    select.addEventListener("input",sync); select.addEventListener("change",sync);
+    trigger.addEventListener("focus",sync);
+    trigger.addEventListener("click",()=>open(select));
+    if(label && label.htmlFor===select.id) label.addEventListener("click",e=>{e.preventDefault(); if(!trigger.disabled) trigger.focus();});
+    sync();
   });
 })();
 
