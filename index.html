@@ -131,6 +131,9 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 /* I tre selettori hanno la stessa altezza. */
 #appCard .tabs,#tab-nuova .toggle{height:46px}
 @media(max-width:700px) and (max-height:500px){#appCard .tabs,#tab-nuova .toggle{height:30px}#tab-nuova input,#tab-nuova select{height:30px}}
+/* Campi bianchi ridotti del 10%, senza modificare i selettori gialli. */
+#tab-nuova input,#tab-nuova select{height:34.2px;padding-top:2px;padding-bottom:2px}
+@media(max-width:700px) and (max-height:500px){#tab-nuova input,#tab-nuova select{height:27px}}
 /* Su schermi verticali, il modulo e la matrice occupano l'altezza disponibile. */
 @media(max-width:700px) and (min-height:501px){
   .card.operation-screen{padding-bottom:calc(8px + env(safe-area-inset-bottom))}
@@ -140,7 +143,8 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
   #tab-nuova>.field:has(.toggle){flex:none}
   #tab-nuova .field{display:flex;flex-direction:column;margin-bottom:0;min-height:0}
   #tab-nuova .grid2 .field{height:100%}
-  #tab-nuova input,#tab-nuova select{flex:1;min-height:33px;height:auto}
+  #tab-nuova .field:has(> input),#tab-nuova .field:has(> select){display:grid;grid-template-rows:auto minmax(0,1fr)}
+  #tab-nuova input,#tab-nuova select{height:90%;min-height:0;align-self:start}
   .operation-footer{position:static;transform:none;width:100%;padding:clamp(16px,3vh,28px) 0 0;flex:none}
   .save-grid .btn{height:clamp(36px,7vh,64px)}
 }
