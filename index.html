@@ -114,7 +114,11 @@
 .card.operation-screen{background:#462678;color:#fff}
 #appCard label,#tab-modelli h2,#tab-modelli .tpl b{color:#fff}
 #tab-modelli .sub,#tab-modelli .muted,#tab-modelli .tpl span,#appCard .note-label .muted{color:#f1ebf7}
-#tab-modelli .tpl{border-color:#af99c2}
+#tab-modelli .tpl{border-color:#af99c2;flex-direction:column;align-items:stretch}
+#tab-modelli .tpl-info{min-width:0;overflow-wrap:anywhere}
+#tab-modelli .tpl-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%}
+#tab-modelli .tpl-actions .btn{min-width:0;padding:8px 3px}
+#appCard #tab-modelli .tpl-delete{background:#fff;color:#e74030;border-color:#e74030}
 #appCard .tabs,#appCard .toggle{background:#fdc500;border-color:#fdc500}
 #appCard .tabs button,#appCard .toggle button{color:#462678;background:transparent}
 #appCard .tabs button.on,#appCard .toggle button.on{background:#fff;color:#462678}
@@ -228,7 +232,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
     </div>
     <div class="msg" id="ctxMsg"></div>
     <p class="muted" id="editableInfo" role="status"></p>
-    <div class="context-bottom"><div class="context-actions"><button class="btn ghost small" id="btnRefresh">Ricarica</button><button class="btn ghost small" id="btnForget">Dimentica password</button><button class="btn danger small" id="btnLogout">Esci</button></div><label class="theme-switch"><input id="darkToggle" type="checkbox" role="switch" aria-label="Attiva modalità scura"><span class="theme-track" aria-hidden="true"><svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg><svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></svg></span></label></div>
+    <div class="context-bottom"><div class="context-actions"><button class="btn ghost small" id="btnRefresh">Ricarica</button><button class="btn danger small" id="btnLogout">Esci</button></div><label class="theme-switch"><input id="darkToggle" type="checkbox" role="switch" aria-label="Attiva modalità scura"><span class="theme-track" aria-hidden="true"><svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg><svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></svg></span></label></div>
   </section>
 
   <div id="operationHeading" class="section-heading hidden"><button class="btn add-btn" id="btnAdd" aria-expanded="false" aria-controls="appCard"><span>+</span> Aggiungi entrata/uscita</button></div>
@@ -601,7 +605,7 @@ function updateConnUI(){
   $("loginCard").classList.toggle("hidden",!!state.user || onboarding);
   $("ctxCard").classList.toggle("hidden",!state.user);
   $("operationHeading").classList.toggle("hidden",!state.user);
-  if(!state.user){ invalidateNavigation(); $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open","keyboard-open"); }
+  if(!state.user){ invalidateNavigation(); cancelTemplateEdit(); $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open","keyboard-open"); }
   else { const name=localStorage.getItem(LS.firstName) || (state.user?.userInfo?.codiceSocio ? "Socio "+state.user.userInfo.codiceSocio : "Utente"); $("helloName").textContent="Ciao, "+name; }
 }
 let initPromise = null;
@@ -874,6 +878,8 @@ function pushHistory(h){
 }
 
 /* ---------- modelli ---------- */
+let editingTemplate=null;
+function cancelTemplateEdit(){ editingTemplate=null; $("btnSaveTpl").textContent="Salva modello"; $("btnClear").textContent="Pulisci"; }
 function getTemplates(){ return JSON.parse(localStorage.getItem(LS.tpl)||"[]"); }
 function saveTemplates(t){ localStorage.setItem(LS.tpl, JSON.stringify(t)); }
 function renderTemplates(){
@@ -881,16 +887,18 @@ function renderTemplates(){
   $("tplEmpty").style.display=tpls.length? "none":"block";
   tpls.forEach((t,i)=>{
     const div=document.createElement("div"); div.className="tpl";
-    div.innerHTML="<div><b>"+esc(t.name)+"</b><br><span>"+esc(t.contoLabel||"")+" · "+(t.tipo==="i"?"Entrata":"Uscita")+" · "+esc(t.tipoLabel||"")+(t.descrizione? " · "+esc(t.descrizione):"")+"</span></div>";
-    const btns=document.createElement("div"); btns.className="row";
+    div.innerHTML="<div class=\"tpl-info\"><b>"+esc(t.name)+"</b><br><span>"+esc(t.contoLabel||"")+" · "+(t.tipo==="i"?"Entrata":"Uscita")+" · "+esc(t.tipoLabel||"")+(t.descrizione? " · "+esc(t.descrizione):"")+"</span></div>";
+    const btns=document.createElement("div"); btns.className="tpl-actions";
     const bUse=document.createElement("button"); bUse.className="btn small"; bUse.textContent="Usa";
-    bUse.onclick=()=>applyTemplate(t);
-    const bDel=document.createElement("button"); bDel.className="btn danger small"; bDel.textContent="Elimina";
-    bDel.onclick=()=>{ const a=getTemplates(); a.splice(i,1); saveTemplates(a); renderTemplates(); };
-    btns.append(bUse,bDel); div.appendChild(btns); wrap.appendChild(div);
+    bUse.onclick=()=>{ cancelTemplateEdit(); applyTemplate(t); };
+    const bEdit=document.createElement("button"); bEdit.className="btn small"; bEdit.textContent="Modifica";
+    bEdit.onclick=()=>{ editingTemplate={index:i, snapshot:JSON.stringify(t), name:t.name}; $("btnSaveTpl").textContent="Aggiorna modello"; $("btnClear").textContent="Annulla modifica"; applyTemplate(t,true); };
+    const bDel=document.createElement("button"); bDel.className="btn danger small tpl-delete"; bDel.textContent="Elimina";
+    bDel.onclick=()=>{ const a=getTemplates(); if(JSON.stringify(a[i])!==JSON.stringify(t)){ renderTemplates(); showMsg("saveMsg","Elenco dei modelli aggiornato: riprova.","warn"); return; } a.splice(i,1); saveTemplates(a); renderTemplates(); };
+    btns.append(bUse,bEdit,bDel); div.appendChild(btns); wrap.appendChild(div);
   });
 }
-function applyTemplate(t){
+function applyTemplate(t,editing=false){
   navigateTab("nuova");
   $("fConto").value=t.idconto??"";
   setTipo(t.tipo);
@@ -900,19 +908,25 @@ function applyTemplate(t){
   $("fDesc").value=t.descrizione||"";
   $("fCat").value=t.idcategoria??"";
   $("fNote").value=t.note||"";
-  if(t.unita_codice) $("fUnita").value=t.unita_codice;
+  $("fUnita").value=t.unita_codice||"";
   updatePayloadPreview(); clearCorrectedFieldErrors();
-  showMsg("saveMsg","Modello '"+t.name+"' applicato. Inserisci data e importo.","ok");
+  showMsg("saveMsg",editing?"Modifica il modello e premi Aggiorna modello.":"Modello '"+t.name+"' applicato. Inserisci data e importo.","ok");
 }
 function saveCurrentAsTemplate(){
   const {voce, contoObj, tipoObj}=readForm();
   if(!voce.idconto||!(state.tipo==="i"?voce.e_idtipo:voce.u_idtipo)){ ["fConto","fTipo"].forEach(id=>markRequiredField(id,requiredFieldMissing(id))); showMsg("saveMsg","Seleziona almeno conto e tipologia per salvare il modello.","err"); return; }
-  const name=prompt("Nome del modello:", (contoObj?.label||"Operazione")+" — "+(tipoObj?.label||""));
-  if(!name) return;
   const tpls=getTemplates();
-  tpls.unshift({name, idconto:voce.idconto, contoLabel:contoObj?.label, tipo:state.tipo, idtipo:state.tipo==="i"?voce.e_idtipo:voce.u_idtipo, tipoLabel:tipoObj?.label, descrizione:voce.descrizione, idcategoria:voce.idcategoria, note:voce.note, unita_codice:voce.unita_codice});
-  saveTemplates(tpls); renderTemplates();
-  showMsg("saveMsg","Modello '"+name+"' salvato.","ok");
+  if(editingTemplate && JSON.stringify(tpls[editingTemplate.index])!==editingTemplate.snapshot){
+    showMsg("saveMsg","Il modello è cambiato o è stato eliminato. Riaprilo dall'elenco prima di aggiornarlo.","err");
+    cancelTemplateEdit(); renderTemplates(); return;
+  }
+  const name=prompt("Nome del modello:", editingTemplate?.name || (contoObj?.label||"Operazione")+" — "+(tipoObj?.label||""));
+  if(name===null || !name.trim()) return;
+  const template={...(editingTemplate?tpls[editingTemplate.index]:{}), name:name.trim(), idconto:voce.idconto, contoLabel:contoObj?.label, tipo:state.tipo, idtipo:state.tipo==="i"?voce.e_idtipo:voce.u_idtipo, tipoLabel:tipoObj?.label, descrizione:voce.descrizione, idcategoria:voce.idcategoria, note:voce.note, unita_codice:voce.unita_codice};
+  const updating=!!editingTemplate;
+  if(updating) tpls[editingTemplate.index]=template; else tpls.unshift(template);
+  saveTemplates(tpls); cancelTemplateEdit(); renderTemplates();
+  showMsg("saveMsg","Modello '"+template.name+"' "+(updating?"aggiornato.":"salvato."),"ok");
 }
 
 /* ---------- tabs / tipo ---------- */
@@ -948,7 +962,7 @@ function invalidateNavigation(){
 }
 function navEntry(){ const n=history.state?.abaNavigation; return n?.session===navSession?n:null; }
 function pushView(view){ history.pushState({...history.state,abaNavigation:{session:navSession,view}},""); }
-function closeOperation(){ $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open","keyboard-open"); if(state.user) $("btnAdd").focus(); }
+function closeOperation(){ cancelTemplateEdit(); $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open","keyboard-open"); if(state.user) $("btnAdd").focus(); }
 let operationViewportHeight=0;
 function showOperation(resetDate){ operationViewportHeight=window.visualViewport?.height || window.innerHeight; $("appCard").classList.remove("hidden"); $("btnAdd").setAttribute("aria-expanded","true"); document.body.classList.add("modal-open"); if(resetDate){ $("fData").value=isoToInputDate(new Date()); clearFieldErrors(); } }
 function updateKeyboardViewport(){
@@ -1004,15 +1018,6 @@ $("btnLogout").onclick=()=>{
   updateConnUI();
   showMsg("loginMsg","Sei uscito. Premi 'Accedi e resta collegato' quando vuoi rientrare.","ok");
 };
-$("btnForget").onclick=()=>{
-  localStorage.removeItem(LS.creds);
-  localStorage.removeItem(LS.user);
-  localStorage.removeItem(LS.loggedOut);
-  autoLoginBlocked=false;
-  state.user=null;
-  updateConnUI();
-  showMsg("loginMsg","Password salvata dimenticata. Dovrai accedere di nuovo con la password.","warn");
-};
 $("btnRefresh").onclick=async()=>{ await loadYears(true); await loadContextData(); };
 $("selYear").onchange=async e=>{ state.year=state.years.find(y=>String(y.value)===e.target.value)||null; if(state.year) localStorage.setItem(LS.year, JSON.stringify(state.year)); await loadContextData(); await checkEditable(); };
 $("selIncarico").onchange=async e=>{ const list=state.user?.userInfo?.incarichiSocio||[]; state.incarico=list[Number(e.target.value)]||null; if(state.incarico) localStorage.setItem(LS.incarico, JSON.stringify(state.incarico)); updateUnitaSelect(); await filterEditableYears(); await loadContextData(); };
@@ -1023,7 +1028,7 @@ document.querySelectorAll("#tipoToggle button").forEach(b=>b.onclick=()=>setTipo
 $("btnSave").onclick=()=>saveOperation(false);
 $("btnSaveDup").onclick=()=>saveOperation(true);
 $("btnSaveTpl").onclick=saveCurrentAsTemplate;
-$("btnClear").onclick=()=>{ ["fDesc","fImporto","fNote"].forEach(id=>$(id).value=""); $("fTipo").value=""; clearFieldErrors(); updatePayloadPreview(); };
+$("btnClear").onclick=()=>{ if(editingTemplate){ cancelTemplateEdit(); showMsg("saveMsg","Modifica del modello annullata. I campi restano disponibili.","warn"); return; } ["fDesc","fImporto","fNote"].forEach(id=>$(id).value=""); $("fTipo").value=""; clearFieldErrors(); updatePayloadPreview(); };
 /* ---------- PWA: service worker + installazione ---------- */
 if("serviceWorker" in navigator){
   window.addEventListener("load", ()=>{
