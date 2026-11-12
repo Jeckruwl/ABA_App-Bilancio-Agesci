@@ -247,7 +247,7 @@
 "use strict";
 const API = "https://bilancio.agesci.it";
 const $ = id => document.getElementById(id);
-const LS = { user:"ab_user", creds:"ab_creds", years:"ab_years", year:"ab_selectedYear", incarico:"ab_selectedIncarico", unita:"ab_selectedUnita", tpl:"ab_templates", hist:"ab_history" };
+const LS = { user:"ab_user", creds:"ab_creds", loggedOut:"ab_logged_out", years:"ab_years", year:"ab_selectedYear", incarico:"ab_selectedIncarico", unita:"ab_selectedUnita", tpl:"ab_templates", hist:"ab_history" };
 
 let state = {
   user:null, years:[], year:null, incarico:null, unita:null,
@@ -266,8 +266,39 @@ function parseITDate(s){ // "15/03/2026" -> Date
 function isoToInputDate(iso){ const d=new Date(iso); if(isNaN(d)) return ""; const p=n=>String(n).padStart(2,"0"); return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); }
 function showMsg(id, text, kind){ const el=$(id); el.className="msg "+kind; el.textContent=text; el.style.display="block"; }
 function hideMsg(id){ const el=$(id); el.style.display="none"; }
-function decodeJWT(t){ try{ const p=t.split(".")[1]; return JSON.parse(atob(p.replace(/-/g,"+").replace(/_/g,"/"))); }catch(e){ return null; } }
-function tokenExpiry(){ if(!state.user?.accessToken) return null; const j=decodeJWT(state.user.accessToken); return j?.exp? new Date(j.exp*1000):null; }
+function decodeJWT(t){
+  try{
+    if(!t || typeof t!=="string") return null;
+    const part = t.split(".")[1];
+    if(!part) return null;
+    const b64 = part.replace(/-/g,"+").replace(/_/g,"/");
+    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+    const bin = atob(padded);
+    let jsonStr = bin;
+    if(typeof TextDecoder!=="undefined"){
+      const bytes = new Uint8Array(bin.length);
+      for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+      jsonStr = new TextDecoder("utf-8").decode(bytes);
+    }
+    return JSON.parse(jsonStr);
+  }catch(e){ return null; }
+}
+function msUntilExpiry(){
+  if(!state.user?.accessToken) return null;
+  const j=decodeJWT(state.user.accessToken);
+  if(!j) return null;
+  // Se conosciamo istante locale di rilascio + durata (exp - iat), calcoliamo la scadenza
+  // in modo immune da eventuali sfasamenti dell'orologio del dispositivo rispetto al server.
+  if(j.exp && j.iat && j.exp > j.iat && state.user._obtainedAt){
+    return (Number(state.user._obtainedAt) + (j.exp - j.iat)*1000) - Date.now();
+  }
+  if(j.exp) return (j.exp * 1000) - Date.now();
+  return null;
+}
+function tokenExpiry(){
+  const ms=msUntilExpiry();
+  return ms!==null ? new Date(Date.now() + ms) : null;
+}
 function tokenDurationText(){
   if(!state.user?.accessToken) return "";
   const j=decodeJWT(state.user.accessToken);
@@ -277,49 +308,139 @@ function tokenDurationText(){
   if(sec<86400) return "dura "+(sec/3600).toFixed(1).replace(".",",")+" ore";
   return "dura "+Math.round(sec/86400)+" giorni";
 }
-function msUntilExpiry(){ const e=tokenExpiry(); return e? e.getTime()-Date.now() : null; }
-function isTokenExpired(){ const m=msUntilExpiry(); return m!==null && m<=0; }
-function getSavedCreds(){ try{ return JSON.parse(localStorage.getItem(LS.creds)||"null"); }catch(e){ return null; } }
+function isTokenExpired(marginMs=5000){ const m=msUntilExpiry(); return m!==null && m<=marginMs; }
+function getSavedCreds(){
+  try{
+    const c=JSON.parse(localStorage.getItem(LS.creds)||"null");
+    return (c && c.username && c.password) ? c : null;
+  }catch(e){ return null; }
+}
+function isManualLogout(){ return localStorage.getItem(LS.loggedOut)==="1"; }
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
-/* ---------- API ---------- */
-let consecutive401=0;
+/* ---------- API & gestione sessione anti-loop ---------- */
+let refreshPromise = null;
+let lastLoginAt = 0;
+let autoLoginBlocked = false; // diventa true solo se /api/login rifiuta le credenziali salvate
+const endpointBodyMode = {};  // cache per singolo path: "flat" | "wrapped"
+
+function setSession(data){
+  const sessionData = Object.assign({}, data, { _obtainedAt: Date.now() });
+  state.user = sessionData;
+  lastLoginAt = sessionData._obtainedAt;
+  autoLoginBlocked = false;
+  localStorage.removeItem(LS.loggedOut);
+  localStorage.setItem(LS.user, JSON.stringify(sessionData));
+}
+
+function handleSessionLost(msg, kind="warn"){
+  localStorage.removeItem(LS.user);
+  state.user = null;
+  updateConnUI();
+  if(msg) showMsg("loginMsg", msg, kind);
+}
+
+async function ensureFreshToken(force=false){
+  if(autoLoginBlocked || isManualLogout()) return false;
+  if(!force && state.user?.accessToken && !isTokenExpired()) return true;
+  // Anti-loop ferreo: se abbiamo appena effettuato il login (<15s fa),
+  // un eventuale 401 su un singolo endpoint NON dipende dal token scaduto.
+  if(force && lastLoginAt > 0 && (Date.now() - lastLoginAt < 15000)) return false;
+  if(refreshPromise) return refreshPromise;
+  const creds = getSavedCreds();
+  if(!creds) return false;
+  refreshPromise = (async ()=>{
+    try{
+      const data = await fetchLogin(creds.username, creds.password);
+      setSession(data);
+      updateConnUI();
+      return true;
+    }catch(err){
+      if(err && err.isAuthFailure){
+        autoLoginBlocked = true;
+      }
+      return false;
+    }finally{
+      refreshPromise = null;
+    }
+  })();
+  return refreshPromise;
+}
+
 async function api(path, opts={}){
+  // Se sappiamo già localmente che il token manca o è scaduto, rinnoviamolo PRIMA della chiamata.
+  if((!state.user?.accessToken || isTokenExpired()) && !opts._retried401){
+    await ensureFreshToken(false);
+  }
   const headers = Object.assign({"Content-Type":"application/json"}, opts.headers||{});
   if(state.user?.accessToken) headers["Authorization"]="Bearer "+state.user.accessToken;
-  const res = await fetch(API+path, {method:opts.method||"POST", headers, body: opts.body? JSON.stringify(opts.body): undefined});
+  const res = await fetch(API+path, {
+    method: opts.method||"POST",
+    headers,
+    body: opts.body!==undefined ? JSON.stringify(opts.body) : undefined
+  });
   const ct = res.headers.get("content-type")||"";
   let data;
   if(ct.includes("application/json")) data = await res.json().catch(()=>null);
   else data = await res.text();
+
   if(res.status===401){
-    consecutive401++;
-    // Anti-loop: dopo 1 rinnovo automatico fallito, non riprovare all'infinito.
-    if(consecutive401<=1) onTokenExpired();
-    else { localStorage.removeItem(LS.user); state.user=null; updateConnUI(); }
-    throw new Error("Sessione scaduta (401).");
+    const tokenIsBrandNew = lastLoginAt > 0 && (Date.now() - lastLoginAt < 15000);
+    // Se NON abbiamo ancora ritentato e il token non è appena stato emesso,
+    // proviamo un singolo rinnovo trasparente e ripetiamo la stessa richiesta (senza resettare la UI!).
+    if(!opts._retried401 && !tokenIsBrandNew){
+      const refreshed = await ensureFreshToken(true);
+      if(refreshed){
+        return api(path, Object.assign({}, opts, { _retried401: true }));
+      }
+      // Rinnovo non possibile o fallito: disconnetti una sola volta in modo pulito.
+      const msg = autoLoginBlocked
+        ? "⚠️ Rinnovo automatico non riuscito (credenziali rifiutate dal server). Accedi di nuovo."
+        : "⏰ Il token è scaduto. Fai di nuovo l'accesso per continuare.";
+      handleSessionLost(msg, "warn");
+      const err = new Error("Sessione scaduta (401).");
+      err.status = 401;
+      throw err;
+    }
+    // Se il token è appena stato emesso (<15s) o abbiamo già ritentato col token nuovo,
+    // il 401 riguarda l'autorizzazione/formato di QUESTO endpoint: NON sloggare l'utente e NON andare in loop.
+    const err = new Error("Non autorizzato (401) su "+path);
+    err.status = 401;
+    err.isEndpointAuthError = true;
+    throw err;
   }
-  consecutive401=0;
+
   if(!res.ok){
     const detail = typeof data==="string" ? data.slice(0,200) : (data? JSON.stringify(data).slice(0,200):"");
-    throw new Error("HTTP "+res.status+" su "+path+(detail? " — "+detail:""));
+    const err = new Error("HTTP "+res.status+" su "+path+(detail? " — "+detail:""));
+    err.status = res.status;
+    throw err;
   }
   return data;
 }
-let reloginInProgress=false;
-async function onTokenExpired(){
-  localStorage.removeItem(LS.user);
-  state.user=null;
-  // Se c'è il rinnovo automatico, prova a riaccedere subito senza disturbare l'utente.
-  const creds=getSavedCreds();
-  if(creds && !reloginInProgress){
-    const ok=await silentLogin(creds.username, creds.password);
-    if(ok){ await initAfterLogin(); return; }
+
+/* Gli endpoint ASP.NET a singolo parametro (listbyparams, categorie, checkifnoteditable)
+   accettano l'oggetto req piatto alla radice (mentre {req} lascia codicesocio=0 causando 401!).
+   Per massima compatibilità con eventuali variazioni del server, postReq invia req piatto e,
+   se il server risponde 400/401/415/422/500 con token valido, riprova automaticamente con {req}
+   memorizzando il formato accettato. */
+async function postReq(path, reqObj){
+  const cachedMode = endpointBodyMode[path];
+  if(cachedMode === "wrapped") return api(path, { body: { req: reqObj } });
+  if(cachedMode === "flat") return api(path, { body: reqObj });
+  try{
+    const res = await api(path, { body: reqObj });
+    endpointBodyMode[path] = "flat";
+    return res;
+  }catch(err){
+    if(!state.user?.accessToken) throw err;
+    if([400, 401, 415, 422, 500].includes(err?.status)){
+      const res2 = await api(path, { body: { req: reqObj } });
+      endpointBodyMode[path] = "wrapped";
+      return res2;
+    }
+    throw err;
   }
-  updateConnUI();
-  showMsg("loginMsg","⏰ Il token è scaduto. Fai di nuovo l'accesso per continuare.","warn");
-  $("loginCard").classList.remove("hidden");
-  $("ctxCard").classList.add("hidden"); $("appCard").classList.add("hidden");
 }
 
 /* Replica fedele di getParams() del frontend ufficiale (chunk-859) */
@@ -328,6 +449,7 @@ function buildReq(contoid){
   let a = {};
   if(i){
     const s = getNomeUnitaByIncarico(i);
+    const gzNome = i?.dati?.nome ?? i?.dati?.gruppozona_nome ?? "";
     if(i.accessoTipo===11 || i.tipoIncarico===5){
       a = {tipoIncaricoMain:e?.userInfo?.tipoIncarico, tipoIncarico:i.tipoIncarico, accessoTipo:i.accessoTipo, rendicontoid:l?.value, codicesocio:e?.userInfo?.codiceSocio, creg:null, czona:0, ord:0, codiceUnita:null, contoid:contoid};
     } else if(i.tipoIncarico===4){
@@ -335,10 +457,10 @@ function buildReq(contoid){
     } else if(i.accessoTipo===13){
       a = {tipoIncaricoMain:e?.userInfo?.tipoIncarico, tipoIncarico:i.tipoIncarico, accessoTipo:i.accessoTipo, rendicontoid:l?.value, codicesocio:e?.userInfo?.codiceSocio, creg:i?.dati?.creg, czona:i?.dati?.czona, ord:0, codiceUnita:null, contoid:contoid};
     } else {
-      a = {rendicontoid:l?.value, codicesocio:e?.userInfo?.codiceSocio, creg:i?.dati?.creg, czona:i?.dati?.czona, ord:i?.dati?.ord, contoid:contoid, tipoIncaricoMain:e?.userInfo?.tipoIncarico, tipoIncarico:i.tipoIncarico, accessoTipo:i.accessoTipo, gruppozona_nome:i?.dati?.nome, codiceUnita:i?.codiceUnita?i.codiceUnita:null, unita_nome:s, nomeRegione:i?.dati?.nomeRegione, nomeZona:i?.dati?.nomeZona, nomeGruppo:i.tipoIncarico===1?null:i?.dati?.nomeGruppo, showSaldoTotale:true, unifyTotaliAltreUnita:true};
+      a = {rendicontoid:l?.value, codicesocio:e?.userInfo?.codiceSocio, creg:i?.dati?.creg, czona:i?.dati?.czona, ord:i?.dati?.ord, contoid:contoid, tipoIncaricoMain:e?.userInfo?.tipoIncarico, tipoIncarico:i.tipoIncarico, accessoTipo:i.accessoTipo, gruppozona_nome:gzNome, codiceUnita:i?.codiceUnita?i.codiceUnita:null, unita_nome:s, nomeRegione:i?.dati?.nomeRegione, nomeZona:i?.dati?.nomeZona, nomeGruppo:i.tipoIncarico===1?null:i?.dati?.nomeGruppo, showSaldoTotale:true, unifyTotaliAltreUnita:true};
     }
     if(t){
-      a = {rendicontoid:l?.value, codicesocio:e?.userInfo?.codiceSocio, creg:i?.dati?.creg, czona:i?.dati?.czona, ord:i?.dati?.ord, contoid:contoid, tipoIncaricoMain:e?.userInfo?.tipoIncarico, tipoIncarico:i.tipoIncarico, accessoTipo:i.accessoTipo, gruppozona_nome:i?.dati?.nome, codiceUnita:null, codiceUnita:t?.cun+t?.prog, unita_nome:t?.nome, showSaldoTotale:true, unifyTotaliAltreUnita:true};
+      a = {rendicontoid:l?.value, codicesocio:e?.userInfo?.codiceSocio, creg:i?.dati?.creg, czona:i?.dati?.czona, ord:i?.dati?.ord, contoid:contoid, tipoIncaricoMain:e?.userInfo?.tipoIncarico, tipoIncarico:i.tipoIncarico, accessoTipo:i.accessoTipo, gruppozona_nome:gzNome, codiceUnita:t?.cun+t?.prog, unita_nome:t?.nome, nomeRegione:i?.dati?.nomeRegione, nomeZona:i?.dati?.nomeZona, nomeGruppo:i.tipoIncarico===1?null:i?.dati?.nomeGruppo, showSaldoTotale:true, unifyTotaliAltreUnita:true};
     }
   } else if(e?.userInfo?.tipoIncarico===1 || e?.userInfo?.tipoIncarico===2){
     a = {tipoIncaricoMain:e?.userInfo?.tipoIncarico, rendicontoid:l?.value, codicesocio:e?.userInfo?.codiceSocio, creg:null, czona:0, ord:0, codiceUnita:null, contoid:contoid};
@@ -359,22 +481,18 @@ function getNomeUnitaByIncarico(e){
 async function fetchLogin(username, password){
   const res = await fetch(API+"/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,password})});
   const ct=res.headers.get("content-type")||"";
-  const data = ct.includes("application/json")? await res.json() : await res.text();
-  if(typeof data==="string") throw new Error(data);
-  if(!data?.accessToken) throw new Error("Risposta inattesa dal server.");
+  const data = ct.includes("application/json")? await res.json().catch(()=>null) : await res.text();
+  if(typeof data==="string" && data.trim()){
+    const err = new Error(data.trim());
+    err.isAuthFailure = res.status < 500;
+    throw err;
+  }
+  if(!res.ok || !data?.accessToken){
+    const err = new Error(res.status===401||res.status===403 ? "Credenziali non valide." : "Risposta inattesa dal server (HTTP "+res.status+").");
+    err.isAuthFailure = (res.status===400 || res.status===401 || res.status===403);
+    throw err;
+  }
   return data;
-}
-async function silentLogin(username, password){
-  if(reloginInProgress) return false;
-  reloginInProgress=true;
-  try{
-    const data=await fetchLogin(username, password);
-    state.user=data;
-    localStorage.setItem(LS.user, JSON.stringify(data));
-    return true;
-  }catch(e){
-    return false;
-  }finally{ reloginInProgress=false; }
 }
 async function doLogin(){
   const username=$("username").value.trim(), password=$("password").value;
@@ -382,17 +500,19 @@ async function doLogin(){
   hideMsg("loginMsg");
   $("btnLogin").disabled=true; $("btnLogin").textContent="Accesso in corso…";
   try{
+    autoLoginBlocked = false;
+    localStorage.removeItem(LS.loggedOut);
     const data=await fetchLogin(username, password);
-    state.user=data;
-    localStorage.setItem(LS.user, JSON.stringify(data));
     if($("chkRemember").checked){
       localStorage.setItem(LS.creds, JSON.stringify({username, password}));
     } else {
       localStorage.removeItem(LS.creds);
     }
+    setSession(data);
     $("password").value="";
     showMsg("loginMsg","✅ Accesso riuscito. Caricamento dati…","ok");
     await initAfterLogin();
+    hideMsg("loginMsg");
   }catch(err){
     showMsg("loginMsg","❌ "+err.message,"err");
   }finally{
@@ -402,7 +522,14 @@ async function doLogin(){
 function restoreSession(){
   try{
     const raw=localStorage.getItem(LS.user);
-    if(raw){ state.user=JSON.parse(raw); return true; }
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(parsed?.accessToken){
+        state.user = parsed;
+        lastLoginAt = Number(parsed._obtainedAt) || 0;
+        return true;
+      }
+    }
   }catch(e){}
   return false;
 }
@@ -414,7 +541,7 @@ function updateConnUI(){
     const name = state.user?.userInfo?.codiceSocio? "Socio "+state.user.userInfo.codiceSocio : "Utente";
     $("helloName").textContent="Ciao, "+name;
     const dur=tokenDurationText();
-    const auto=getSavedCreds()? " · 🔄 Rinnovo automatico ATTIVO" : " · 🔄 Rinnovo automatico disattivo";
+    const auto=(getSavedCreds() && !autoLoginBlocked)? " · 🔄 Rinnovo automatico ATTIVO" : " · 🔄 Rinnovo automatico disattivo";
     $("tokenInfo").textContent = exp? ("Token valido fino al "+exp.toLocaleString("it-IT")+(dur? " ("+dur+")":"")+auto) : ("Token salvato (scadenza non leggibile)"+auto);
     $("loginCard").classList.add("hidden");
     $("ctxCard").classList.remove("hidden"); $("appCard").classList.remove("hidden");
@@ -424,17 +551,23 @@ function updateConnUI(){
     $("ctxCard").classList.add("hidden"); $("appCard").classList.add("hidden");
   }
 }
+let initPromise = null;
 async function initAfterLogin(){
-  updateConnUI();
-  await loadYears();
-  await loadContextData();
-  renderTemplates();
-  updatePayloadPreview();
+  if(initPromise) return initPromise;
+  initPromise = (async ()=>{
+    updateConnUI();
+    await loadYears();
+    if(!state.user) return;
+    await loadContextData();
+    renderTemplates();
+    updatePayloadPreview();
+  })().finally(()=>{ initPromise = null; });
+  return initPromise;
 }
-async function loadYears(){
+async function loadYears(forceRefresh=false){
   hideMsg("ctxMsg");
   try{
-    let years = JSON.parse(localStorage.getItem(LS.years)||"null");
+    let years = forceRefresh ? null : JSON.parse(localStorage.getItem(LS.years)||"null");
     if(!years || !years.length){
       years = await api("/api/rendiconto/list",{method:"GET"});
       if(Array.isArray(years)) localStorage.setItem(LS.years, JSON.stringify(years));
@@ -488,7 +621,7 @@ async function checkEditable(){
   if(!state.year) return;
   try{
     const req=buildReq(0); req.rendicontoid=state.year.value;
-    const res=await api("/api/rendiconto/checkifnoteditable",{body:{req}});
+    const res=await postReq("/api/rendiconto/checkifnoteditable", req);
     const blocked = res===true || res?.data===true;
     const noAccess = state.incarico && ([11,12,13].includes(state.incarico.accessoTipo) || [4,5].includes(state.incarico.tipoIncarico));
     const dis = blocked||noAccess;
@@ -498,16 +631,17 @@ async function checkEditable(){
   }catch(e){ $("editableInfo").textContent=""; }
 }
 async function loadContextData(){
-  if(!state.year) return;
+  if(!state.year || !state.user) return;
   hideMsg("ctxMsg");
   const req=buildReq(0);
+  const contoReq=Object.assign({}, req, {loadAllByZona:false});
   // NOTA: il sito ufficiale invia all=false / all=true (booleani), NON all=0 / all=1.
   // Il server (ASP.NET) rifiuta "0" come bool non valido -> HTTP 400. Per questo usiamo "false".
   const [rConti, rTipiE, rTipiU, rCats] = await Promise.allSettled([
-    api("/api/conto/listbyparams",{body:{req}}),
+    postReq("/api/conto/listbyparams", contoReq),
     api("/api/vocecassa/tipi_entrata?all=false&rendicontoId="+state.year.value,{method:"GET"}),
     api("/api/vocecassa/tipi_uscita?all=false&rendicontoId="+state.year.value,{method:"GET"}),
-    api("/api/vocecassa/categorie",{body:{req}})
+    postReq("/api/vocecassa/categorie", req)
   ]);
   const errs=[];
   if(rConti.status==="fulfilled"){
@@ -818,7 +952,7 @@ async function loadRecent(){
   wrap.innerHTML='<p class="muted">Caricamento…</p>';
   try{
     const req=buildReq(0); req.loadMovimentiGroupedRF=true;
-    const rows=await api("/api/vocecassa/listbyparams",{body:{req}});
+    const rows=await postReq("/api/vocecassa/listbyparams", req);
     const arr=Array.isArray(rows)?rows:[];
     if(!arr.length){ wrap.innerHTML='<p class="muted">Nessuna operazione per questo contesto.</p>'; return; }
     const sorted=[...arr].sort((a,b)=>new Date(b.data_operazione)-new Date(a.data_operazione)).slice(0,30);
@@ -866,9 +1000,23 @@ function setTipo(t){
 $("btnLogin").onclick=doLogin;
 $("password").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
 $("username").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
-$("btnLogout").onclick=()=>{ localStorage.removeItem(LS.user); state.user=null; updateConnUI(); };
-$("btnForget").onclick=()=>{ localStorage.removeItem(LS.creds); localStorage.removeItem(LS.user); state.user=null; updateConnUI(); showMsg("loginMsg","🗑 Password salvata dimenticata. Dovrai accedere di nuovo con la password.","warn"); };
-$("btnRefresh").onclick=async()=>{ await loadYears(); await loadContextData(); };
+$("btnLogout").onclick=()=>{
+  localStorage.setItem(LS.loggedOut,"1");
+  localStorage.removeItem(LS.user);
+  state.user=null;
+  updateConnUI();
+  showMsg("loginMsg","👋 Sei uscito. Premi 'Accedi e resta collegato' quando vuoi rientrare.","ok");
+};
+$("btnForget").onclick=()=>{
+  localStorage.removeItem(LS.creds);
+  localStorage.removeItem(LS.user);
+  localStorage.removeItem(LS.loggedOut);
+  autoLoginBlocked=false;
+  state.user=null;
+  updateConnUI();
+  showMsg("loginMsg","🗑 Password salvata dimenticata. Dovrai accedere di nuovo con la password.","warn");
+};
+$("btnRefresh").onclick=async()=>{ await loadYears(true); await loadContextData(); };
 $("selYear").onchange=async e=>{ state.year=state.years.find(y=>String(y.value)===e.target.value)||null; if(state.year) localStorage.setItem(LS.year, JSON.stringify(state.year)); await loadContextData(); await checkEditable(); };
 $("selIncarico").onchange=e=>{ const list=state.user?.userInfo?.incarichiSocio||[]; state.incarico=list[Number(e.target.value)]||null; if(state.incarico) localStorage.setItem(LS.incarico, JSON.stringify(state.incarico)); updateUnitaSelect(); loadContextData(); checkEditable(); };
 $("selUnita").onchange=e=>{ const unita=state.incarico?.dati?.unita||[]; state.unita=unita.find(u=>(u.cun+u.prog)===e.target.value)||null; if(state.unita) localStorage.setItem(LS.unita, JSON.stringify(state.unita)); else localStorage.removeItem(LS.unita); loadContextData(); };
@@ -916,46 +1064,82 @@ $("btnInstall").addEventListener("click", async ()=>{
 });
 window.addEventListener("appinstalled", ()=>{ $("btnInstall").classList.add("hidden"); });
 
-/* ---------- rinnovo automatico: controlla la scadenza ogni 30s ---------- */
-setInterval(async ()=>{
-  if(!state.user) return;
-  const ms=msUntilExpiry();
+/* ---------- rinnovo automatico e sincronizzazione tra schede ---------- */
+async function maybeProactiveRefresh(){
+  if(!state.user || autoLoginBlocked || isManualLogout()) return;
+  const ms = msUntilExpiry();
   if(ms===null) return;
-  // Rinnova 2 minuti prima della scadenza (o subito se già scaduto).
-  if(ms<120000){
-    const creds=getSavedCreds();
-    if(creds && !reloginInProgress){
-      const ok=await silentLogin(creds.username, creds.password);
-      if(ok){ updateConnUI(); }
+  // Rinnova 2 minuti prima della scadenza, ma al massimo una volta al minuto.
+  if(ms < 120000 && (Date.now() - lastLoginAt >= 60000)){
+    await ensureFreshToken(false);
+  }
+}
+setInterval(maybeProactiveRefresh, 30000);
+document.addEventListener("visibilitychange", ()=>{
+  if(document.visibilityState==="visible") maybeProactiveRefresh();
+});
+window.addEventListener("online", maybeProactiveRefresh);
+window.addEventListener("storage", (e)=>{
+  if(e.key===LS.user){
+    if(e.newValue){
+      try{
+        const parsed=JSON.parse(e.newValue);
+        if(parsed?.accessToken){
+          state.user=parsed;
+          lastLoginAt=Number(parsed._obtainedAt)||Date.now();
+          updateConnUI();
+        }
+      }catch(_){}
+    } else if(!refreshPromise){
+      state.user=null;
+      updateConnUI();
     }
   }
-}, 30000);
+});
 
 /* ---------- boot ---------- */
 (async function boot(){
   if(location.protocol==="file:") $("fileWarn").classList.remove("hidden");
   else $("fileWarn").classList.add("hidden");
+  const creds=getSavedCreds();
+  if(creds?.username && !$("username").value) $("username").value=creds.username;
+
+  if(isManualLogout()){
+    localStorage.removeItem(LS.user);
+    state.user=null;
+    updateConnUI();
+    return;
+  }
+
   const hasToken=restoreSession();
   if(hasToken && !isTokenExpired()){
     await initAfterLogin();
-  } else if(hasToken && isTokenExpired()){
-    // Token scaduto mentre l'app era chiusa: prova il rinnovo automatico.
-    const creds=getSavedCreds();
-    if(creds){
-      const ok=await silentLogin(creds.username, creds.password);
-      if(ok){ await initAfterLogin(); return; }
-    }
-    localStorage.removeItem(LS.user); state.user=null; updateConnUI();
-    showMsg("loginMsg","⏰ Il token è scaduto. Fai di nuovo l'accesso per continuare.","warn");
-  } else {
-    // Nessun token: se c'è una password salvata, accedi subito da solo.
-    const creds=getSavedCreds();
-    if(creds){
-      const ok=await silentLogin(creds.username, creds.password);
-      if(ok){ await initAfterLogin(); return; }
-    }
-    updateConnUI();
+    return;
   }
+
+  if(creds){
+    $("connBadge").textContent="🔄 Riconnessione…";
+    $("btnLogin").disabled=true;
+    showMsg("loginMsg","🔄 Riconnessione automatica in corso…","ok");
+    const ok=await ensureFreshToken(true);
+    $("btnLogin").disabled=false;
+    hideMsg("loginMsg");
+    if(ok){
+      await initAfterLogin();
+      return;
+    }
+    const msg = autoLoginBlocked
+      ? "⚠️ Rinnovo automatico non riuscito (verifica la password). Fai di nuovo l'accesso."
+      : "⚠️ Riconnessione automatica non riuscita (controlla la rete o accedi di nuovo).";
+    handleSessionLost(msg, "warn");
+    return;
+  }
+
+  if(hasToken && isTokenExpired()){
+    handleSessionLost("⏰ Il token è scaduto. Fai di nuovo l'accesso per continuare.", "warn");
+    return;
+  }
+  updateConnUI();
 })();
 </script>
 </body>
