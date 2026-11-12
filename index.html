@@ -24,10 +24,10 @@
 /* Spaziatura compatta e comandi sempre raggiungibili nella schermata operazione. */
 .card.operation-screen{padding:calc(20px + env(safe-area-inset-top)) 20px calc(180px + env(safe-area-inset-bottom));scroll-padding-bottom:calc(180px + env(safe-area-inset-bottom))}
 .operation-screen .field{margin-bottom:12px}.operation-screen .grid2{column-gap:12px}.operation-screen .tabs{margin-bottom:16px}
-.operation-footer{position:fixed;z-index:1;bottom:0;left:50%;transform:translateX(-50%);width:min(100%, 800px);padding:12px 20px calc(12px + env(safe-area-inset-bottom));background:var(--bg)}
-.operation-footer .msg{margin:0 0 8px;background:var(--card);max-height:25vh;overflow-y:auto}
-.operation-actions{display:flex;gap:10px;align-items:stretch}.back-btn{width:44px;min-width:44px;height:44px;align-self:center;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 8px #1018281a}.save-grid{flex:1;gap:6px}.save-grid .btn{min-height:40px;padding:4px;box-shadow:0 2px 8px #1018281a}
-@media(max-width:700px){.card.operation-screen{padding-left:16px;padding-right:16px}.operation-footer{padding-left:16px;padding-right:16px}.save-grid .btn{font-size:13px}}
+.operation-footer{position:fixed;z-index:1;bottom:0;left:50%;transform:translateX(-50%);width:min(100%, 800px);padding:8px 20px calc(8px + env(safe-area-inset-bottom));background:transparent;pointer-events:none}
+.operation-footer .msg{pointer-events:auto;margin:0 0 8px;background:var(--card);max-height:25vh;overflow-y:auto}
+.operation-actions{display:flex;gap:10px;align-items:stretch}.operation-actions .btn{pointer-events:auto}.back-btn{width:44px;min-width:44px;height:44px;align-self:center;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 8px #1018281a}.save-grid{flex:1;gap:6px}.save-grid .btn{min-height:36px;padding:2px 4px;box-shadow:0 2px 8px #1018281a}
+@media(max-width:700px){.operation-screen .paired-fields{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:8px}.operation-screen .paired-fields input,.operation-screen .paired-fields select{min-width:0;padding-left:8px;padding-right:8px}.card.operation-screen{padding-left:16px;padding-right:16px}.operation-footer{padding-left:16px;padding-right:16px}.save-grid .btn{font-size:13px}}
 </style>
 </head>
 <body>
@@ -82,10 +82,10 @@
 
     <!-- NUOVA OPERAZIONE -->
     <div id="tab-nuova">
-      <div class="grid2"><div class="field"><label for="fData">Data operazione *</label><input id="fData" type="date"></div><div class="field"><label for="fConto">Conto *</label><select id="fConto"></select></div></div>
+      <div class="grid2 paired-fields"><div class="field"><label for="fData">Data operazione *</label><input id="fData" type="date"></div><div class="field"><label for="fConto">Conto *</label><select id="fConto"></select></div></div>
       <div class="field"><label>Tipo operazione *</label><div class="toggle" id="tipoToggle"><button type="button" class="on" data-t="i">Entrata</button><button type="button" data-t="o">Uscita</button></div></div>
-      <div class="grid2"><div class="field"><label>Elenco voci</label><div class="toggle" id="voceToggle"><button type="button" class="on" data-mode="scout">Scout</button><button type="button" data-mode="ministero">Ministero</button></div></div><div class="field"><label for="fTipo">Tipologia *</label><select id="fTipo"></select></div></div>
-      <div class="field"><label for="fImporto">Importo (€) *</label><input id="fImporto" type="number" step="0.01" min="0.01" placeholder="0,00"></div>
+      <div class="field"><label>Elenco voci tipologia</label><div class="toggle" id="voceToggle"><button type="button" class="on" data-mode="scout">Scout</button><button type="button" data-mode="ministero">Ministero</button></div></div>
+      <div class="grid2 paired-fields"><div class="field"><label for="fTipo">Tipologia *</label><select id="fTipo"></select></div><div class="field"><label for="fImporto">Importo (€) *</label><input id="fImporto" type="number" step="0.01" min="0.01" placeholder="0,00"></div></div>
       <div class="field"><label for="fDesc">Descrizione *</label><input id="fDesc" placeholder="Descrivi l'operazione"></div>
       <div class="grid2"><div class="field"><label for="fCat">Categoria</label><select id="fCat"><option value="">— Nessuna —</option></select></div><div class="field hidden" id="unitaField"><label for="fUnita">Unità</label><select id="fUnita"></select></div></div>
       <div class="field"><label for="fNote">Note</label><input id="fNote" maxlength="150" placeholder="Facoltative"><div class="muted count" id="noteCount">0/150</div></div>
