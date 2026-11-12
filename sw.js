@@ -5,7 +5,7 @@
      (i dati di bilancio devono essere sempre aggiornati e non vanno salvati).
    - Richieste non-GET (POST/PUT/DELETE): sempre network-only.
 */
-const CACHE_NAME = "agesci-bilancio-helper-v22";
+const CACHE_NAME = "agesci-bilancio-helper-v23";
 // Il motore OCR rimane disponibile offline anche dopo gli aggiornamenti della app shell.
 const OCR_CACHE_NAME = "agesci-bilancio-ocr-v1";
 const APP_SHELL = [

@@ -103,6 +103,38 @@
   #tab-nuova>*{grid-column:span 2!important}
 }
 @media(max-width:700px){.keyboard-open .card.operation-screen{overflow-y:auto}}
+/* Identità AGESCI e stati di pressione. */
+#installScreen,#loginCard,#ctxCard{background:#462678;border-color:#462678;color:#fff}
+#installScreen h1,#loginCard h1,#ctxCard h2,#loginCard label,#ctxCard label{color:#fff}
+#installScreen .sub,#installScreen .install-divider,#loginCard .sub,#loginCard>p.muted{color:#f1ebf7}
+#loginCard input,#ctxCard select,#appCard input:not([type="file"]),#appCard select,#appCard textarea{background:#fff;color:#181d27;border-color:#d5d7da;color-scheme:light}
+#loginCard input::placeholder,#appCard input::placeholder,#appCard textarea::placeholder{color:#667085;opacity:1}
+#ctxCard select:disabled{color:#62666f;opacity:1;background:#f3f3f3}
+#loginCard .password-wrap button{color:#535862}
+#btnInstall,#btnLogin{background:#211638;color:#fff;border-color:#9b80b7}
+#installScreen #btnContinue{background:#fff;color:#000;border-color:#fff}
+#ctxCard .context-actions .btn{background:#fff;color:#211638;border-color:#fff}
+#ctxCard .context-actions .btn.danger{color:#a02622}
+#btnAdd{background:#fdc500;color:#462678;border-color:#fdc500}
+.card.operation-screen{background:#462678;color:#fff}
+#appCard label,#tab-modelli h2,#tab-modelli .tpl b{color:#fff}
+#tab-modelli .sub,#tab-modelli .muted,#tab-modelli .tpl span,#appCard .note-label .muted{color:#f1ebf7}
+#tab-modelli .tpl{border-color:#af99c2}
+#appCard .tabs,#appCard .toggle{background:#fdc500;border-color:#fdc500}
+#appCard .tabs button,#appCard .toggle button{color:#462678;background:transparent}
+#appCard .tabs button.on,#appCard .toggle button.on{background:#462678;color:#fff}
+#appCard .btn{background:#fff;color:#211638;border-color:#d5d7da}
+#appCard #btnSave,#appCard #chooseCamera{background:#211638;color:#fff;border-color:#d5d7da}
+#appCard .ocr-text summary{color:#fff}
+#appCard .ocr-text p.muted{color:#f1ebf7}
+@media(max-width:700px){#appCard .ocr-text summary{color:var(--txt)}#appCard .ocr-text p.muted{color:var(--muted)}}
+#loginCard input:focus,#ctxCard select:focus,#appCard input:focus,#appCard select:focus,#appCard textarea:focus{outline:2px solid #fdc500;outline-offset:1px}
+#appCard input.field-invalid,#appCard select.field-invalid{border-color:#e74030!important;box-shadow:0 0 0 2px #e74030!important}
+button,summary,.theme-switch{-webkit-tap-highlight-color:transparent}
+button:not(:disabled):active{background:#fdc500!important;color:#462678!important;border-color:#fdc500!important;filter:none!important}
+#btnAdd:not(:disabled):active{background:#462678!important;color:#fff!important;border-color:#462678!important}
+button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-offset:2px}
+.theme-switch input:active+.theme-track{background:#fdc500;border-color:#fdc500}.theme-switch input:active+.theme-track svg{color:#462678}
 </style>
 </head>
 <body>
@@ -723,7 +755,7 @@ function validateForm(voce, contoObj){
   const imp = state.tipo==="i"? voce.e_importo : voce.u_importo;
   const tid = state.tipo==="i"? voce.e_idtipo : voce.u_idtipo;
   if(imp==null||isNaN(imp)) errs.push("Inserisci l'importo.");
-  else if(imp===0) errs.push("L'importo non può essere uguale a 0.");
+  else if(imp<=0) errs.push("L'importo deve essere maggiore di 0.");
   if(!tid) errs.push("Seleziona la tipologia.");
   if(voce.data_operazione && state.year){
     const d=new Date(voce.data_operazione);
@@ -750,11 +782,25 @@ function validateForm(voce, contoObj){
   }
   return errs;
 }
+const requiredFieldIds=["fData","fConto","fTipo","fImporto","fDesc"];
+function requiredFieldMissing(id){
+  const value=$(id).value.trim();
+  if(id==="fImporto") return !value || !Number.isFinite(Number(value)) || Number(value)<=0;
+  return !value;
+}
+function markRequiredField(id,invalid){
+  const el=$(id); el.classList.toggle("field-invalid",invalid);
+  if(invalid) el.setAttribute("aria-invalid","true"); else el.removeAttribute("aria-invalid");
+}
+function clearCorrectedFieldErrors(){ requiredFieldIds.forEach(id=>{if($(id).classList.contains("field-invalid") && !requiredFieldMissing(id)) markRequiredField(id,false);}); }
+function clearFieldErrors(){ requiredFieldIds.forEach(id=>markRequiredField(id,false)); }
+requiredFieldIds.forEach(id=>{ ["input","change"].forEach(event=>$(id).addEventListener(event,clearCorrectedFieldErrors)); });
 function updatePayloadPreview(){ $("noteCount").textContent=$("fNote").value.length+"/150"; }
 async function saveOperation(duplicateAfter=false){
   cancelReceiptRead();
   hideMsg("saveMsg");
   const {voce, contoObj}=readForm();
+  requiredFieldIds.forEach(id=>markRequiredField(id,requiredFieldMissing(id)));
   const errs=validateForm(voce, contoObj);
   if(errs.length){ showMsg("saveMsg",""+errs.join(" "),"err"); return false; }
   $("btnSave").disabled=true;
@@ -812,12 +858,12 @@ function applyTemplate(t){
   $("fCat").value=t.idcategoria??"";
   $("fNote").value=t.note||"";
   if(t.unita_codice) $("fUnita").value=t.unita_codice;
-  updatePayloadPreview();
+  updatePayloadPreview(); clearCorrectedFieldErrors();
   showMsg("saveMsg","Modello '"+t.name+"' applicato. Inserisci data e importo.","ok");
 }
 function saveCurrentAsTemplate(){
   const {voce, contoObj, tipoObj}=readForm();
-  if(!voce.idconto||!(state.tipo==="i"?voce.e_idtipo:voce.u_idtipo)){ showMsg("saveMsg","Seleziona almeno conto e tipologia per salvare il modello.","err"); return; }
+  if(!voce.idconto||!(state.tipo==="i"?voce.e_idtipo:voce.u_idtipo)){ ["fConto","fTipo"].forEach(id=>markRequiredField(id,requiredFieldMissing(id))); showMsg("saveMsg","Seleziona almeno conto e tipologia per salvare il modello.","err"); return; }
   const name=prompt("Nome del modello:", (contoObj?.label||"Operazione")+" — "+(tipoObj?.label||""));
   if(!name) return;
   const tpls=getTemplates();
@@ -863,7 +909,7 @@ function navEntry(){ const n=history.state?.abaNavigation; return n?.session===n
 function pushView(view){ history.pushState({...history.state,abaNavigation:{session:navSession,view}},""); }
 function closeOperation(){ cancelReceiptRead(); $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open","keyboard-open"); if(state.user) $("btnAdd").focus(); }
 let operationViewportHeight=0;
-function showOperation(resetDate){ operationViewportHeight=window.visualViewport?.height || window.innerHeight; $("appCard").classList.remove("hidden"); $("btnAdd").setAttribute("aria-expanded","true"); document.body.classList.add("modal-open"); if(resetDate) $("fData").value=isoToInputDate(new Date()); }
+function showOperation(resetDate){ operationViewportHeight=window.visualViewport?.height || window.innerHeight; $("appCard").classList.remove("hidden"); $("btnAdd").setAttribute("aria-expanded","true"); document.body.classList.add("modal-open"); if(resetDate){ $("fData").value=isoToInputDate(new Date()); clearFieldErrors(); } }
 function updateKeyboardViewport(){
   const active=document.activeElement, editing=active && $("appCard").contains(active) && (active.tagName==="INPUT" || active.tagName==="TEXTAREA") && active.type!=="file";
   const height=window.visualViewport?.height || window.innerHeight;
@@ -1027,6 +1073,7 @@ async function readReceiptFile(e){
     if(found.date && initial.date===isoToInputDate(new Date()) && $("fData").value===initial.date){ $("fData").value=found.date; filled.push("data"); }
     if(found.amount && !initial.amount && !$("fImporto").value){ $("fImporto").value=found.amount; filled.push("importo"); }
     if(found.description && !initial.desc && !$("fDesc").value){ $("fDesc").value=found.description; filled.push("descrizione"); }
+    clearCorrectedFieldErrors();
     if(filled.length && initial.tipo==="i" && state.tipo===initial.tipo && !initial.tipoId && !$("fTipo").value) setTipo("o");
     let message=filled.length ? "Proposti: "+filled.join(", ")+". Controlla i dati prima di salvare." : "Nessun campo compilato: dati non riconosciuti o campi già compilati. Controlla lo scontrino e inseriscili manualmente.";
     if(found.ambiguousAmount || found.ambiguousDate) message+=" Più "+(found.ambiguousAmount && found.ambiguousDate?"date e totali":found.ambiguousAmount?"totali":"date")+" rilevati: verifica e inserisci i valori corretti.";
@@ -1091,7 +1138,7 @@ document.querySelectorAll("#tipoToggle button").forEach(b=>b.onclick=()=>setTipo
 $("btnSave").onclick=()=>saveOperation(false);
 $("btnSaveDup").onclick=()=>saveOperation(true);
 $("btnSaveTpl").onclick=saveCurrentAsTemplate;
-$("btnClear").onclick=()=>{ ["fDesc","fImporto","fNote"].forEach(id=>$(id).value=""); $("fTipo").value=""; updatePayloadPreview(); };
+$("btnClear").onclick=()=>{ ["fDesc","fImporto","fNote"].forEach(id=>$(id).value=""); $("fTipo").value=""; clearFieldErrors(); updatePayloadPreview(); };
 /* ---------- PWA: service worker + installazione ---------- */
 if("serviceWorker" in navigator){
   window.addEventListener("load", ()=>{
