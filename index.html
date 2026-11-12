@@ -148,6 +148,19 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
   .operation-footer{position:static;transform:none;width:100%;padding:clamp(16px,3vh,28px) 0 0;flex:none}
   .save-grid .btn{height:clamp(36px,7vh,64px)}
 }
+
+/* Menu di selezione dell'app: testi completi e ricerca anche su Android. */
+.select-dialog{width:min(560px,calc(100% - 32px));max-width:none;max-height:min(80dvh,700px);padding:0;border:0;border-radius:14px;background:#fff;color:#181d27;box-shadow:0 12px 40px #0005}
+.select-dialog::backdrop{background:#0009}
+.select-dialog .select-panel{display:flex;flex-direction:column;max-height:min(80dvh,700px);padding:16px;gap:10px}
+.select-dialog header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.select-dialog h2{font-size:16px;margin:0;line-height:1.3}
+.select-dialog .select-close{border:0;background:transparent;color:#462678;font-size:25px;line-height:1;cursor:pointer;padding:2px 8px}
+.select-dialog input{background:#fff;color:#181d27;font-size:16px;padding:8px 10px}
+.select-list{overflow-y:auto;overscroll-behavior:contain;min-height:0;border:1px solid #d5d7da;border-radius:8px}
+.select-option{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #e5e5e5;background:#fff;color:#181d27;padding:10px 12px;font:400 14px/1.35 Roboto,Tahoma,Arial,sans-serif;white-space:normal;overflow-wrap:anywhere;cursor:pointer}
+.select-option:last-child{border-bottom:0}.select-option[aria-selected="true"]{background:#f4edf9;color:#462678;font-weight:700}.select-option:disabled{color:#999;cursor:not-allowed}
+.select-empty{font-size:14px;margin:0;padding:12px;color:#535862}
 </style>
 </head>
 <body>
@@ -239,6 +252,13 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 
 </div>
 
+<dialog class="select-dialog" id="selectDialog" aria-labelledby="selectDialogTitle">
+  <div class="select-panel">
+    <header><h2 id="selectDialogTitle">Seleziona</h2><button type="button" class="select-close" id="selectDialogClose" aria-label="Chiudi">×</button></header>
+    <input id="selectSearch" type="search" placeholder="Cerca una voce" aria-label="Cerca una voce" autocomplete="off">
+    <div class="select-list" id="selectList" role="listbox" aria-labelledby="selectDialogTitle"></div>
+  </div>
+</dialog>
 <script>
 "use strict";
 const API = "https://bilancio.agesci.it";
@@ -411,7 +431,7 @@ async function api(path, opts={}){
       // Rinnovo non possibile o fallito: disconnetti una sola volta in modo pulito.
       const msg = autoLoginBlocked
         ? "Rinnovo automatico non riuscito (credenziali rifiutate dal server). Accedi di nuovo."
-        : "⏰ Il token è scaduto. Fai di nuovo l'accesso per continuare.";
+        : "Il token è scaduto. Fai di nuovo l'accesso per continuare.";
       handleSessionLost(msg, "warn");
       const err = new Error("Sessione scaduta (401).");
       err.status = 401;
@@ -1028,6 +1048,72 @@ window.addEventListener("storage", (e)=>{
   }
 });
 
+/* Menu personalizzato: il select originale rimane fonte dei valori e degli eventi. */
+(function initSelectMenus(){
+  const dialog=$("selectDialog"), list=$("selectList"), search=$("selectSearch"), close=$("selectDialogClose");
+  let active=null, marker=null, returning=false;
+  const normalize=text=>text.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase();
+  function render(){
+    if(!active) return;
+    const query=normalize(search.value.trim());
+    list.replaceChildren();
+    for(const option of active.options){
+      if(option.hidden || !normalize(option.textContent).includes(query)) continue;
+      const button=document.createElement("button");
+      button.type="button"; button.className="select-option"; button.textContent=option.textContent;
+      button.setAttribute("role","option"); button.setAttribute("aria-selected",String(option.selected));
+      button.disabled=option.disabled || !!option.closest("optgroup:disabled");
+      button.onclick=()=>{
+        if(!active) return;
+        const select=active, changed=select.selectedIndex!==option.index;
+        select.selectedIndex=option.index;
+        if(changed){ select.dispatchEvent(new Event("input",{bubbles:true})); select.dispatchEvent(new Event("change",{bubbles:true})); }
+        dismiss();
+      };
+      list.appendChild(button);
+    }
+    if(!list.children.length){ const empty=document.createElement("p"); empty.className="select-empty"; empty.textContent="Nessuna voce trovata."; list.appendChild(empty); }
+  }
+  function open(select){
+    if(select.disabled || dialog.open) return;
+    active=select;
+    const label=select.labels?.[0] || select.parentElement.querySelector("label");
+    $("selectDialogTitle").textContent=label?.textContent.trim() || "Seleziona una voce";
+    search.value=""; render();
+    marker=Date.now().toString(36)+Math.random().toString(36).slice(2);
+    history.pushState({...history.state,abaSelect:marker},"");
+    dialog.showModal(); close.focus();
+  }
+  function finish(){
+    if(!active) return;
+    const select=active; active=null; marker=null;
+    if(dialog.open) dialog.close();
+    if(select.isConnected && !select.disabled && !select.closest(".hidden")) select.focus({preventScroll:true});
+  }
+  function dismiss(){
+    if(!active || returning) return;
+    if(history.state?.abaSelect===marker){ returning=true; history.back(); }
+    else finish();
+  }
+  window.addEventListener("popstate",()=>{ if(active && history.state?.abaSelect!==marker) finish(); returning=false; });
+  close.addEventListener("click",dismiss);
+  dialog.addEventListener("cancel",e=>{ e.preventDefault(); dismiss(); });
+  dialog.addEventListener("click",e=>{ if(e.target===dialog) dismiss(); });
+  search.addEventListener("input",render);
+  search.addEventListener("keydown",e=>{ if(e.key==="ArrowDown"){ const first=list.querySelector("button:not(:disabled)"); if(first){e.preventDefault();first.focus();} } });
+  list.addEventListener("keydown",e=>{
+    if(e.key!=="ArrowDown" && e.key!=="ArrowUp") return;
+    const options=[...list.querySelectorAll("button:not(:disabled)")], index=options.indexOf(document.activeElement);
+    if(index<0) return;
+    e.preventDefault(); options[Math.max(0,Math.min(options.length-1,index+(e.key==="ArrowDown"?1:-1)))].focus();
+  });
+  document.querySelectorAll("select").forEach(select=>{
+    select.addEventListener("pointerdown",e=>{ if(e.button!==0 || select.disabled) return; e.preventDefault(); });
+    select.addEventListener("click",e=>{ e.preventDefault(); if(!dialog.open) open(select); });
+    select.addEventListener("keydown",e=>{ if(["Enter"," ","ArrowDown","ArrowUp"].includes(e.key)){ e.preventDefault(); open(select); } });
+  });
+})();
+
 /* ---------- boot ---------- */
 (async function boot(){
   if(location.protocol==="file:") showMsg("fileWarn","Apri l'app tramite HTTPS per utilizzare installazione e rinnovo automatico.","warn");
@@ -1067,7 +1153,7 @@ window.addEventListener("storage", (e)=>{
   }
 
   if(hasToken && isTokenExpired()){
-    handleSessionLost("⏰ Il token è scaduto. Fai di nuovo l'accesso per continuare.", "warn");
+    handleSessionLost("Il token è scaduto. Fai di nuovo l'accesso per continuare.", "warn");
     return;
   }
   updateConnUI();
