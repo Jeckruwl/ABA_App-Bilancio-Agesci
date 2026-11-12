@@ -52,6 +52,7 @@
   .dashboard-active #ctxCard label{margin-bottom:3px}
   .dashboard-active #ctxCard select{padding:6px 10px}
 }
+#installScreen .brand-icon{margin-left:auto;margin-right:auto}.install-divider{text-align:center;color:var(--muted);font-size:13px;margin:12px 0 6px}
 </style>
 </head>
 <body>
@@ -59,10 +60,11 @@
   <div class="msg warn hidden" id="fileWarn">Apri l'app tramite HTTPS per utilizzare installazione e rinnovo automatico.</div>
   <section class="card hero hidden" id="installScreen">
     <img class="brand-icon" src="icons/icon-192.png" alt="Icona Bilancio AGESCI">
-    <h1>Il bilancio, sempre con te.</h1>
-    <p class="sub">Installa l'app sul telefono per ritrovare facilmente le tue operazioni.</p>
+    <h1>Il tool bilancio è ancora una palla</h1>
+    <p class="sub">Installa l'app sul telefono per semplificare l'inserimento delle operazioni</p>
     <button class="btn primary-wide" id="btnInstall" type="button">Installa l'app sul telefono</button>
     <div class="msg" id="installHelp" role="status"></div>
+    <p class="install-divider">oppure</p>
     <button class="btn ghost primary-wide" id="btnContinue" type="button">Continua nel browser</button>
   </section>
   <section class="card hero hidden" id="loginCard">
@@ -758,7 +760,11 @@ $("btnLogin").onclick=doLogin;
 $("firstName").value=localStorage.getItem(LS.firstName)||""; $("lastName").value=localStorage.getItem(LS.lastName)||"";
 $("showPassword").onclick=()=>{ const el=$("password"), show=el.type==="password"; el.type=show?"text":"password"; $("showPassword").textContent=show?"Nascondi":"Mostra"; $("showPassword").setAttribute("aria-label",show?"Nascondi password":"Mostra password"); $("showPassword").setAttribute("aria-pressed",String(show)); };
 function applyTheme(dark){ document.documentElement.classList.toggle("dark-mode",dark); $("darkToggle").checked=dark; $("darkToggle").setAttribute("aria-label",dark?"Disattiva modalità scura":"Attiva modalità scura"); document.querySelector('meta[name="theme-color"]').content=dark?"#13161b":"#fafafa"; }
-applyTheme(localStorage.getItem(LS.theme)==="dark");
+const systemTheme=window.matchMedia("(prefers-color-scheme: dark)");
+const savedTheme=localStorage.getItem(LS.theme);
+applyTheme(savedTheme==="dark" || (savedTheme!=="light" && systemTheme.matches));
+if(systemTheme.addEventListener) systemTheme.addEventListener("change", e=>{ if(!localStorage.getItem(LS.theme)) applyTheme(e.matches); });
+else if(systemTheme.addListener) systemTheme.addListener(e=>{ if(!localStorage.getItem(LS.theme)) applyTheme(e.matches); });
 $("darkToggle").onchange=e=>{ localStorage.setItem(LS.theme,e.target.checked?"dark":"light"); applyTheme(e.target.checked); };
 function closeOperation(){ $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open"); if(state.user) $("btnAdd").focus(); }
 $("btnAdd").onclick=()=>{ $("appCard").classList.remove("hidden"); $("btnAdd").setAttribute("aria-expanded","true"); document.body.classList.add("modal-open"); $("fData").value=isoToInputDate(new Date()); switchTab("nuova"); $("btnClose").focus(); };
