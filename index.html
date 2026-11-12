@@ -19,6 +19,7 @@
 :root{--viola:#462678;--viola2:#6b478d;--giallo:#fdc500;--bg:#fafafa;--card:#fff;--border:#d5d7da;--txt:#181d27;--muted:#535862;--ok:#168054;--err:#b42318;--warn:#936000;--surface:#f5f5f5;--radius:16px;color-scheme:light}
 :root.dark-mode{--bg:#13161b;--card:#0c0e12;--border:#373a41;--txt:#fafafa;--muted:#a4a7ae;--surface:#22262f;--viola:#aeb0d9;--viola2:#c6c2e5;--ok:#75d6a5;--err:#ffaaa1;--warn:#f6cf72;color-scheme:dark}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:Roboto,Tahoma,Arial,sans-serif;line-height:1.5}.wrap{max-width:1000px;margin:auto;padding:32px 20px 70px}.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:20px;box-shadow:0 1px 3px #1018280d}.card h2{font-size:22px;line-height:1.3;margin:0 0 6px}.sub,.muted{color:var(--muted);font-size:14px}.sub{margin:0 0 22px}.grid2,.grid3{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.grid3{grid-template-columns:repeat(3,minmax(0,1fr))}.field{margin-bottom:18px;min-width:0}label{display:block;font-size:14px;font-weight:600;margin-bottom:6px;color:var(--txt)}input,select,textarea{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--txt);font:inherit;font-size:15px;box-shadow:0 1px 2px #1018280d}input:focus,select:focus,textarea:focus{outline:3px solid #aeb0d966;border-color:var(--viola2)}textarea{min-height:100px;resize:vertical}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.btn{border:1px solid transparent;border-radius:8px;padding:10px 16px;font:600 14px Roboto,Tahoma,Arial,sans-serif;cursor:pointer;background:#462678;color:white;box-shadow:0 1px 2px #1018280d,0 -2px 0 #0000000d inset}.btn:hover{filter:brightness(1.13)}.btn:disabled{opacity:.5;cursor:not-allowed}.btn.ghost,.btn.danger{background:var(--card);color:var(--txt);border-color:var(--border)}.btn.danger{color:var(--err)}.btn.small{padding:8px 12px}.toggle,.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px}.tabs{margin-bottom:24px;overflow-x:auto}.toggle button,.tabs button{flex:1;white-space:nowrap;border:0;background:transparent;padding:9px 12px;border-radius:7px;font:600 14px Roboto,Tahoma,Arial,sans-serif;cursor:pointer;color:var(--muted)}.toggle button.on,.tabs button.on{background:var(--card);color:var(--txt);box-shadow:0 1px 3px #10182826}.msg{display:none;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:14px;margin:12px 0}.msg.ok{display:block;color:var(--ok)}.msg.err{display:block;color:var(--err)}.msg.warn{display:block;color:var(--warn)}.hidden{display:none!important}.hero{max-width:480px;margin:8vh auto}.brand-icon{width:64px;height:64px;border-radius:15px;display:block}.hero .brand-icon{width:80px;height:80px;margin-bottom:24px}.hero h1{font-size:30px;line-height:1.2;margin:0 0 10px}.hero .btn.primary-wide{width:100%;padding:15px;margin-top:6px}.greeting{display:flex;align-items:center;gap:16px}.greeting h2{margin:0}.context-head{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:26px}.context-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.theme-control{display:flex;align-items:center;gap:10px;margin:0 8px 0 0}.switch{appearance:none;width:44px;height:24px;border:0;border-radius:20px;background:#a4a7ae;position:relative;padding:0;cursor:pointer;box-shadow:none}.switch:checked{background:#6b478d}.switch:before{content:"";position:absolute;width:20px;height:20px;top:2px;left:2px;background:white;border-radius:50%;transition:transform .15s}.switch:checked:before{transform:translateX(20px)}.password-wrap{position:relative}.password-wrap input{padding-right:70px}.password-wrap button{position:absolute;right:4px;top:4px;background:transparent;border:0;color:var(--muted);cursor:pointer;padding:8px}.section-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin:28px 0 16px}.section-heading h2{margin:0;font-size:20px}.add-btn{font-size:15px;padding:13px 20px}.add-btn span{font-size:22px;vertical-align:middle;margin-right:8px}.count{text-align:right;margin-top:4px}.log{background:var(--surface);color:var(--txt);border-radius:8px;padding:12px;max-height:220px;overflow:auto;white-space:pre-wrap}.tpl{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;align-items:center}.tpl span{color:var(--muted)}.progress{height:8px;background:var(--surface);border-radius:99px;overflow:hidden;margin:10px 0}.progress>div{height:100%;background:#6b478d;width:0}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:9px;border-bottom:1px solid var(--border)}#recentWrap,#csvPreview{overflow-x:auto}.pill{display:inline-block;border-radius:99px;padding:2px 9px;background:var(--surface)}code{font-size:12px}details{margin-top:12px}summary{cursor:pointer;color:var(--viola)}
+.add-btn{width:100%}.operation-screen{position:fixed;inset:0;z-index:100;background:var(--bg);overflow-y:auto;overscroll-behavior:contain;padding:calc(20px + env(safe-area-inset-top)) 20px calc(32px + env(safe-area-inset-bottom));margin:0;border:0;border-radius:0;box-shadow:none}.operation-inner{max-width:760px;margin:0 auto}.operation-top{display:flex;justify-content:flex-end;margin-bottom:16px}.save-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.save-grid .btn{min-width:0}.modal-open{overflow:hidden}
 @media(max-width:700px){.wrap{padding:20px 16px 50px}.card{padding:20px}.grid2,.grid3{grid-template-columns:1fr;gap:0}.hero{margin:5vh auto}.section-heading .btn{width:100%}.tabs button{flex:none}.context-actions{width:100%}.context-head{align-items:flex-start}}
 </style>
 </head>
@@ -51,7 +52,7 @@
   <!-- CONTESTO -->
   <section class="card hidden" id="ctxCard">
     <div class="context-head">
-      <div class="greeting"><img class="brand-icon" src="icons/icon-192.png" alt=""><div><h2 id="helloName">Ciao</h2><span class="muted">Il tuo bilancio a portata di mano</span></div></div>
+      <div class="greeting"><img class="brand-icon" src="icons/icon-192.png" alt=""><div><h2 id="helloName">Ciao</h2></div></div>
       <div class="context-actions"><label class="theme-control" for="darkToggle">Dark mode <input class="switch" id="darkToggle" type="checkbox" role="switch"></label><button class="btn ghost small" id="btnRefresh">Ricarica</button><button class="btn ghost small" id="btnForget">Dimentica password</button><button class="btn danger small" id="btnLogout">Esci</button></div>
     </div>
     <div class="grid3">
@@ -63,29 +64,28 @@
     <p class="muted" id="editableInfo"></p>
   </section>
 
-  <div id="operationHeading" class="section-heading hidden"><div><h2>Le tue operazioni</h2><span class="muted">Gestisci la prima nota</span></div><button class="btn add-btn" id="btnAdd" aria-expanded="false" aria-controls="appCard"><span>+</span> Aggiungi entrata/uscita</button></div>
+  <div id="operationHeading" class="section-heading hidden"><button class="btn add-btn" id="btnAdd" aria-expanded="false" aria-controls="appCard"><span>+</span> Aggiungi entrata/uscita</button></div>
   <!-- APP -->
-  <section class="card hidden" id="appCard">
+  <section class="card operation-screen hidden" id="appCard" role="dialog" aria-modal="true" aria-label="Operazione">
+    <div class="operation-inner">
+    <div class="operation-top"><button type="button" class="btn ghost" id="btnClose">Chiudi</button></div>
     <div class="tabs">
       <button class="on" data-tab="nuova">Nuova operazione</button>
       <button data-tab="modelli">Modelli</button>
-      <button data-tab="massivo">Import massivo CSV</button>
-      <button data-tab="recenti">Operazioni recenti</button>
     </div>
 
     <!-- NUOVA OPERAZIONE -->
     <div id="tab-nuova">
-      <h2>Nuova operazione</h2><p class="sub">Inserisci i dettagli della tua entrata o uscita.</p>
       <div class="grid2"><div class="field"><label for="fData">Data operazione *</label><input id="fData" type="date"></div><div class="field"><label for="fConto">Conto *</label><select id="fConto"></select></div></div>
       <div class="field"><label>Tipo operazione *</label><div class="toggle" id="tipoToggle"><button type="button" class="on" data-t="i">Entrata</button><button type="button" data-t="o">Uscita</button></div></div>
-      <div class="grid2"><div class="field"><label for="fTipo">Tipologia *</label><select id="fTipo"></select></div><div class="field"><label>Elenco voci</label><div class="toggle" id="voceToggle"><button type="button" class="on" data-mode="scout">Voci Scout</button><button type="button" data-mode="ministero">Voci Ministero</button></div></div></div>
+      <div class="grid2"><div class="field"><label>Elenco voci</label><div class="toggle" id="voceToggle"><button type="button" class="on" data-mode="scout">Scout</button><button type="button" data-mode="ministero">Ministero</button></div></div><div class="field"><label for="fTipo">Tipologia *</label><select id="fTipo"></select></div></div>
       <div class="field"><label for="fImporto">Importo (€) *</label><input id="fImporto" type="number" step="0.01" min="0.01" placeholder="0,00"></div>
       <div class="field"><label for="fDesc">Descrizione *</label><input id="fDesc" placeholder="Descrivi l'operazione"></div>
       <div class="grid2"><div class="field"><label for="fCat">Categoria</label><select id="fCat"><option value="">— Nessuna —</option></select></div><div class="field hidden" id="unitaField"><label for="fUnita">Unità</label><select id="fUnita"></select></div></div>
       <div class="field"><label for="fNote">Note</label><input id="fNote" maxlength="150" placeholder="Facoltative"><div class="muted count" id="noteCount">0/150</div></div>
-      <div class="row">
-        <button class="btn" id="btnSave">Salva operazione</button>
-        <button class="btn ghost" id="btnSaveDup">Salva e duplica (per la prossima)</button>
+      <div class="save-grid">
+        <button class="btn" id="btnSave">Salva</button>
+        <button class="btn ghost" id="btnSaveDup">Salva e duplica</button>
         <button class="btn ghost" id="btnSaveTpl">Salva come modello</button>
         <button class="btn ghost" id="btnClear">Pulisci</button>
       </div>
@@ -101,35 +101,6 @@
       <p class="muted" id="tplEmpty">Nessun modello ancora. Compila una operazione e premi "Salva come modello".</p>
     </div>
 
-    <!-- MASSIVO -->
-    <div id="tab-massivo" class="hidden">
-      <h2>Import massivo da CSV</h2>
-      <p class="sub">Incolla o carica un CSV con una operazione per riga. Controlla l'anteprima e invia in sequenza.</p>
-      <div class="row" style="margin-bottom:10px">
-        <button class="btn ghost small" id="btnTplCsv">Scarica modello CSV</button>
-        <button class="btn ghost small" id="btnExample">Carica esempio</button>
-        <input type="file" id="fileCsv" accept=".csv,text/csv" style="width:auto">
-      </div>
-      <div class="field"><label>CSV (intestazione obbligatoria)</label>
-        <textarea id="csvText" placeholder="data;descrizione;tipo;importo;tipologia;conto;categoria;note&#10;15/03/2026;Quota Lupetti;E;25;Quote associative;Cassa;;"></textarea>
-      </div>
-      <p class="muted">Colonne: <code>data</code> (GG/MM/AAAA), <code>descrizione</code>, <code>tipo</code> (E/U, Entrata/Uscita), <code>importo</code>, <code>tipologia</code> (label, codice o ID), <code>conto</code> (label o ID), <code>categoria</code>, <code>note</code>. Separatore <code>;</code> o <code>,</code>.</p>
-      <div class="row">
-        <button class="btn ghost" id="btnPreviewCsv">Anteprima</button>
-        <button class="btn" id="btnSendCsv" disabled>Invia tutto</button>
-      </div>
-      <div class="progress hidden" id="csvProgressWrap"><div id="csvProgress"></div></div>
-      <div id="csvPreview"></div>
-      <div class="log hidden" id="csvLog"></div>
-    </div>
-
-    <!-- RECENTI -->
-    <div id="tab-recenti" class="hidden">
-      <div class="row" style="justify-content:space-between">
-        <div><h2>Operazioni recenti</h2><p class="sub">Ultime operazioni lette dal sito ufficiale per il contesto selezionato.</p></div>
-        <button class="btn ghost small" id="btnLoadRecent">↻ Aggiorna</button>
-      </div>
-      <div id="recentWrap"><p class="muted">Premi "Aggiorna" per caricare le operazioni.</p></div>
     </div>
   </section>
 
@@ -431,7 +402,7 @@ function updateConnUI(){
   $("loginCard").classList.toggle("hidden",!!state.user || onboarding);
   $("ctxCard").classList.toggle("hidden",!state.user);
   $("operationHeading").classList.toggle("hidden",!state.user);
-  if(!state.user){ $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); }
+  if(!state.user){ $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open"); }
   else { const name=localStorage.getItem(LS.firstName) || (state.user?.userInfo?.codiceSocio ? "Socio "+state.user.userInfo.codiceSocio : "Utente"); $("helloName").textContent="Ciao, "+name; }
 }
 let initPromise = null;
@@ -508,7 +479,7 @@ async function checkEditable(){
     const blocked = res===true || res?.data===true;
     const noAccess = state.incarico && ([11,12,13].includes(state.incarico.accessoTipo) || [4,5].includes(state.incarico.tipoIncarico));
     const dis = blocked||noAccess;
-    $("btnSave").disabled=dis; $("btnSaveDup").disabled=dis; $("btnSendCsv").disabled=dis||state.csvRows.length===0;
+    $("btnSave").disabled=dis; $("btnSaveDup").disabled=dis;
     $("editableInfo").textContent = dis? "Anno bloccato o accesso in sola lettura: inserimento disabilitato." : "Anno modificabile.";
     $("editableInfo").style.color = dis? "var(--err)":"var(--ok)";
   }catch(e){ $("editableInfo").textContent=""; }
@@ -708,168 +679,10 @@ function saveCurrentAsTemplate(){
   showMsg("saveMsg","Modello '"+name+"' salvato.","ok");
 }
 
-/* ---------- CSV massivo ---------- */
-function parseCSV(text){
-  const lines=text.split(/\r?\n/).filter(l=>l.trim()!=="");
-  if(lines.length<2) return {rows:[], error:"Il CSV deve avere intestazione + almeno una riga."};
-  const delim = lines[0].includes(";")? ";" : ",";
-  const headers=lines[0].split(delim).map(h=>h.trim().toLowerCase().replace(/^\uFEFF/,""));
-  const rows=[];
-  for(let i=1;i<lines.length;i++){
-    const cells=lines[i].split(delim).map(c=>c.trim());
-    const obj={};
-    headers.forEach((h,j)=>obj[h]=cells[j]??"");
-    rows.push(obj);
-  }
-  return {rows};
-}
-function resolveConto(val){
-  if(val==null||val==="") return null;
-  const s=String(val).trim();
-  let c=state.conti.find(x=>String(x.value)===s);
-  if(c) return c;
-  c=state.conti.find(x=>String(x.label).toLowerCase()===s.toLowerCase());
-  return c||null;
-}
-function resolveTipo(val, tipo){
-  if(val==null||val==="") return null;
-  const s=String(val).trim();
-  const arr=tipo==="i"?state.tipiE:state.tipiU;
-  let t=arr.find(x=>String(x.value)===s);
-  if(t) return t;
-  t=arr.find(x=>String(x.label).toLowerCase()===s.toLowerCase());
-  if(t) return t;
-  t=arr.find(x=>String(x.codice||"").toLowerCase()===s.toLowerCase());
-  return t||null;
-}
-function resolveCategoria(val){
-  if(val==null||val==="") return null;
-  const s=String(val).trim();
-  return state.categorie.find(x=>String(x.value)===s||String(x.label).toLowerCase()===s.toLowerCase())||null;
-}
-function buildVoceFromRow(r){
-  const tipoRaw=String(r.tipo||"").trim().toLowerCase();
-  const tipo=(tipoRaw==="u"||tipoRaw==="uscita"||tipoRaw==="o")? "o":"i";
-  const conto=resolveConto(r.conto);
-  const tipoObj=resolveTipo(r.tipologia, tipo);
-  const cat=resolveCategoria(r.categoria);
-  const d=parseITDate(r.data||"");
-  const importo=parseFloat(String(r.importo||"").replace(",","."));
-  const voce={
-    idconto: conto? conto.value:null,
-    data_operazione: d? isoToInputDate(d)+"T00:00:00.000Z":null,
-    descrizione: String(r.descrizione||"").trim(),
-    e_importo: tipo==="i"? (isNaN(importo)?null:importo):null,
-    u_importo: tipo==="o"? (isNaN(importo)?null:importo):null,
-    e_idtipo: tipo==="i"&&tipoObj? tipoObj.value:null,
-    u_idtipo: tipo==="o"&&tipoObj? tipoObj.value:null,
-    e_descrizionetipo: tipo==="i"&&tipoObj? tipoObj.label:null,
-    u_descrizionetipo: tipo==="o"&&tipoObj? tipoObj.label:null,
-    conto: conto? conto.label:null,
-    idcategoria: cat? cat.value:null,
-    note: String(r.note||"").trim().slice(0,150),
-    unita_codice: null, unita_nome: null
-  };
-  const errs=[];
-  if(!conto) errs.push("conto non trovato: '"+(r.conto||"")+"'");
-  if(!d) errs.push("data non valida: '"+(r.data||"")+"'");
-  if(!voce.descrizione) errs.push("descrizione mancante");
-  if(isNaN(importo)||importo===0) errs.push("importo non valido");
-  if(!tipoObj) errs.push("tipologia non trovata: '"+(r.tipologia||"")+"'");
-  return {voce, tipo, conto, tipoObj, errs};
-}
-function previewCSV(){
-  hideMsg("saveMsg");
-  const {rows, error}=parseCSV($("csvText").value);
-  if(error){ $("csvPreview").innerHTML='<div class="msg err" style="display:block">'+esc(error)+'</div>'; state.csvRows=[]; $("btnSendCsv").disabled=true; return; }
-  state.csvRows=rows.map((r,i)=>Object.assign({__i:i+1}, buildVoceFromRow(r)));
-  let html='<table><thead><tr><th>#</th><th>Data</th><th>Descrizione</th><th>Tipo</th><th>Importo</th><th>Conto</th><th>Tipologia</th><th>Stato</th></tr></thead><tbody>';
-  state.csvRows.forEach(x=>{
-    const ok=x.errs.length===0;
-    html+="<tr><td>"+x.__i+"</td><td>"+esc(x.voce.data_operazione?fmtDateIT(x.voce.data_operazione):"—")+"</td><td>"+esc(x.voce.descrizione||"—")+"</td><td><span class='pill "+(x.tipo==="i"?"e":"u")+"'>"+(x.tipo==="i"?"Entrata":"Uscita")+"</span></td><td>"+fmtEUR(x.tipo==="i"?x.voce.e_importo:x.voce.u_importo)+"</td><td>"+esc(x.voce.conto||"—")+"</td><td>"+esc(x.tipo==="i"?x.voce.e_descrizionetipo:x.voce.u_descrizionetipo||"—")+"</td><td>"+(ok?'<span class="pill ok">OK</span>':'<span class="pill ko" title="'+esc(x.errs.join("; "))+'">Errori</span>')+"</td></tr>";
-    if(!ok) html+="<tr><td></td><td colspan='7' class='muted'>"+esc(x.errs.join(" · "))+"</td></tr>";
-  });
-  html+="</tbody></table>";
-  $("csvPreview").innerHTML=html;
-  const valid=state.csvRows.filter(x=>x.errs.length===0).length;
-  $("btnSendCsv").disabled = valid===0 || state.csvSending;
-  $("btnSendCsv").textContent="Invia "+valid+" operazioni valide";
-}
-async function sendCSV(){
-  if(state.csvSending) return;
-  const valid=state.csvRows.filter(x=>x.errs.length===0);
-  if(!valid.length) return;
-  if(!confirm("Inviare "+valid.length+" operazioni su bilancio.agesci.it?")) return;
-  state.csvSending=true; $("btnSendCsv").disabled=true;
-  const log=$("csvLog"); log.classList.remove("hidden"); log.innerHTML="";
-  $("csvProgressWrap").classList.remove("hidden");
-  let ok=0, ko=0;
-  for(let n=0;n<valid.length;n++){
-    const x=valid[n];
-    $("csvProgress").style.width=Math.round((n/valid.length)*100)+"%";
-    log.innerHTML+='<span class="info">['+(n+1)+"/"+valid.length+"] "+esc(x.voce.descrizione)+" …</span>\n";
-    log.scrollTop=log.scrollHeight;
-    try{
-      const req=buildReq(x.voce.idconto);
-      const res=await api("/api/vocecassa/save",{body:{req, vocecassa:x.voce}});
-      if(typeof res==="string") throw new Error(res);
-      ok++; log.innerHTML+='<span class="ok">  OK</span>\n';
-      pushHistory({data:x.voce.data_operazione, descrizione:x.voce.descrizione, tipo:x.tipo, importo:x.tipo==="i"?x.voce.e_importo:x.voce.u_importo, conto:x.voce.conto, ok:true});
-    }catch(err){
-      ko++; log.innerHTML+='<span class="ko">  '+esc(err.message)+'</span>\n';
-      pushHistory({data:x.voce.data_operazione, descrizione:x.voce.descrizione, tipo:x.tipo, importo:x.tipo==="i"?x.voce.e_importo:x.voce.u_importo, conto:x.voce.conto, ok:false, error:err.message});
-    }
-    log.scrollTop=log.scrollHeight;
-    await sleep(350);
-  }
-  $("csvProgress").style.width="100%";
-  log.innerHTML+='<span class="info">\nFatto: '+ok+' OK, '+ko+' errori.</span>\n';
-  state.csvSending=false; $("btnSendCsv").disabled=false;
-  loadRecent();
-}
-
-/* ---------- recenti ---------- */
-async function loadRecent(){
-  const wrap=$("recentWrap");
-  wrap.innerHTML='<p class="muted">Caricamento…</p>';
-  try{
-    const req=buildReq(0); req.loadMovimentiGroupedRF=true;
-    const rows=await postReq("/api/vocecassa/listbyparams", req);
-    const arr=Array.isArray(rows)?rows:[];
-    if(!arr.length){ wrap.innerHTML='<p class="muted">Nessuna operazione per questo contesto.</p>'; return; }
-    const sorted=[...arr].sort((a,b)=>new Date(b.data_operazione)-new Date(a.data_operazione)).slice(0,30);
-    let html='<table><thead><tr><th>Data</th><th>Descrizione</th><th>Entrata</th><th>Uscita</th><th>Tipologia</th><th>Saldo</th><th>Azioni</th></tr></thead><tbody>';
-    sorted.forEach(r=>{
-      html+="<tr><td>"+fmtDateIT(r.data_operazione)+"</td><td>"+esc(r.descrizione||"")+(r.unitaFullName? "<br><span class='muted'>"+esc(r.unitaFullName)+"</span>":"")+"</td><td>"+(r.e_importo?fmtEUR(r.e_importo):"—")+"</td><td>"+(r.u_importo?fmtEUR(r.u_importo):"—")+"</td><td>"+esc(r.e_descrizionetipo||r.u_descrizionetipo||"—")+"</td><td>"+(r.saldo!=null?fmtEUR(r.saldo):"—")+"</td><td><button class='btn ghost small' data-dup='"+r.id+"'>Duplica</button> <button class='btn danger small' data-del='"+r.id+"' data-conto='"+(r.idconto||0)+"'>Elimina</button></td></tr>";
-    });
-    html+="</tbody></table><p class='muted'>Mostrate "+sorted.length+" di "+arr.length+" operazioni.</p>";
-    wrap.innerHTML=html;
-    wrap.querySelectorAll("[data-dup]").forEach(b=>b.onclick=async()=>{
-      if(!confirm("Duplicare questa operazione?")) return;
-      try{
-        const req2=buildReq(0);
-        const res=await api("/api/vocecassa/duplicate",{body:{req:req2, voceCassaToDuplicateId:Number(b.dataset.dup)}});
-        if(typeof res==="string") throw new Error(res);
-        alert("Operazione duplicata."); loadRecent();
-      }catch(e){ alert(""+e.message); }
-    });
-    wrap.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{
-      if(!confirm("Eliminare questa operazione? Azione irreversibile.")) return;
-      try{
-        const req2=buildReq(Number(b.dataset.conto));
-        const res=await api("/api/vocecassa/delete",{body:{req:req2, voceCassaToDeleteId:Number(b.dataset.del)}});
-        if(typeof res==="string") throw new Error(res);
-        alert("Operazione eliminata."); loadRecent();
-      }catch(e){ alert(""+e.message); }
-    });
-  }catch(err){ wrap.innerHTML='<div class="msg err" style="display:block">Errore: '+esc(err.message)+'</div>'; }
-}
-
 /* ---------- tabs / tipo ---------- */
 function switchTab(name){
   document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on", b.dataset.tab===name));
-  ["nuova","modelli","massivo","recenti"].forEach(t=>$("tab-"+t).classList.toggle("hidden", t!==name));
-  if(name==="recenti") loadRecent();
+  ["nuova","modelli"].forEach(t=>$("tab-"+t).classList.toggle("hidden", t!==name));
 }
 function setTipo(t){
   state.tipo=t;
@@ -885,7 +698,17 @@ $("showPassword").onclick=()=>{ const el=$("password"), show=el.type==="password
 function applyTheme(dark){ document.documentElement.classList.toggle("dark-mode",dark); $("darkToggle").checked=dark; document.querySelector('meta[name="theme-color"]').content=dark?"#13161b":"#fafafa"; }
 applyTheme(localStorage.getItem(LS.theme)==="dark");
 $("darkToggle").onchange=e=>{ localStorage.setItem(LS.theme,e.target.checked?"dark":"light"); applyTheme(e.target.checked); };
-$("btnAdd").onclick=()=>{ const opening=$("appCard").classList.contains("hidden"); $("appCard").classList.toggle("hidden",!opening); $("btnAdd").setAttribute("aria-expanded",String(opening)); if(opening){ $("fData").value=isoToInputDate(new Date()); switchTab("nuova"); } };
+function closeOperation(){ $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open"); if(state.user) $("btnAdd").focus(); }
+$("btnAdd").onclick=()=>{ $("appCard").classList.remove("hidden"); $("btnAdd").setAttribute("aria-expanded","true"); document.body.classList.add("modal-open"); $("fData").value=isoToInputDate(new Date()); switchTab("nuova"); $("btnClose").focus(); };
+$("btnClose").onclick=closeOperation;
+$("appCard").addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ e.preventDefault(); closeOperation(); return; }
+  if(e.key!=="Tab") return;
+  const items=[...$("appCard").querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)')].filter(el=>!el.closest('.hidden'));
+  if(!items.length) return;
+  if(e.shiftKey && document.activeElement===items[0]){ e.preventDefault(); items[items.length-1].focus(); }
+  else if(!e.shiftKey && document.activeElement===items[items.length-1]){ e.preventDefault(); items[0].focus(); }
+});
 document.querySelectorAll("#voceToggle button").forEach(b=>b.onclick=()=>setVoceMode(b.dataset.mode));
 $("fData").value=isoToInputDate(new Date());
 $("password").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
@@ -917,22 +740,6 @@ $("btnSave").onclick=()=>saveOperation(false);
 $("btnSaveDup").onclick=()=>saveOperation(true);
 $("btnSaveTpl").onclick=saveCurrentAsTemplate;
 $("btnClear").onclick=()=>{ ["fDesc","fImporto","fNote"].forEach(id=>$(id).value=""); $("fTipo").value=""; updatePayloadPreview(); };
-$("btnPreviewCsv").onclick=previewCSV;
-$("btnSendCsv").onclick=sendCSV;
-$("btnLoadRecent").onclick=loadRecent;
-$("btnExample").onclick=()=>{
-  $("csvText").value="data;descrizione;tipo;importo;tipologia;conto;categoria;note\n15/03/2026;Quota Lupetti gennaio;E;25;Quote associative;Cassa;;\n20/03/2026;Spesa cancelleria;U;18.50;Materiale cancelleria;Cassa;;\n";
-  previewCSV();
-};
-$("btnTplCsv").onclick=()=>{
-  const blob=new Blob(["data;descrizione;tipo;importo;tipologia;conto;categoria;note\n15/03/2026;Esempio;E;10;Quote associative;Cassa;;\n"],{type:"text/csv"});
-  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="operazioni_modello.csv"; a.click();
-};
-$("fileCsv").onchange=e=>{
-  const f=e.target.files[0]; if(!f) return;
-  const r=new FileReader(); r.onload=()=>{ $("csvText").value=r.result; previewCSV(); }; r.readAsText(f);
-};
-
 /* ---------- PWA: service worker + installazione ---------- */
 if("serviceWorker" in navigator){
   window.addEventListener("load", ()=>{
