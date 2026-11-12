@@ -26,7 +26,7 @@
 .operation-screen input:not(.switch),.operation-screen select,.operation-screen textarea{padding:8px 10px}.note-label{display:flex;justify-content:space-between;align-items:center;gap:8px}.note-label .muted{font-weight:400}.operation-screen .field{margin-bottom:12px}.operation-screen .grid2{column-gap:12px}.operation-screen .tabs{margin-bottom:16px}
 .operation-footer{position:fixed;z-index:1;bottom:0;left:50%;transform:translateX(-50%);width:min(100%, 800px);padding:8px 20px calc(8px + env(safe-area-inset-bottom));background:transparent;pointer-events:none}
 .operation-footer .msg{pointer-events:auto;margin:0 0 8px;background:var(--card);max-height:25vh;overflow-y:auto}
-.operation-actions{display:flex;gap:10px;align-items:stretch}.operation-actions .btn{pointer-events:auto}.back-btn{width:44px;min-width:44px;height:44px;align-self:center;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 8px #1018281a}.save-grid{flex:1;gap:6px}.save-grid .btn{min-height:36px;padding:2px 4px;box-shadow:0 2px 8px #1018281a}
+.operation-actions{display:flex;gap:10px;align-items:stretch}.operation-actions .btn{pointer-events:auto}.save-grid{flex:1;gap:6px}.save-grid .btn{min-height:36px;padding:2px 4px;box-shadow:0 2px 8px #1018281a}
 @media(max-width:700px){.operation-screen .paired-fields{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:8px}.operation-screen .paired-fields input,.operation-screen .paired-fields select{min-width:0;padding-left:7px;padding-right:7px}.card.operation-screen{padding-left:16px;padding-right:16px}.operation-footer{padding-left:16px;padding-right:16px}.save-grid .btn{font-size:13px}}
 /* Azioni del contesto e selettore tema */
 .context-actions{flex-wrap:nowrap}.context-actions .btn{white-space:nowrap}.context-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px}.context-bottom p{margin:0;flex:1}.theme-switch{position:relative;display:block;width:64px;height:32px;flex:none;margin:0;cursor:pointer}.theme-switch input{position:absolute;width:1px;height:1px;opacity:0}.theme-track{position:absolute;inset:0;border:1px solid var(--border);border-radius:999px;background:var(--surface);display:flex;align-items:center;justify-content:space-around}.theme-track:before{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:var(--card);box-shadow:0 1px 4px #10182833;transition:transform .15s}.theme-switch input:checked+.theme-track:before{transform:translateX(32px)}.theme-switch input:focus-visible+.theme-track{outline:3px solid #aeb0d9}.theme-track svg{width:16px;height:16px;position:relative;color:var(--muted)}
@@ -67,9 +67,6 @@
 #loginCard>p.muted{font-size:12px;line-height:1.3;margin:6px 0 8px}
 #loginCard .btn.primary-wide{padding:10px;margin-top:0}#loginCard .msg{margin:6px 0 0;padding:7px;font-size:12px;line-height:1.25}
 @media(max-height:500px){.login-active .wrap{justify-content:flex-start;overflow-y:auto}}
-.operation-side{display:flex;flex-direction:column;gap:6px;justify-content:center}.operation-side .back-btn,.operation-side .camera-btn{width:44px;min-width:44px;height:36px;padding:0;display:flex;justify-content:center;align-items:center}.operation-side .camera-btn{box-shadow:0 2px 8px #1018281a}
-.receipt-choices{pointer-events:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:8px;box-shadow:0 4px 16px #10182826}.receipt-choices p{font-size:14px;font-weight:600;margin:0 0 10px}.receipt-choice-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}.receipt-choice-buttons .btn,.receipt-cancel{min-height:40px}.receipt-cancel{width:100%;margin-top:8px}
-.ocr-text{margin:10px 0}.ocr-text pre{white-space:pre-wrap;overflow:auto;max-height:220px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:8px;font:13px/1.5 monospace;color:var(--txt)}
 /* Selettore a due sezioni e notifiche indipendenti dal layout. */
 .tabs button{flex:1 1 0;min-width:0;text-align:center}
 .notifications{position:fixed;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:min(480px,calc(100% - 32px));z-index:1000;display:flex;flex-direction:column;gap:8px;pointer-events:none}
@@ -84,8 +81,6 @@
   .operation-screen label{margin-bottom:3px}
   #tab-nuova>.grid2:not(.paired-fields){grid-template-columns:repeat(2,minmax(0,1fr));column-gap:8px}
   #tab-modelli{min-height:0;overflow-y:auto;overscroll-behavior:contain}
-  .operation-screen .ocr-text:not(.hidden){position:fixed;z-index:2;bottom:calc(92px + env(safe-area-inset-bottom));left:16px;right:16px;margin:0;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card);box-shadow:0 2px 8px #1018281a}
-  .operation-screen .ocr-text pre{max-height:20vh;margin:6px 0 0}.operation-screen .ocr-text p{margin:4px 0}
 }
 @media(max-width:700px) and (max-height:700px){
   .card.operation-screen{padding-top:calc(8px + env(safe-area-inset-top));padding-bottom:calc(92px + env(safe-area-inset-bottom))}
@@ -111,7 +106,7 @@
 #loginCard input::placeholder,#appCard input::placeholder,#appCard textarea::placeholder{color:#667085;opacity:1}
 #ctxCard select:disabled{color:#62666f;opacity:1;background:#f3f3f3}
 #loginCard .password-wrap button{color:#535862}
-#btnInstall,#btnLogin{background:#211638;color:#fff;border-color:#9b80b7}
+#btnInstall,#btnLogin{background:#fdc500;color:#462678;border-color:#fdc500}
 #installScreen #btnContinue{background:#fff;color:#000;border-color:#fff}
 #ctxCard .context-actions .btn{background:#fff;color:#211638;border-color:#fff}
 #ctxCard .context-actions .btn.danger{color:#a02622}
@@ -124,11 +119,7 @@
 #appCard .tabs button,#appCard .toggle button{color:#462678;background:transparent}
 #appCard .tabs button.on,#appCard .toggle button.on{background:#462678;color:#fff}
 #appCard .btn{background:#fff;color:#211638;border-color:#d5d7da}
-#appCard #btnSave,#appCard #chooseCamera{background:#211638;color:#fff;border-color:#d5d7da}
-#appCard .receipt-choices{color:var(--txt)}
-#appCard .ocr-text summary{color:#fff}
-#appCard .ocr-text p.muted{color:#f1ebf7}
-@media(max-width:700px){#appCard .ocr-text summary{color:var(--txt)}#appCard .ocr-text p.muted{color:var(--muted)}}
+#appCard #btnSave{background:#fdc500;color:#462678;border-color:#fdc500}
 #loginCard input:focus,#ctxCard select:focus,#appCard input:focus,#appCard select:focus,#appCard textarea:focus{outline:2px solid #fdc500;outline-offset:1px}
 #appCard input.field-invalid,#appCard select.field-invalid{border-color:#e74030!important;box-shadow:0 0 0 2px #e74030!important}
 button,summary,.theme-switch{-webkit-tap-highlight-color:transparent}
@@ -136,6 +127,23 @@ button:not(:disabled):active{background:#fdc500!important;color:#462678!importan
 #btnAdd:not(:disabled):active{background:#462678!important;color:#fff!important;border-color:#462678!important}
 button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-offset:2px}
 .theme-switch input:active+.theme-track{background:#fdc500;border-color:#fdc500}.theme-switch input:active+.theme-track svg{color:#462678}
+
+/* I tre selettori hanno la stessa altezza. */
+#appCard .tabs,#tab-nuova .toggle{height:46px}
+@media(max-width:700px) and (max-height:500px){#appCard .tabs,#tab-nuova .toggle{height:33px}}
+/* Su schermi verticali, il modulo e la matrice occupano l'altezza disponibile. */
+@media(max-width:700px) and (min-height:501px){
+  .card.operation-screen{padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+  #appCard .tabs,#tab-nuova .toggle{height:clamp(36px,5.5vh,48px);flex:none}
+  #tab-nuova:not(.hidden){display:flex;flex-direction:column;flex:1;min-height:0;gap:clamp(2px,.7vh,8px)}
+  #tab-nuova> .grid2,#tab-nuova> .field:not(.hidden){flex:1;min-height:0}
+  #tab-nuova>.field:has(.toggle){flex:none}
+  #tab-nuova .field{display:flex;flex-direction:column;margin-bottom:0;min-height:0}
+  #tab-nuova .grid2 .field{height:100%}
+  #tab-nuova input,#tab-nuova select{flex:1;min-height:33px;height:auto}
+  .operation-footer{position:static;transform:none;width:100%;padding:8px 0 0;flex:none}
+  .save-grid .btn{height:clamp(36px,7vh,64px)}
+}
 </style>
 </head>
 <body>
@@ -199,7 +207,6 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
       <div class="field"><label for="fDesc">Descrizione *</label><input id="fDesc" placeholder="Descrivi l'operazione"></div>
       <div class="grid2"><div class="field"><label for="fCat">Categoria</label><select id="fCat"><option value="">— Nessuna —</option></select></div><div class="field"><label class="note-label" for="fNote"><span>Note</span><span class="muted" id="noteCount">0/150</span></label><input id="fNote" maxlength="150" placeholder="Facoltative"></div></div>
       <div class="field hidden" id="unitaField"><label for="fUnita">Unità</label><select id="fUnita"></select></div>
-      <details class="ocr-text hidden" id="ocrDetails"><summary>Mostra il testo riconosciuto</summary><p class="muted">Il testo resta sul dispositivo e può contenere dati personali.</p><pre id="ocrText"></pre></details>
 
 
     </div>
@@ -214,19 +221,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 
     <div class="operation-footer">
       <div class="msg" id="saveMsg" role="status" aria-live="polite"></div>
-      <div class="msg" id="ocrMsg" role="status" aria-live="polite"></div>
-      <div class="receipt-choices hidden" id="receiptChoices" role="group" aria-label="Scegli come aggiungere lo scontrino">
-        <p>Come vuoi aggiungere lo scontrino?</p>
-        <div class="receipt-choice-buttons"><button type="button" class="btn" id="chooseCamera">Fotocamera</button><button type="button" class="btn ghost" id="chooseGallery">Galleria</button></div>
-        <button type="button" class="btn ghost receipt-cancel" id="cancelReceiptChoice">Annulla</button>
-      </div>
       <div class="operation-actions">
-        <div class="operation-side">
-          <button type="button" class="btn ghost back-btn" id="btnClose" aria-label="Torna alla dashboard"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
-          <button type="button" class="btn ghost camera-btn" id="btnReceipt" aria-label="Fotografa o scegli uno scontrino" aria-controls="receiptChoices" aria-expanded="false" title="Fotografa o scegli uno scontrino"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 4h-5L7.5 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3.5z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
-          <input id="receiptFile" class="hidden" type="file" accept="image/*" tabindex="-1">
-          <input id="receiptCamera" class="hidden" type="file" accept="image/*" capture="environment" tabindex="-1">
-        </div>
         <div class="save-grid" id="saveActions">
           <button type="button" class="btn" id="btnSave">Salva</button>
           <button type="button" class="btn ghost" id="btnSaveDup">Salva e duplica</button>
@@ -240,7 +235,6 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 
 </div>
 
-<script src="receipt-ocr.js?v=21"></script>
 <script>
 "use strict";
 const API = "https://bilancio.agesci.it";
@@ -558,7 +552,7 @@ function updateConnUI(){
   $("loginCard").classList.toggle("hidden",!!state.user || onboarding);
   $("ctxCard").classList.toggle("hidden",!state.user);
   $("operationHeading").classList.toggle("hidden",!state.user);
-  if(!state.user){ invalidateNavigation(); cancelReceiptRead(); $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open","keyboard-open"); }
+  if(!state.user){ invalidateNavigation(); $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open","keyboard-open"); }
   else { const name=localStorage.getItem(LS.firstName) || (state.user?.userInfo?.codiceSocio ? "Socio "+state.user.userInfo.codiceSocio : "Utente"); $("helloName").textContent="Ciao, "+name; }
 }
 let initPromise = null;
@@ -798,7 +792,6 @@ function clearFieldErrors(){ requiredFieldIds.forEach(id=>markRequiredField(id,f
 requiredFieldIds.forEach(id=>{ ["input","change"].forEach(event=>$(id).addEventListener(event,clearCorrectedFieldErrors)); });
 function updatePayloadPreview(){ $("noteCount").textContent=$("fNote").value.length+"/150"; }
 async function saveOperation(duplicateAfter=false){
-  cancelReceiptRead();
   hideMsg("saveMsg");
   const {voce, contoObj}=readForm();
   requiredFieldIds.forEach(id=>markRequiredField(id,requiredFieldMissing(id)));
@@ -878,8 +871,6 @@ function switchTab(name){
   document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on", b.dataset.tab===name));
   ["nuova","modelli"].forEach(t=>$("tab-"+t).classList.toggle("hidden", t!==name));
   $("saveActions").classList.toggle("hidden",name!=="nuova");
-  if(name!=="nuova") cancelReceiptRead();
-  $("btnReceipt").classList.toggle("hidden",name!=="nuova");
 }
 function setTipo(t){
   state.tipo=t;
@@ -908,7 +899,7 @@ function invalidateNavigation(){
 }
 function navEntry(){ const n=history.state?.abaNavigation; return n?.session===navSession?n:null; }
 function pushView(view){ history.pushState({...history.state,abaNavigation:{session:navSession,view}},""); }
-function closeOperation(){ cancelReceiptRead(); $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open","keyboard-open"); if(state.user) $("btnAdd").focus(); }
+function closeOperation(){ $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open","keyboard-open"); if(state.user) $("btnAdd").focus(); }
 let operationViewportHeight=0;
 function showOperation(resetDate){ operationViewportHeight=window.visualViewport?.height || window.innerHeight; $("appCard").classList.remove("hidden"); $("btnAdd").setAttribute("aria-expanded","true"); document.body.classList.add("modal-open"); if(resetDate){ $("fData").value=isoToInputDate(new Date()); clearFieldErrors(); } }
 function updateKeyboardViewport(){
@@ -922,8 +913,6 @@ window.visualViewport?.addEventListener("resize",updateKeyboardViewport);
 $("appCard").addEventListener("focusin",updateKeyboardViewport);
 $("appCard").addEventListener("focusout",()=>setTimeout(updateKeyboardViewport,0));
 function navigateBack(){
-  if(!$("receiptChoices").classList.contains("hidden")){ closeReceiptChoices(true); return; }
-  if($("ocrDetails").open){ $("ocrDetails").open=false; return; }
   const current=navEntry();
   if(current){ history.back(); }
   else if(!$("appCard").classList.contains("hidden")) closeOperation();
@@ -936,166 +925,12 @@ function navigateTab(name){
 }
 window.addEventListener("popstate",e=>{
   const entry=e.state?.abaNavigation;
-  if(state.user && !$("appCard").classList.contains("hidden") && (!$("receiptChoices").classList.contains("hidden") || $("ocrDetails").open)){
-    closeReceiptChoices(); $("ocrDetails").open=false;
-    pushView($("tab-modelli").classList.contains("hidden")?"nuova":"modelli");
-    return;
-  }
   if(state.user && entry?.session===navSession && ["nuova","modelli"].includes(entry.view)){
     if($("appCard").classList.contains("hidden")) showOperation(false);
     switchTab(entry.view);
   }else if(!$("appCard").classList.contains("hidden")) closeOperation();
 });
-$("btnAdd").onclick=()=>{ if(!state.user) return; pushView("nuova"); showOperation(true); switchTab("nuova"); $("btnClose").focus(); };
-$("btnClose").onclick=navigateBack;
-/* La foto viene elaborata solo in memoria, sul dispositivo. Il motore si scarica al primo utilizzo. */
-let receiptGeneration=0, receiptBusy=false, tesseractLoad=null;
-function closeReceiptChoices(restoreFocus=false){ $("receiptChoices").classList.add("hidden"); $("btnReceipt").setAttribute("aria-expanded","false"); if(restoreFocus) $("btnReceipt").focus(); }
-function cancelReceiptRead(){ receiptGeneration++; hideMsg("ocrMsg"); closeReceiptChoices(); $("ocrDetails").classList.add("hidden"); $("ocrDetails").open=false; $("ocrText").textContent=""; }
-function loadTesseract(){
-  if(window.Tesseract) return Promise.resolve(window.Tesseract);
-  if(!tesseractLoad){
-    tesseractLoad=new Promise((resolve,reject)=>{
-      const script=document.createElement("script");
-      script.src=new URL("vendor/ocr/tesseract.min.js",document.baseURI).href;
-      script.onload=()=>window.Tesseract?resolve(window.Tesseract):reject(new Error("Motore OCR non disponibile"));
-      script.onerror=()=>{ script.remove(); reject(new Error("Download del motore OCR non riuscito")); };
-      document.head.appendChild(script);
-    }).catch(err=>{tesseractLoad=null; throw err;});
-  }
-  return tesseractLoad;
-}
-function prepareReceiptImage(file){
-  return new Promise((resolve,reject)=>{
-    const url=URL.createObjectURL(file), image=new Image();
-    image.onload=()=>{
-      try{
-        const scale=Math.min(1,2200/Math.max(image.naturalWidth,image.naturalHeight),Math.sqrt(3000000/(image.naturalWidth*image.naturalHeight)));
-        const canvas=document.createElement("canvas"); canvas.width=Math.max(1,Math.round(image.naturalWidth*scale)); canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));
-        const context=canvas.getContext("2d"); if(!context) throw new Error("Impossibile preparare l'immagine");
-        context.fillStyle="#fff"; context.fillRect(0,0,canvas.width,canvas.height); context.drawImage(image,0,0,canvas.width,canvas.height);
-        canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("Immagine non valida")),"image/jpeg",0.92);
-      }catch(err){ reject(err); } finally{ URL.revokeObjectURL(url); }
-    };
-    image.onerror=()=>{ URL.revokeObjectURL(url); reject(new Error("Formato immagine non supportato")); };
-    image.src=url;
-  });
-}
-function preprocessReceipt(image){
-  return new Promise(resolve=>{
-    if(typeof Worker==="undefined") return resolve(null);
-    let task, timer, done=false;
-    const finish=result=>{ if(done) return; done=true; clearTimeout(timer); if(task) task.terminate(); resolve(result); };
-    try{
-      task=new Worker(new URL("vendor/ocr/receipt-preprocess-worker.js?v=21",document.baseURI));
-      timer=setTimeout(()=>finish(null),30000);
-      task.onmessage=e=>finish(e.data?.ok && e.data.image ? e.data : null);
-      task.onerror=()=>finish(null);
-      task.postMessage({image});
-    }catch(_){ finish(null); }
-  });
-}
-$("btnReceipt").onclick=()=>{
-  if(receiptBusy) return;
-  if(!$("receiptChoices").classList.contains("hidden")){ closeReceiptChoices(true); return; }
-  $("receiptChoices").classList.remove("hidden"); $("btnReceipt").setAttribute("aria-expanded","true"); $("chooseCamera").focus();
-};
-$("chooseCamera").onclick=()=>{ closeReceiptChoices(true); $("receiptCamera").click(); };
-$("chooseGallery").onclick=()=>{ closeReceiptChoices(true); $("receiptFile").click(); };
-$("cancelReceiptChoice").onclick=()=>closeReceiptChoices(true);
-async function readReceiptFile(e){
-  const file=e.target.files?.[0]; e.target.value="";
-  if(!file || receiptBusy) return;
-  if((file.type && !file.type.startsWith("image/")) || file.size>25*1024*1024){ showMsg("ocrMsg","Scegli un'immagine di massimo 25 MB.","err"); return; }
-  const generation=++receiptGeneration;
-  const initial={date:$("fData").value, amount:$("fImporto").value, desc:$("fDesc").value, tipo:state.tipo, tipoId:$("fTipo").value};
-  let worker, stage="preparazione della foto";
-  receiptBusy=true; $("btnReceipt").disabled=true;
-  $("ocrDetails").classList.add("hidden"); $("ocrDetails").open=false; $("ocrText").textContent="";
-  showMsg("ocrMsg","Lettura sul dispositivo. Al primo utilizzo è necessaria una connessione per scaricare il motore OCR…","ok");
-  try{
-    const image=await prepareReceiptImage(file);
-    if(generation!==receiptGeneration || !state.user) return;
-    showMsg("ocrMsg","Preparazione dello scontrino sul dispositivo…","ok");
-    // Preprocessing e riconoscimento sono sequenziali per ridurre la memoria sui telefoni.
-    const processed=await preprocessReceipt(image);
-    if(generation!==receiptGeneration || !state.user) return;
-    stage="caricamento del motore";
-    const tesseract=await loadTesseract();
-    if(generation!==receiptGeneration || !state.user) return;
-    const base=new URL("vendor/ocr/",document.baseURI).href.replace(/\/$/,"");
-    stage="download del modello italiano";
-    const model=await fetch(base+"/ita.traineddata.gz");
-    if(!model.ok) throw new Error("HTTP "+model.status);
-    await model.arrayBuffer();
-    if(generation!==receiptGeneration || !state.user) return;
-    let readingPass="originale";
-    async function startWorker(){
-      let rejectInit, timer, abandoned=false;
-      const failure=new Promise((_,reject)=>{ rejectInit=reject; timer=setTimeout(()=>reject(new Error("Tempo di inizializzazione OCR scaduto")),90000); });
-      const creating=tesseract.createWorker("ita",1,{
-        workerPath:base+"/worker.min.js", corePath:base, langPath:base,
-        workerBlobURL:false, cacheMethod:"none", errorHandler:err=>rejectInit(new Error(String(err))),
-        logger:m=>{ if(generation===receiptGeneration && m.status==="recognizing text") showMsg("ocrMsg","Lettura "+readingPass+": "+Math.round(m.progress*100)+"%. L'immagine resta sul dispositivo.","ok"); }
-      }).then(w=>{ if(abandoned) w.terminate(); return w; });
-      try{ return await Promise.race([creating,failure]); }catch(err){ abandoned=true; throw err; }finally{ clearTimeout(timer); }
-    }
-    async function recognizeWithTimeout(ocrWorker,source){
-      let timer;
-      const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error("Tempo di lettura OCR scaduto")),90000);});
-      try{ return await Promise.race([ocrWorker.recognize(source),timeout]); }finally{ clearTimeout(timer); }
-    }
-    stage="avvio del motore OCR";
-    worker=await startWorker();
-    if(generation!==receiptGeneration || !state.user) return;
-    stage="lettura della foto";
-    let result=null, enhancedResult=null, firstError=null;
-    try{ result=await recognizeWithTimeout(worker,image); }catch(err){ firstError=err; }
-    if(generation!==receiptGeneration || !state.user || $("appCard").classList.contains("hidden")) return;
-    if(processed){
-      try{
-        // Se la prima lettura ha fallito o si è bloccata, usa un worker pulito.
-        if(firstError){ await worker.terminate(); worker=null; stage="riavvio del motore OCR"; worker=await startWorker(); }
-        if(generation!==receiptGeneration || !state.user) return;
-        stage="lettura dell'immagine migliorata"; readingPass="immagine migliorata";
-        showMsg("ocrMsg","Lettura dell'immagine migliorata…","ok");
-        enhancedResult=await recognizeWithTimeout(worker,processed.image);
-      }catch(err){ if(!result) throw err; console.warn("Lettura immagine migliorata non riuscita:",err); }
-    }
-    if(generation!==receiptGeneration || !state.user || $("appCard").classList.contains("hidden")) return;
-    if(!result && !enhancedResult) throw firstError || new Error("Nessuna lettura disponibile");
-    const originalText=result?.data?.text || "", enhancedText=enhancedResult?.data?.text || "";
-    const visibleText=originalText.trim() || enhancedText.trim();
-    if(visibleText){ $("ocrText").textContent=visibleText; $("ocrDetails").classList.remove("hidden"); }
-    stage="interpretazione del testo";
-    if(!window.ReceiptOCR || typeof ReceiptOCR.parseReceipt!=="function" || typeof ReceiptOCR.mergeReceipts!=="function") throw new Error("Versione dell'analisi OCR non disponibile");
-    const found=ReceiptOCR.mergeReceipts(ReceiptOCR.parseReceipt(originalText),enhancedResult?ReceiptOCR.parseReceipt(enhancedText):null);
-    const filled=[];
-    if(found.date && initial.date===isoToInputDate(new Date()) && $("fData").value===initial.date){ $("fData").value=found.date; filled.push("data"); }
-    if(found.amount && !initial.amount && !$("fImporto").value){ $("fImporto").value=found.amount; filled.push("importo"); }
-    if(found.description && !initial.desc && !$("fDesc").value){ $("fDesc").value=found.description; filled.push("descrizione"); }
-    clearCorrectedFieldErrors();
-    if(filled.length && initial.tipo==="i" && state.tipo===initial.tipo && !initial.tipoId && !$("fTipo").value) setTipo("o");
-    let message=filled.length ? "Proposti: "+filled.join(", ")+". Controlla i dati prima di salvare." : "Nessun campo compilato: dati non riconosciuti o campi già compilati. Controlla lo scontrino e inseriscili manualmente.";
-    if(found.ambiguousAmount || found.ambiguousDate) message+=" Più "+(found.ambiguousAmount && found.ambiguousDate?"date e totali":found.ambiguousAmount?"totali":"date")+" rilevati: verifica e inserisci i valori corretti.";
-    if(!enhancedResult) message+=" Miglioramento immagine non disponibile: usata la foto originale.";
-    if(!result && enhancedResult) message+=" Usata la lettura dell'immagine migliorata.";
-    if(visibleText) message+=" Puoi vedere il testo riconosciuto sotto i campi.";
-    message+=" Conto, tipologia e categoria restano da verificare.";
-    showMsg("ocrMsg",message,"warn");
-  }catch(err){
-    if(generation===receiptGeneration && state.user){
-      const advice=stage.includes("download") || stage.includes("caricamento") ? "Controlla la connessione e riapri l'app." : stage==="preparazione della foto" ? "Prova una foto JPEG o PNG dalla galleria." : "Riprova; se il problema continua, comunica questa fase dell'errore.";
-      showMsg("ocrMsg","Lettura non riuscita durante: "+stage+". "+advice,"err");
-    }
-    console.warn("OCR non disponibile:",err);
-  }finally{
-    if(worker) try{ await worker.terminate(); }catch(_){}
-    receiptBusy=false; $("btnReceipt").disabled=false;
-  }
-}
-$("receiptFile").onchange=readReceiptFile;
-$("receiptCamera").onchange=readReceiptFile;
+$("btnAdd").onclick=()=>{ if(!state.user) return; pushView("nuova"); showOperation(true); switchTab("nuova"); $("appCard").querySelector(".tabs button").focus(); };
 $("appCard").addEventListener("keydown",e=>{
   if(e.key==="Escape" || (e.key==="ArrowLeft" && e.altKey)){ e.preventDefault(); navigateBack(); return; }
   if(e.key!=="Tab") return;
