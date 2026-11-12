@@ -193,6 +193,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 
 /* L'editor è un overlay indipendente dal modulo della nuova operazione. */
 #editScreen{z-index:120}
+#edit-fields .edit-single-row{grid-template-columns:minmax(0,1fr)}
 #editScreen .operation-footer{pointer-events:auto}
 #editSave{width:100%;min-height:50px;background:#fdc500!important;color:#462678!important;border-color:#fdc500!important}
 #edit-fields .edit-title{margin:0;color:#fff;font-size:18px;line-height:1.2}
@@ -1099,8 +1100,7 @@ window.addEventListener("storage", (e)=>{
   nameField.innerHTML='<label for="edit-name">Nome modello *</label><input id="edit-name" placeholder="Nome modello">';
   form.prepend(nameField);
   $("editFormSlot").replaceWith(form);
-  form.querySelector('[for="edit-fData"]').textContent="Data operazione (facoltativa)";
-  form.querySelector('[for="edit-fImporto"]').textContent="Importo (€) (facoltativo)";
+  ["edit-fData","edit-fImporto"].forEach(id=>{const field=$(id).closest(".field");field.parentElement.classList.add("edit-single-row");field.remove();});
   form.querySelector('[for="edit-fDesc"]').textContent="Descrizione";
   let editTipo="i",editMode="scout", editMarker=null, closing=false;
   const e=id=>$("edit-"+id);
@@ -1119,12 +1119,12 @@ window.addEventListener("storage", (e)=>{
   e("tipoToggle").querySelectorAll("button").forEach(b=>b.onclick=()=>{editTipo=b.dataset.t;updateToggles();renderTipo();});
   e("voceToggle").querySelectorAll("button").forEach(b=>b.onclick=()=>{editMode=b.dataset.mode;updateToggles();renderTipo();});
   e("fNote").addEventListener("input",()=>{e("noteCount").textContent=e("fNote").value.length+"/150";});
-  ["name","fConto","fTipo","fImporto"].forEach(id=>e(id).addEventListener("input",()=>{e(id).classList.remove("field-invalid");e(id).removeAttribute("aria-invalid");}));
+  ["name","fConto","fTipo"].forEach(id=>e(id).addEventListener("input",()=>{e(id).classList.remove("field-invalid");e(id).removeAttribute("aria-invalid");}));
   window.openTemplateEdit=(t,index)=>{
     editingTemplate={index,snapshot:JSON.stringify(t)};
     for(const id of ["fConto","fCat","fUnita"]){e(id).innerHTML=$(id).innerHTML; e(id).disabled=$(id).disabled;}
     e("unitaField").classList.toggle("hidden",$("unitaField").classList.contains("hidden"));
-    e("name").value=t.name||""; e("fData").value=t.data_operazione||""; e("fImporto").value=t.importo??"";
+    e("name").value=t.name||"";
     e("fConto").value=t.idconto??"";e("fCat").value=t.idcategoria??"";e("fUnita").value=t.unita_codice||"";
     e("fDesc").value=t.descrizione||"";e("fNote").value=t.note||"";e("noteCount").textContent=e("fNote").value.length+"/150";
     form.querySelectorAll(".field-invalid").forEach(el=>{el.classList.remove("field-invalid");el.removeAttribute("aria-invalid");});
@@ -1143,16 +1143,16 @@ window.addEventListener("storage", (e)=>{
   $("editSave").onclick=()=>{
     if(!editingTemplate || closing) return;
     let invalid=false;
-    for(const id of ["name","fConto","fTipo","fImporto"]){
-      const el=e(id),bad=id==="fImporto"?(el.value!=="" && (!Number.isFinite(Number(el.value)) || Number(el.value)<=0)):!el.value.trim();
+    for(const id of ["name","fConto","fTipo"]){
+      const el=e(id),bad=!el.value.trim();
       el.classList.toggle("field-invalid",bad);if(bad){el.setAttribute("aria-invalid","true");invalid=true;}else el.removeAttribute("aria-invalid");
     }
-    if(invalid){showMsg("saveMsg","Inserisci nome, conto e tipologia; l'importo, se presente, deve essere positivo.","err");return;}
+    if(invalid){showMsg("saveMsg","Inserisci nome, conto e tipologia.","err");return;}
     const tpls=getTemplates(), old=tpls[editingTemplate.index];
     if(JSON.stringify(old)!==editingTemplate.snapshot){showMsg("saveMsg","Il modello è cambiato o è stato eliminato. Torna indietro e riaprilo.","err");return;}
     const conto=state.conti.find(x=>String(x.value)===e("fConto").value);
     const tipo=(editTipo==="i"?state.tipiE:state.tipiU).find(x=>String(x.value)===e("fTipo").value);
-    tpls[editingTemplate.index]={...old,name:e("name").value.trim(),idconto:Number(e("fConto").value),contoLabel:conto?.label,tipo:editTipo,idtipo:Number(e("fTipo").value),tipoLabel:tipo?.label,descrizione:e("fDesc").value,idcategoria:e("fCat").value?Number(e("fCat").value):null,note:e("fNote").value,unita_codice:e("fUnita").value||null,data_operazione:e("fData").value||null,importo:e("fImporto").value?Number(e("fImporto").value):null};
+    tpls[editingTemplate.index]={...old,name:e("name").value.trim(),idconto:Number(e("fConto").value),contoLabel:conto?.label,tipo:editTipo,idtipo:Number(e("fTipo").value),tipoLabel:tipo?.label,descrizione:e("fDesc").value,idcategoria:e("fCat").value?Number(e("fCat").value):null,note:e("fNote").value,unita_codice:e("fUnita").value||null};
     saveTemplates(tpls);renderTemplates();showMsg("saveMsg","Modifiche al modello salvate.","ok");
     closing=true; if(history.state?.abaEdit===editMarker) history.back(); else cancelTemplateEdit();
   };
