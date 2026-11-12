@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AGESCI Tool Bilancio — Helper personale</title>
+<meta name="description" content="Helper personale per inserire operazioni di Prima Nota su bilancio.agesci.it senza accedere ogni volta.">
+<meta name="theme-color" content="#462678">
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bilancio Helper">
+<style>
+  :root{
+    --viola:#462678; --viola2:#5c3186; --giallo:#FDC500; --bg:#f4f2f7;
+    --card:#fff; --border:#e2ddef; --txt:#2b2140; --muted:#7a7390;
+    --ok:#1b7f4d; --err:#c0392b; --warn:#b7791f; --radius:14px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+  header{background:var(--viola);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header .logo{width:42px;height:42px;border-radius:10px;background:var(--giallo);color:var(--viola);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px}
+  header h1{font-size:19px;margin:0}
+  header p{margin:2px 0 0;font-size:12.5px;opacity:.85}
+  header .spacer{flex:1}
+  .badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);padding:5px 10px;border-radius:999px;font-size:12px}
+  .wrap{max-width:1080px;margin:0 auto;padding:18px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px;box-shadow:0 2px 10px rgba(70,38,120,.06)}
+  .card h2{margin:0 0 4px;font-size:17px}
+  .card .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
+  label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 5px}
+  input,select,textarea{width:100%;padding:10px 11px;border:1px solid var(--border);border-radius:9px;font-size:14px;background:#fff;color:var(--txt)}
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--viola2);outline-offset:1px;border-color:var(--viola2)}
+  textarea{resize:vertical;min-height:90px;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+  .field{margin-bottom:12px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .btn{border:0;border-radius:10px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;background:var(--viola);color:#fff}
+  .btn:hover{background:var(--viola2)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.ghost{background:#fff;color:var(--viola);border:1px solid var(--viola)}
+  .btn.ghost:hover{background:#f0eaf7}
+  .btn.yellow{background:var(--giallo);color:var(--viola)}
+  .btn.danger{background:#fff;color:var(--err);border:1px solid var(--err)}
+  .btn.small{padding:7px 12px;font-size:12.5px;border-radius:8px}
+  .toggle{display:flex;background:#eee9f5;border-radius:10px;padding:4px;gap:4px}
+  .toggle button{flex:1;border:0;background:transparent;padding:9px;border-radius:8px;font-weight:700;cursor:pointer;color:var(--muted)}
+  .toggle button.on{background:var(--viola);color:#fff}
+  .msg{padding:11px 13px;border-radius:10px;font-size:13.5px;margin:10px 0;display:none}
+  .msg.ok{display:block;background:#e6f4ec;color:var(--ok);border:1px solid #bfe3cf}
+  .msg.err{display:block;background:#fdecea;color:var(--err);border:1px solid #f3c2bb}
+  .msg.warn{display:block;background:#fdf6e3;color:var(--warn);border:1px solid #f0dfa8}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .tabs button{border:1px solid var(--border);background:#fff;padding:9px 14px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer;color:var(--muted)}
+  .tabs button.on{background:var(--viola);color:#fff;border-color:var(--viola)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700}
+  .pill.e{background:#e6f4ec;color:var(--ok)} .pill.u{background:#fdecea;color:var(--err)}
+  .pill.ok{background:#e6f4ec;color:var(--ok)} .pill.ko{background:#fdecea;color:var(--err)} .pill.wait{background:#fdf6e3;color:var(--warn)}
+  .muted{color:var(--muted);font-size:12.5px}
+  .hidden{display:none!important}
+  .log{background:#1e1433;color:#d9d2f0;border-radius:10px;padding:12px;font-family:ui-monospace,Consolas,monospace;font-size:12px;max-height:220px;overflow:auto;white-space:pre-wrap}
+  .log .ok{color:#7be3a8}.log .ko{color:#ff9d94}.log .info{color:#b9a8e8}
+  .tpl{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:8px;align-items:center}
+  .tpl b{font-size:14px}.tpl span{font-size:12.5px;color:var(--muted)}
+  .progress{height:8px;background:#eee9f5;border-radius:999px;overflow:hidden;margin:10px 0}
+  .progress>div{height:100%;background:var(--viola);width:0%}
+  details{margin-top:8px}
+  summary{cursor:pointer;font-weight:700;font-size:13px;color:var(--viola)}
+  code{background:#f0eaf7;padding:1px 6px;border-radius:6px;font-size:12px}
+  .kbd{font-size:11px;background:#eee9f5;border-radius:6px;padding:2px 7px}
+  footer{color:var(--muted);font-size:12px;text-align:center;padding:20px}
+  .check{display:flex;gap:8px;align-items:center;font-size:13px}
+  .check input{width:auto}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">⚜</div>
+  <div>
+    <h1>Tool Bilancio AGESCI — Helper personale</h1>
+    <p>Accedi una volta, poi inserisci le operazioni senza aprire il sito ufficiale ogni volta.</p>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn yellow small hidden" id="btnInstall" type="button">📲 Installa app</button>
+  <span class="badge" id="connBadge">Non collegato</span>
+</header>
+
+<div class="wrap">
+
+  <div class="msg warn hidden" id="fileWarn" style="display:block">
+    ⚠️ Stai aprendo il file direttamente (<code>file://</code>): in questo modo <b>token, rinnovo automatico e installazione PWA potrebbero non funzionare</b> (il browser tratta i file locali in modo diverso). Per usare l'app correttamente avvia un server locale:
+    <br><code>cd agesci-bilancio-helper &amp;&amp; python3 -m http.server 8000</code> poi apri <code>http://localhost:8000</code> — oppure pubblica la cartella su Netlify/GitHub Pages (HTTPS) e installala come PWA.
+  </div>
+
+  <!-- LOGIN -->
+  <section class="card" id="loginCard">
+    <h2>🔑 Accesso (una sola volta, poi rinnovo automatico)</h2>
+    <p class="sub">Usa le stesse credenziali di <b>BuonaStrada</b>. Il token di AGESCI scade in poco tempo: con il <b>rinnovo automatico</b> l'app riaccede da sola prima della scadenza, così non devi più inserire la password.</p>
+    <div class="grid2">
+      <div class="field"><label>Username</label><input id="username" autocomplete="username" placeholder="es. m.rossi"></div>
+      <div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    </div>
+    <label class="check" style="margin-bottom:12px"><input type="checkbox" id="chkRemember" checked> <span>🔄 <b>Rinnovo automatico:</b> salva la password <b>solo su questo dispositivo</b> per riaccedere da solo quando il token scade. <span class="muted">(Usalo solo sul tuo telefono/PC personale, mai su PC condivisi. Puoi dimenticarla in qualsiasi momento dal pulsante "Dimentica password".)</span></span></label>
+    <div class="row">
+      <button class="btn" id="btnLogin">Accedi e resta collegato</button>
+      <span class="muted">Token + (se attivo) password restano in questo browser (localStorage).</span>
+    </div>
+    <div class="msg" id="loginMsg"></div>
+    <details>
+      <summary>Perché non devo accedere ogni volta?</summary>
+      <p class="muted">Il sito ufficiale usa un token JWT (<code>Bearer</code>) salvato in <code>sessionStorage</code>, che si perde chiudendo il browser. Questo helper lo salva in <code>localStorage</code> e lo riusa per tutte le chiamate API (<code>/api/vocecassa/save</code>, ecc.), finché il token non scade. Quando scade, l'helper te lo segnala e basta un nuovo login.</p>
+    </details>
+  </section>
+
+  <!-- CONTESTO -->
+  <section class="card hidden" id="ctxCard">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <h2>👋 <span id="helloName">Ciao</span></h2>
+        <p class="sub" id="tokenInfo">Token valido</p>
+      </div>
+      <div class="row">
+        <button class="btn ghost small" id="btnRefresh">↻ Ricarica dati</button>
+        <button class="btn ghost small" id="btnForget">🗑 Dimentica password</button>
+        <button class="btn danger small" id="btnLogout">Esci</button>
+      </div>
+    </div>
+    <div class="grid3">
+      <div class="field"><label>Anno sociale</label><select id="selYear"></select></div>
+      <div class="field"><label>Incarico</label><select id="selIncarico"></select></div>
+      <div class="field"><label>Unità (se richiesto)</label><select id="selUnita"><option value="">— Nessuna —</option></select></div>
+    </div>
+    <div class="msg" id="ctxMsg"></div>
+    <p class="muted" id="editableInfo"></p>
+  </section>
+
+  <!-- APP -->
+  <section class="card hidden" id="appCard">
+    <div class="tabs">
+      <button class="on" data-tab="nuova">➕ Nuova operazione</button>
+      <button data-tab="modelli">⭐ Modelli</button>
+      <button data-tab="massivo">📥 Import massivo CSV</button>
+      <button data-tab="recenti">🕘 Operazioni recenti</button>
+    </div>
+
+    <!-- NUOVA OPERAZIONE -->
+    <div id="tab-nuova">
+      <h2>Nuova operazione (Prima Nota)</h2>
+      <p class="sub">Compila il form e invia: l'operazione viene inserita direttamente su <code>bilancio.agesci.it</code> tramite la stessa API del sito ufficiale.</p>
+      <div class="grid2">
+        <div class="field"><label>Conto *</label><select id="fConto"></select></div>
+        <div class="field"><label>Data operazione *</label><input id="fData" type="date"></div>
+      </div>
+      <div class="field">
+        <label>Tipo *</label>
+        <div class="toggle" id="tipoToggle">
+          <button type="button" class="on" data-t="i">💰 Entrata</button>
+          <button type="button" data-t="o">💸 Uscita</button>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label>Importo (€) *</label><input id="fImporto" type="number" step="0.01" min="0.01" placeholder="25.00"></div>
+        <div class="field"><label>Tipologia *</label><select id="fTipo"></select></div>
+      </div>
+      <div class="field"><label>Descrizione *</label><input id="fDesc" placeholder="es. Quota associativa Lupetti — gennaio"></div>
+      <div class="grid2">
+        <div class="field"><label>Categoria</label><select id="fCat"><option value="">— Nessuna —</option></select></div>
+        <div class="field"><label>Note (max 150)</label><input id="fNote" maxlength="150" placeholder="facoltative"></div>
+      </div>
+      <div class="field hidden" id="unitaField"><label>Unità</label><select id="fUnita"></select></div>
+      <div class="row">
+        <button class="btn" id="btnSave">💾 Salva operazione</button>
+        <button class="btn ghost" id="btnSaveDup">Salva e duplica (per la prossima)</button>
+        <button class="btn ghost" id="btnSaveTpl">⭐ Salva come modello</button>
+        <button class="btn ghost" id="btnClear">Pulisci</button>
+      </div>
+      <div class="msg" id="saveMsg"></div>
+      <details>
+        <summary>Anteprima payload API (per debug)</summary>
+        <div class="log" id="payloadPreview" style="margin-top:8px"></div>
+      </details>
+    </div>
+
+    <!-- MODELLI -->
+    <div id="tab-modelli" class="hidden">
+      <h2>⭐ Modelli rapidi</h2>
+      <p class="sub">Salva le combinazioni che usi spesso (es. "Quota Lupetti", "Spesa cancelleria") e applicale in un click. Restano solo su questo browser.</p>
+      <div id="tplList"></div>
+      <p class="muted" id="tplEmpty">Nessun modello ancora. Compila una operazione e premi "Salva come modello".</p>
+    </div>
+
+    <!-- MASSIVO -->
+    <div id="tab-massivo" class="hidden">
+      <h2>📥 Import massivo da CSV</h2>
+      <p class="sub">Incolla o carica un CSV con una operazione per riga. Controlla l'anteprima e invia in sequenza.</p>
+      <div class="row" style="margin-bottom:10px">
+        <button class="btn ghost small" id="btnTplCsv">⬇ Scarica modello CSV</button>
+        <button class="btn ghost small" id="btnExample">Carica esempio</button>
+        <input type="file" id="fileCsv" accept=".csv,text/csv" style="width:auto">
+      </div>
+      <div class="field"><label>CSV (intestazione obbligatoria)</label>
+        <textarea id="csvText" placeholder="data;descrizione;tipo;importo;tipologia;conto;categoria;note&#10;15/03/2026;Quota Lupetti;E;25;Quote associative;Cassa;;"></textarea>
+      </div>
+      <p class="muted">Colonne: <code>data</code> (GG/MM/AAAA), <code>descrizione</code>, <code>tipo</code> (E/U, Entrata/Uscita), <code>importo</code>, <code>tipologia</code> (label, codice o ID), <code>conto</code> (label o ID), <code>categoria</code>, <code>note</code>. Separatore <code>;</code> o <code>,</code>.</p>
+      <div class="row">
+        <button class="btn ghost" id="btnPreviewCsv">👁 Anteprima</button>
+        <button class="btn" id="btnSendCsv" disabled>🚀 Invia tutto</button>
+      </div>
+      <div class="progress hidden" id="csvProgressWrap"><div id="csvProgress"></div></div>
+      <div id="csvPreview"></div>
+      <div class="log hidden" id="csvLog"></div>
+    </div>
+
+    <!-- RECENTI -->
+    <div id="tab-recenti" class="hidden">
+      <div class="row" style="justify-content:space-between">
+        <div><h2>🕘 Operazioni recenti</h2><p class="sub">Ultime operazioni lette dal sito ufficiale per il contesto selezionato.</p></div>
+        <button class="btn ghost small" id="btnLoadRecent">↻ Aggiorna</button>
+      </div>
+      <div id="recentWrap"><p class="muted">Premi "Aggiorna" per caricare le operazioni.</p></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>ℹ️ Avvertenze</h2>
+    <p class="muted" style="line-height:1.6">
+      Strumento <b>personale e non ufficiale</b>: usa le stesse API di <code>bilancio.agesci.it</code> ma non è sviluppato da AGESCI e può smettere di funzionare se le API cambiano.
+      Usa l'helper solo sul tuo dispositivo personale, verifica sempre le operazioni sul sito ufficiale prima della chiusura dell'anno sociale, e non condividere mai il token.
+      I modelli e lo storico restano solo in questo browser (<code>localStorage</code>); nessuna chiamata va a server terzi.
+    </p>
+  </section>
+</div>
+
+<footer>Helper personale per Tool Bilancio AGESCI · Le chiamate vanno solo a bilancio.agesci.it · Nessun dato lascia il tuo browser</footer>
+
+<script>
+"use strict";
+const API = "https://bilancio.agesci.it";
+const $ = id => document.getElementById(id);
+const LS = { user:"ab_user", creds:"ab_creds", years:"ab_years", year:"ab_selectedYear", incarico:"ab_selectedIncarico", unita:"ab_selectedUnita", tpl:"ab_templates", hist:"ab_history" };
+
+let state = {
+  user:null, years:[], year:null, incarico:null, unita:null,
+  conti:[], tipiE:[], tipiU:[], categorie:[], tipo:"i",
+  csvRows:[], csvSending:false
+};
+
+/* ---------- utils ---------- */
+function esc(s){ return String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function fmtEUR(n){ try{ return new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR"}).format(Number(n)||0);}catch(e){ return (Number(n)||0).toFixed(2)+" €"; } }
+function fmtDateIT(iso){ if(!iso) return ""; const d=new Date(iso); if(isNaN(d)) return String(iso); return d.toLocaleDateString("it-IT"); }
+function parseITDate(s){ // "15/03/2026" -> Date
+  const p=String(s).trim().split(/[\/\-]/); if(p.length!==3) return null;
+  const d=new Date(Number(p[2]), Number(p[1])-1, Number(p[0])); return isNaN(d)?null:d;
+}
+function isoToInputDate(iso){ const d=new Date(iso); if(isNaN(d)) return ""; const p=n=>String(n).padStart(2,"0"); return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); }
+function showMsg(id, text, kind){ const el=$(id); el.className="msg "+kind; el.textContent=text; el.style.display="block"; }
+function hideMsg(id){ const el=$(id); el.style.display="none"; }
+function decodeJWT(t){ try{ const p=t.split(".")[1]; return JSON.parse(atob(p.replace(/-/g,"+").replace(/_/g,"/"))); }catch(e){ return null; } }
+function tokenExpiry(){ if(!state.user?.accessToken) return null; const j=decodeJWT(state.user.accessToken); return j?.exp? new Date(j.exp*1000):null; }
+function tokenDurationText(){
+  if(!state.user?.accessToken) return "";
+  const j=decodeJWT(state.user.accessToken);
+  if(!j?.exp||!j?.iat) return "";
+  const sec=j.exp-j.iat;
+  if(sec<3600) return "dura "+Math.round(sec/60)+" minuti";
+  if(sec<86400) return "dura "+(sec/3600).toFixed(1).replace(".",",")+" ore";
+  return "dura "+Math.round(sec/86400)+" giorni";
+}
+function msUntilExpiry(){ const e=tokenExpiry(); return e? e.getTime()-Date.now() : null; }
+function isTokenExpired(){ const m=msUntilExpiry(); return m!==null && m<=0; }
+function getSavedCreds(){ try{ return JSON.parse(localStorage.getItem(LS.creds)||"null"); }catch(e){ return null; } }
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+/* ---------- API ---------- */
+let consecutive401=0;
+async function api(path, opts={}){
+  const headers = Object.assign({"Content-Type":"application/json"}, opts.headers||{});
+  if(state.user?.accessToken) headers["Authorization"]="Bearer "+state.user.accessToken;
+  const res = await fetch(API+path, {method:opts.method||"POST", headers, body: opts.body? JSON.stringify(opts.body): undefined});
+  const ct = res.headers.get("content-type")||"";
+  let data;
+  if(ct.includes("application/json")) data = await res.json().catch(()=>null);
+  else data = await res.text();
+  if(res.status===401){
+    consecutive401++;
+    // Anti-loop: dopo 1 rinnovo automatico fallito, non riprovare all'infinito.
+    if(consecutive401<=1) onTokenExpired();
+    else { localStorage.removeItem(LS.user); state.user=null; updateConnUI(); }
+    throw new Error("Sessione scaduta (401).");
+  }
+  consecutive401=0;
+  if(!res.ok){
+    const detail = typeof data==="string" ? data.slice(0,200) : (data? JSON.stringify(data).slice(0,200):"");
+    throw new Error("HTTP "+res.status+" su "+path+(detail? " — "+detail:""));
+  }
+  return data;
+}
+let reloginInProgress=false;
+async function onTokenExpired(){
+  localStorage.removeItem(LS.user);
+  state.user=null;
+  // Se c'è il rinnovo automatico, prova a riaccedere subito senza disturbare l'utente.
+  const creds=getSavedCreds();
+  if(creds && !reloginInProgress){
+    const ok=await silentLogin(creds.username, creds.password);
+    if(ok){ await initAfterLogin(); return; }
+  }
+  updateConnUI();
+  showMsg("loginMsg","⏰ Il token è scaduto. Fai di nuovo l'accesso per continuare.","warn");
+  $("loginCard").classList.remove("hidden");
+  $("ctxCard").classList.add("hidden"); $("appCard").classList.add("hidden");
+}
+
+/* Replica fedele di getParams() del frontend ufficiale (chunk-859) */
+function buildReq(contoid){
+  const e = state.user, i = state.incarico, t = state.unita, l = state.year;
+  let a = {};
+  if(i){
+    const s = getNomeUnitaByIncarico(i);
+    if(i.accessoTipo===11 || i.tipoIncarico===5){
+      a = {tipoIncaricoMain:e?.userInfo?.tipoIncarico, tipoIncarico:i.tipoIncarico, accessoTipo:i.accessoTipo, rendicontoid:l?.value, codicesocio:e?.userInfo?.codiceSocio, creg:null, czona:0, ord:0, codiceUnita:null, contoid:contoid};
+    } else if(i.tipoIncarico===4){
+      a = {tipoIncaricoMain:e?.userInfo?.tipoIncarico, tipoIncarico:i.tipoIncarico, accessoTipo:i.accessoTipo, rendicontoid:l?.value, codicesocio:e?.userInfo?.codiceSocio, creg:i?.dati?.creg, czona:0, ord:0, codiceUnita:null, contoid:contoid};
+    } else if(i.accessoTipo===13){
+      a = {tipoIncaricoMain:e?.userInfo?.tipoIncarico, tipoIncarico:i.tipoIncarico, accessoTipo:i.accessoTipo, rendicontoid:l?.value, codicesocio:e?.userInfo?.codiceSocio, creg:i?.dati?.creg, czona:i?.dati?.czona, ord:0, codiceUnita:null, contoid:contoid};
+    } else {
+      a = {rendicontoid:l?.value, codicesocio:e?.userInfo?.codiceSocio, creg:i?.dati?.creg, czona:i?.dati?.czona, ord:i?.dati?.ord, contoid:contoid, tipoIncaricoMain:e?.userInfo?.tipoIncarico, tipoIncarico:i.tipoIncarico, accessoTipo:i.accessoTipo, gruppozona_nome:i?.dati?.nome, codiceUnita:i?.codiceUnita?i.codiceUnita:null, unita_nome:s, nomeRegione:i?.dati?.nomeRegione, nomeZona:i?.dati?.nomeZona, nomeGruppo:i.tipoIncarico===1?null:i?.dati?.nomeGruppo, showSaldoTotale:true, unifyTotaliAltreUnita:true};
+    }
+    if(t){
+      a = {rendicontoid:l?.value, codicesocio:e?.userInfo?.codiceSocio, creg:i?.dati?.creg, czona:i?.dati?.czona, ord:i?.dati?.ord, contoid:contoid, tipoIncaricoMain:e?.userInfo?.tipoIncarico, tipoIncarico:i.tipoIncarico, accessoTipo:i.accessoTipo, gruppozona_nome:i?.dati?.nome, codiceUnita:null, codiceUnita:t?.cun+t?.prog, unita_nome:t?.nome, showSaldoTotale:true, unifyTotaliAltreUnita:true};
+    }
+  } else if(e?.userInfo?.tipoIncarico===1 || e?.userInfo?.tipoIncarico===2){
+    a = {tipoIncaricoMain:e?.userInfo?.tipoIncarico, rendicontoid:l?.value, codicesocio:e?.userInfo?.codiceSocio, creg:null, czona:0, ord:0, codiceUnita:null, contoid:contoid};
+  }
+  return a;
+}
+function getNomeUnitaByIncarico(e){
+  let i=null;
+  if(e?.codiceUnita && e.tipoIncarico===3 && (e.accessoTipo===5||e.accessoTipo===6) && e?.dati?.unita?.length>0){
+    const t=e.codiceUnita.substr(0,1), o=e.codiceUnita.substr(1,1);
+    const f=e.dati.unita.filter(x=>x.cun===t && x.prog===parseInt(o));
+    if(f.length>0) i=f[0].nome;
+  }
+  return i;
+}
+
+/* ---------- login / sessione ---------- */
+async function fetchLogin(username, password){
+  const res = await fetch(API+"/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,password})});
+  const ct=res.headers.get("content-type")||"";
+  const data = ct.includes("application/json")? await res.json() : await res.text();
+  if(typeof data==="string") throw new Error(data);
+  if(!data?.accessToken) throw new Error("Risposta inattesa dal server.");
+  return data;
+}
+async function silentLogin(username, password){
+  if(reloginInProgress) return false;
+  reloginInProgress=true;
+  try{
+    const data=await fetchLogin(username, password);
+    state.user=data;
+    localStorage.setItem(LS.user, JSON.stringify(data));
+    return true;
+  }catch(e){
+    return false;
+  }finally{ reloginInProgress=false; }
+}
+async function doLogin(){
+  const username=$("username").value.trim(), password=$("password").value;
+  if(!username||!password){ showMsg("loginMsg","Inserisci username e password.","err"); return; }
+  hideMsg("loginMsg");
+  $("btnLogin").disabled=true; $("btnLogin").textContent="Accesso in corso…";
+  try{
+    const data=await fetchLogin(username, password);
+    state.user=data;
+    localStorage.setItem(LS.user, JSON.stringify(data));
+    if($("chkRemember").checked){
+      localStorage.setItem(LS.creds, JSON.stringify({username, password}));
+    } else {
+      localStorage.removeItem(LS.creds);
+    }
+    $("password").value="";
+    showMsg("loginMsg","✅ Accesso riuscito. Caricamento dati…","ok");
+    await initAfterLogin();
+  }catch(err){
+    showMsg("loginMsg","❌ "+err.message,"err");
+  }finally{
+    $("btnLogin").disabled=false; $("btnLogin").textContent="Accedi e resta collegato";
+  }
+}
+function restoreSession(){
+  try{
+    const raw=localStorage.getItem(LS.user);
+    if(raw){ state.user=JSON.parse(raw); return true; }
+  }catch(e){}
+  return false;
+}
+function updateConnUI(){
+  const badge=$("connBadge");
+  if(state.user){
+    badge.textContent="🟢 Collegato";
+    const exp=tokenExpiry();
+    const name = state.user?.userInfo?.codiceSocio? "Socio "+state.user.userInfo.codiceSocio : "Utente";
+    $("helloName").textContent="Ciao, "+name;
+    const dur=tokenDurationText();
+    const auto=getSavedCreds()? " · 🔄 Rinnovo automatico ATTIVO" : " · 🔄 Rinnovo automatico disattivo";
+    $("tokenInfo").textContent = exp? ("Token valido fino al "+exp.toLocaleString("it-IT")+(dur? " ("+dur+")":"")+auto) : ("Token salvato (scadenza non leggibile)"+auto);
+    $("loginCard").classList.add("hidden");
+    $("ctxCard").classList.remove("hidden"); $("appCard").classList.remove("hidden");
+  } else {
+    badge.textContent="⚪ Non collegato";
+    $("loginCard").classList.remove("hidden");
+    $("ctxCard").classList.add("hidden"); $("appCard").classList.add("hidden");
+  }
+}
+async function initAfterLogin(){
+  updateConnUI();
+  await loadYears();
+  await loadContextData();
+  renderTemplates();
+  updatePayloadPreview();
+}
+async function loadYears(){
+  hideMsg("ctxMsg");
+  try{
+    let years = JSON.parse(localStorage.getItem(LS.years)||"null");
+    if(!years || !years.length){
+      years = await api("/api/rendiconto/list",{method:"GET"});
+      if(Array.isArray(years)) localStorage.setItem(LS.years, JSON.stringify(years));
+    }
+    state.years = (years||[]).filter(y=>y.label!=="21-22");
+    const sel=$("selYear"); sel.innerHTML="";
+    state.years.forEach(y=>{ const o=document.createElement("option"); o.value=y.value; o.textContent=y.label; sel.appendChild(o); });
+    const saved=JSON.parse(localStorage.getItem(LS.year)||"null");
+    state.year = state.years.find(y=>saved && y.value===saved.value) || state.years[0] || null;
+    if(state.year){ sel.value=state.year.value; localStorage.setItem(LS.year, JSON.stringify(state.year)); }
+    // incarichi
+    const incSel=$("selIncarico"); incSel.innerHTML="";
+    const list = state.user?.userInfo?.incarichiSocio||[];
+    if(list.length===0){
+      const o=document.createElement("option"); o.value=""; o.textContent="— Nessun incarico (accesso diretto) —"; incSel.appendChild(o);
+      state.incarico=null;
+    } else {
+      list.forEach((inc,idx)=>{
+        const o=document.createElement("option"); o.value=idx;
+        o.textContent = incaricoLabel(inc); incSel.appendChild(o);
+      });
+      const savedInc=JSON.parse(localStorage.getItem(LS.incarico)||"null");
+      let idx = savedInc? list.findIndex(x=>JSON.stringify(x)===JSON.stringify(savedInc)) : -1;
+      if(idx<0) idx=0;
+      incSel.value=idx; state.incarico=list[idx];
+      localStorage.setItem(LS.incarico, JSON.stringify(state.incarico));
+    }
+    updateUnitaSelect();
+    await checkEditable();
+  }catch(err){ showMsg("ctxMsg","Errore caricamento anni: "+err.message,"err"); }
+}
+function incaricoLabel(inc){
+  const t={1:"Zona",2:"Gruppo",3:"Unità",4:"INO",5:"Responsabile Regionale",6:"IRO",7:"Segretario regionale",8:"Commissione economica"};
+  const a={0:"Consultazione",1:"Responsabile di zona",2:"Tesoriere di zona",3:"Capo gruppo",4:"Tesoriere di gruppo",5:"Capo unità",6:"Tesoriere di unità",11:"Segreteria",12:"Segreteria",13:"Consultazione",100:"Gestione dati"};
+  const nome = inc?.dati?.nome || inc?.dati?.nomeRegione || "";
+  return (t[inc.tipoIncarico]||"Incarico")+" · "+(a[inc.accessoTipo]||"")+(nome? " — "+nome:"");
+}
+function updateUnitaSelect(){
+  const sel=$("selUnita"); sel.innerHTML='<option value="">— Nessuna —</option>';
+  state.unita=null;
+  const unita = state.incarico?.dati?.unita||[];
+  const show = state.incarico && [3,4].includes(state.incarico.accessoTipo) && unita.length>0;
+  sel.disabled=!show;
+  if(show){
+    unita.forEach(u=>{ const o=document.createElement("option"); o.value=u.cun+u.prog; o.textContent=(u.cun==="G"?"Gruppo ":"")+u.cun+u.prog+" — "+u.nome; sel.appendChild(o); });
+    const saved=JSON.parse(localStorage.getItem(LS.unita)||"null");
+    if(saved){ const v=saved.cun+saved.prog; if([...sel.options].some(o=>o.value===v)){ sel.value=v; state.unita=saved; } }
+  }
+}
+async function checkEditable(){
+  if(!state.year) return;
+  try{
+    const req=buildReq(0); req.rendicontoid=state.year.value;
+    const res=await api("/api/rendiconto/checkifnoteditable",{body:{req}});
+    const blocked = res===true || res?.data===true;
+    const noAccess = state.incarico && ([11,12,13].includes(state.incarico.accessoTipo) || [4,5].includes(state.incarico.tipoIncarico));
+    const dis = blocked||noAccess;
+    $("btnSave").disabled=dis; $("btnSaveDup").disabled=dis; $("btnSendCsv").disabled=dis||state.csvRows.length===0;
+    $("editableInfo").textContent = dis? "⚠️ Anno bloccato o accesso in sola lettura: inserimento disabilitato." : "✅ Anno modificabile.";
+    $("editableInfo").style.color = dis? "var(--err)":"var(--ok)";
+  }catch(e){ $("editableInfo").textContent=""; }
+}
+async function loadContextData(){
+  if(!state.year) return;
+  hideMsg("ctxMsg");
+  const req=buildReq(0);
+  // NOTA: il sito ufficiale invia all=false / all=true (booleani), NON all=0 / all=1.
+  // Il server (ASP.NET) rifiuta "0" come bool non valido -> HTTP 400. Per questo usiamo "false".
+  const [rConti, rTipiE, rTipiU, rCats] = await Promise.allSettled([
+    api("/api/conto/listbyparams",{body:{req}}),
+    api("/api/vocecassa/tipi_entrata?all=false&rendicontoId="+state.year.value,{method:"GET"}),
+    api("/api/vocecassa/tipi_uscita?all=false&rendicontoId="+state.year.value,{method:"GET"}),
+    api("/api/vocecassa/categorie",{body:{req}})
+  ]);
+  const errs=[];
+  if(rConti.status==="fulfilled"){
+    state.conti=(Array.isArray(rConti.value)?rConti.value:[]).filter(c=>c.isdummy!==true && c.isdummy!==1);
+    state.conti.sort((a,b)=>String(a.label).localeCompare(String(b.label)));
+    fillSelect($("fConto"), state.conti, "— Seleziona conto —");
+  } else { errs.push("conti: "+rConti.reason.message); }
+  if(rTipiE.status==="fulfilled"){ state.tipiE=Array.isArray(rTipiE.value)?rTipiE.value:[]; }
+  else { errs.push("tipi entrata: "+rTipiE.reason.message); }
+  if(rTipiU.status==="fulfilled"){ state.tipiU=Array.isArray(rTipiU.value)?rTipiU.value:[]; }
+  else { errs.push("tipi uscita: "+rTipiU.reason.message); }
+  if(rCats.status==="fulfilled"){
+    state.categorie=Array.isArray(rCats.value)?rCats.value:[];
+    fillSelect($("fCat"), state.categorie, "— Nessuna —");
+  } else { errs.push("categorie: "+rCats.reason.message); }
+  refreshTipiSelect();
+  // unità nel form (per tesoriere di gruppo)
+  const unitaList = state.incarico?.dati?.unita||[];
+  const showUnita = state.incarico?.tipoIncarico===2 && unitaList.length>0;
+  $("unitaField").classList.toggle("hidden", !showUnita);
+  if(showUnita){
+    const sel=$("fUnita"); sel.innerHTML='<option value="">— Nessuna —</option>';
+    unitaList.forEach(u=>{ const o=document.createElement("option"); o.value=u.cun+u.prog; o.textContent=(u.cun==="G"?"Gruppo ":"")+u.cun+u.prog+" — "+u.nome; sel.appendChild(o); });
+  }
+  updatePayloadPreview();
+  if(errs.length) showMsg("ctxMsg","⚠️ Caricamento parziale — "+errs.join(" · "),"err");
+}
+function fillSelect(sel, arr, placeholder){
+  sel.innerHTML="";
+  if(placeholder){ const o=document.createElement("option"); o.value=""; o.textContent=placeholder; sel.appendChild(o); }
+  arr.forEach(x=>{ const o=document.createElement("option"); o.value=x.value; o.textContent=x.label; sel.appendChild(o); });
+}
+function refreshTipiSelect(){
+  const arr = state.tipo==="i"? state.tipiE : state.tipiU;
+  const sel=$("fTipo"); sel.innerHTML='<option value="">— Seleziona tipologia —</option>';
+  arr.forEach(x=>{ const o=document.createElement("option"); o.value=x.value; o.textContent=x.label+(x.codice? " ("+x.codice+")":""); sel.appendChild(o); });
+}
+
+/* ---------- form operazione ---------- */
+function readForm(){
+  const contoId = $("fConto").value? Number($("fConto").value): null;
+  const contoObj = state.conti.find(c=>String(c.value)===String($("fConto").value));
+  const tipoId = $("fTipo").value? Number($("fTipo").value): null;
+  const tipoObj = (state.tipo==="i"?state.tipiE:state.tipiU).find(t=>String(t.value)===String($("fTipo").value));
+  const importo = parseFloat(String($("fImporto").value).replace(",","."));
+  const dataVal = $("fData").value; // yyyy-mm-dd
+  const unitaCodice = $("fUnita").value||null;
+  let unitaNome=null;
+  if(unitaCodice){
+    const u=(state.incarico?.dati?.unita||[]).find(x=>(x.cun+x.prog)===unitaCodice);
+    if(u) unitaNome=u.nome;
+  }
+  const voce = {
+    idconto: contoId,
+    data_operazione: dataVal? new Date(dataVal+"T00:00:00").toISOString() : null,
+    descrizione: $("fDesc").value.trim(),
+    e_importo: state.tipo==="i"? (isNaN(importo)?null:importo) : null,
+    u_importo: state.tipo==="o"? (isNaN(importo)?null:importo) : null,
+    e_idtipo: state.tipo==="i"? tipoId : null,
+    u_idtipo: state.tipo==="o"? tipoId : null,
+    e_descrizionetipo: state.tipo==="i"? (tipoObj?.label||null) : null,
+    u_descrizionetipo: state.tipo==="o"? (tipoObj?.label||null) : null,
+    conto: contoObj?.label||null,
+    idcategoria: $("fCat").value? Number($("fCat").value): null,
+    note: $("fNote").value.trim(),
+    unita_codice: unitaCodice, unita_nome: unitaNome
+  };
+  return {voce, contoObj, tipoObj};
+}
+function validateForm(voce, contoObj){
+  const errs=[];
+  if(!voce.idconto) errs.push("Seleziona un conto.");
+  if(!voce.data_operazione) errs.push("Inserisci la data operazione.");
+  if(!voce.descrizione) errs.push("Inserisci la descrizione.");
+  const imp = state.tipo==="i"? voce.e_importo : voce.u_importo;
+  const tid = state.tipo==="i"? voce.e_idtipo : voce.u_idtipo;
+  if(imp==null||isNaN(imp)) errs.push("Inserisci l'importo.");
+  else if(imp===0) errs.push("L'importo non può essere uguale a 0.");
+  if(!tid) errs.push("Seleziona la tipologia.");
+  if(voce.data_operazione && state.year){
+    const d=new Date(voce.data_operazione);
+    const s=new Date(state.year.start), e=new Date(state.year.end);
+    if(d<s||d>e) errs.push("La data deve stare tra "+fmtDateIT(state.year.start)+" e "+fmtDateIT(state.year.end)+".");
+    if(contoObj?.data_inizio_attivita){
+      const di=new Date(contoObj.data_inizio_attivita);
+      if(d<di) errs.push("La data non può precedere l'inizio attività del conto ("+fmtDateIT(contoObj.data_inizio_attivita)+").");
+      if(contoObj.data_fine_attivita){
+        const df=new Date(contoObj.data_fine_attivita);
+        if(d>df) errs.push("La data supera la fine attività del conto ("+fmtDateIT(contoObj.data_fine_attivita)+").");
+      }
+    }
+  }
+  if(state.tipo==="i" && voce.e_idtipo){
+    const t=state.tipiE.find(x=>x.value===voce.e_idtipo);
+    const anno2=Number(String(state.year?.label||"").split("-")[1]);
+    if(t?.codice==="C.2" && anno2>=25) errs.push("Tipologia C.2 non selezionabile per questo anno: usa 'Raccolte fondi occasionali'.");
+  }
+  if(state.tipo==="o" && voce.u_idtipo){
+    const t=state.tipiU.find(x=>x.value===voce.u_idtipo);
+    const anno2=Number(String(state.year?.label||"").split("-")[1]);
+    if(t?.codice==="C.2" && anno2>=25) errs.push("Tipologia C.2 non selezionabile per questo anno: usa 'Raccolte fondi occasionali'.");
+  }
+  return errs;
+}
+function updatePayloadPreview(){
+  if(!state.user) return;
+  try{
+    const {voce}=readForm();
+    const payload={req:buildReq(voce.idconto||0), vocecassa:voce};
+    $("payloadPreview").textContent=JSON.stringify(payload,null,2);
+  }catch(e){ $("payloadPreview").textContent="—"; }
+}
+async function saveOperation(duplicateAfter=false){
+  hideMsg("saveMsg");
+  const {voce, contoObj}=readForm();
+  const errs=validateForm(voce, contoObj);
+  if(errs.length){ showMsg("saveMsg","⚠️ "+errs.join(" "),"err"); return false; }
+  $("btnSave").disabled=true;
+  try{
+    const req=buildReq(voce.idconto);
+    const res=await api("/api/vocecassa/save",{body:{req, vocecassa:voce}});
+    if(typeof res==="string"){ showMsg("saveMsg","❌ "+res,"err"); return false; }
+    showMsg("saveMsg","✅ Operazione inserita: "+voce.descrizione+" — "+fmtEUR(state.tipo==="i"?voce.e_importo:voce.u_importo),"ok");
+    pushHistory({data:voce.data_operazione, descrizione:voce.descrizione, tipo:state.tipo, importo:state.tipo==="i"?voce.e_importo:voce.u_importo, conto:voce.conto, ok:true});
+    if(!duplicateAfter){
+      $("fDesc").value=""; $("fImporto").value=""; $("fNote").value="";
+    } else {
+      $("fDesc").value=""; $("fImporto").value="";
+    }
+    updatePayloadPreview();
+    return true;
+  }catch(err){
+    showMsg("saveMsg","❌ Errore: "+err.message,"err");
+    pushHistory({data:voce.data_operazione, descrizione:voce.descrizione, tipo:state.tipo, importo:state.tipo==="i"?voce.e_importo:voce.u_importo, conto:voce.conto, ok:false, error:err.message});
+    return false;
+  }finally{ $("btnSave").disabled=false; }
+}
+function pushHistory(h){
+  let hist=JSON.parse(localStorage.getItem(LS.hist)||"[]");
+  hist.unshift(Object.assign({ts:new Date().toISOString()},h));
+  hist=hist.slice(0,50);
+  localStorage.setItem(LS.hist, JSON.stringify(hist));
+}
+
+/* ---------- modelli ---------- */
+function getTemplates(){ return JSON.parse(localStorage.getItem(LS.tpl)||"[]"); }
+function saveTemplates(t){ localStorage.setItem(LS.tpl, JSON.stringify(t)); }
+function renderTemplates(){
+  const tpls=getTemplates(); const wrap=$("tplList"); wrap.innerHTML="";
+  $("tplEmpty").style.display=tpls.length? "none":"block";
+  tpls.forEach((t,i)=>{
+    const div=document.createElement("div"); div.className="tpl";
+    div.innerHTML="<div><b>"+esc(t.name)+"</b><br><span>"+esc(t.contoLabel||"")+" · "+(t.tipo==="i"?"Entrata":"Uscita")+" · "+esc(t.tipoLabel||"")+(t.descrizione? " · "+esc(t.descrizione):"")+"</span></div>";
+    const btns=document.createElement("div"); btns.className="row";
+    const bUse=document.createElement("button"); bUse.className="btn small"; bUse.textContent="Usa";
+    bUse.onclick=()=>applyTemplate(t);
+    const bDel=document.createElement("button"); bDel.className="btn danger small"; bDel.textContent="✕";
+    bDel.onclick=()=>{ const a=getTemplates(); a.splice(i,1); saveTemplates(a); renderTemplates(); };
+    btns.append(bUse,bDel); div.appendChild(btns); wrap.appendChild(div);
+  });
+}
+function applyTemplate(t){
+  switchTab("nuova");
+  $("fConto").value=t.idconto??"";
+  setTipo(t.tipo);
+  $("fTipo").value=t.idtipo??"";
+  $("fDesc").value=t.descrizione||"";
+  $("fCat").value=t.idcategoria??"";
+  $("fNote").value=t.note||"";
+  if(t.unita_codice) $("fUnita").value=t.unita_codice;
+  updatePayloadPreview();
+  showMsg("saveMsg","⭐ Modello '"+t.name+"' applicato. Inserisci data e importo.","ok");
+}
+function saveCurrentAsTemplate(){
+  const {voce, contoObj, tipoObj}=readForm();
+  if(!voce.idconto||!(state.tipo==="i"?voce.e_idtipo:voce.u_idtipo)){ showMsg("saveMsg","⚠️ Seleziona almeno conto e tipologia per salvare il modello.","err"); return; }
+  const name=prompt("Nome del modello:", (contoObj?.label||"Operazione")+" — "+(tipoObj?.label||""));
+  if(!name) return;
+  const tpls=getTemplates();
+  tpls.unshift({name, idconto:voce.idconto, contoLabel:contoObj?.label, tipo:state.tipo, idtipo:state.tipo==="i"?voce.e_idtipo:voce.u_idtipo, tipoLabel:tipoObj?.label, descrizione:voce.descrizione, idcategoria:voce.idcategoria, note:voce.note, unita_codice:voce.unita_codice});
+  saveTemplates(tpls); renderTemplates();
+  showMsg("saveMsg","⭐ Modello '"+name+"' salvato.","ok");
+}
+
+/* ---------- CSV massivo ---------- */
+function parseCSV(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim()!=="");
+  if(lines.length<2) return {rows:[], error:"Il CSV deve avere intestazione + almeno una riga."};
+  const delim = lines[0].includes(";")? ";" : ",";
+  const headers=lines[0].split(delim).map(h=>h.trim().toLowerCase().replace(/^\uFEFF/,""));
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const cells=lines[i].split(delim).map(c=>c.trim());
+    const obj={};
+    headers.forEach((h,j)=>obj[h]=cells[j]??"");
+    rows.push(obj);
+  }
+  return {rows};
+}
+function resolveConto(val){
+  if(val==null||val==="") return null;
+  const s=String(val).trim();
+  let c=state.conti.find(x=>String(x.value)===s);
+  if(c) return c;
+  c=state.conti.find(x=>String(x.label).toLowerCase()===s.toLowerCase());
+  return c||null;
+}
+function resolveTipo(val, tipo){
+  if(val==null||val==="") return null;
+  const s=String(val).trim();
+  const arr=tipo==="i"?state.tipiE:state.tipiU;
+  let t=arr.find(x=>String(x.value)===s);
+  if(t) return t;
+  t=arr.find(x=>String(x.label).toLowerCase()===s.toLowerCase());
+  if(t) return t;
+  t=arr.find(x=>String(x.codice||"").toLowerCase()===s.toLowerCase());
+  return t||null;
+}
+function resolveCategoria(val){
+  if(val==null||val==="") return null;
+  const s=String(val).trim();
+  return state.categorie.find(x=>String(x.value)===s||String(x.label).toLowerCase()===s.toLowerCase())||null;
+}
+function buildVoceFromRow(r){
+  const tipoRaw=String(r.tipo||"").trim().toLowerCase();
+  const tipo=(tipoRaw==="u"||tipoRaw==="uscita"||tipoRaw==="o")? "o":"i";
+  const conto=resolveConto(r.conto);
+  const tipoObj=resolveTipo(r.tipologia, tipo);
+  const cat=resolveCategoria(r.categoria);
+  const d=parseITDate(r.data||"");
+  const importo=parseFloat(String(r.importo||"").replace(",","."));
+  const voce={
+    idconto: conto? conto.value:null,
+    data_operazione: d? d.toISOString():null,
+    descrizione: String(r.descrizione||"").trim(),
+    e_importo: tipo==="i"? (isNaN(importo)?null:importo):null,
+    u_importo: tipo==="o"? (isNaN(importo)?null:importo):null,
+    e_idtipo: tipo==="i"&&tipoObj? tipoObj.value:null,
+    u_idtipo: tipo==="o"&&tipoObj? tipoObj.value:null,
+    e_descrizionetipo: tipo==="i"&&tipoObj? tipoObj.label:null,
+    u_descrizionetipo: tipo==="o"&&tipoObj? tipoObj.label:null,
+    conto: conto? conto.label:null,
+    idcategoria: cat? cat.value:null,
+    note: String(r.note||"").trim().slice(0,150),
+    unita_codice: null, unita_nome: null
+  };
+  const errs=[];
+  if(!conto) errs.push("conto non trovato: '"+(r.conto||"")+"'");
+  if(!d) errs.push("data non valida: '"+(r.data||"")+"'");
+  if(!voce.descrizione) errs.push("descrizione mancante");
+  if(isNaN(importo)||importo===0) errs.push("importo non valido");
+  if(!tipoObj) errs.push("tipologia non trovata: '"+(r.tipologia||"")+"'");
+  return {voce, tipo, conto, tipoObj, errs};
+}
+function previewCSV(){
+  hideMsg("saveMsg");
+  const {rows, error}=parseCSV($("csvText").value);
+  if(error){ $("csvPreview").innerHTML='<div class="msg err" style="display:block">'+esc(error)+'</div>'; state.csvRows=[]; $("btnSendCsv").disabled=true; return; }
+  state.csvRows=rows.map((r,i)=>Object.assign({__i:i+1}, buildVoceFromRow(r)));
+  let html='<table><thead><tr><th>#</th><th>Data</th><th>Descrizione</th><th>Tipo</th><th>Importo</th><th>Conto</th><th>Tipologia</th><th>Stato</th></tr></thead><tbody>';
+  state.csvRows.forEach(x=>{
+    const ok=x.errs.length===0;
+    html+="<tr><td>"+x.__i+"</td><td>"+esc(x.voce.data_operazione?fmtDateIT(x.voce.data_operazione):"—")+"</td><td>"+esc(x.voce.descrizione||"—")+"</td><td><span class='pill "+(x.tipo==="i"?"e":"u")+"'>"+(x.tipo==="i"?"Entrata":"Uscita")+"</span></td><td>"+fmtEUR(x.tipo==="i"?x.voce.e_importo:x.voce.u_importo)+"</td><td>"+esc(x.voce.conto||"—")+"</td><td>"+esc(x.tipo==="i"?x.voce.e_descrizionetipo:x.voce.u_descrizionetipo||"—")+"</td><td>"+(ok?'<span class="pill ok">OK</span>':'<span class="pill ko" title="'+esc(x.errs.join("; "))+'">Errori</span>')+"</td></tr>";
+    if(!ok) html+="<tr><td></td><td colspan='7' class='muted'>⚠️ "+esc(x.errs.join(" · "))+"</td></tr>";
+  });
+  html+="</tbody></table>";
+  $("csvPreview").innerHTML=html;
+  const valid=state.csvRows.filter(x=>x.errs.length===0).length;
+  $("btnSendCsv").disabled = valid===0 || state.csvSending;
+  $("btnSendCsv").textContent="🚀 Invia "+valid+" operazioni valide";
+}
+async function sendCSV(){
+  if(state.csvSending) return;
+  const valid=state.csvRows.filter(x=>x.errs.length===0);
+  if(!valid.length) return;
+  if(!confirm("Inviare "+valid.length+" operazioni su bilancio.agesci.it?")) return;
+  state.csvSending=true; $("btnSendCsv").disabled=true;
+  const log=$("csvLog"); log.classList.remove("hidden"); log.innerHTML="";
+  $("csvProgressWrap").classList.remove("hidden");
+  let ok=0, ko=0;
+  for(let n=0;n<valid.length;n++){
+    const x=valid[n];
+    $("csvProgress").style.width=Math.round((n/valid.length)*100)+"%";
+    log.innerHTML+='<span class="info">['+(n+1)+"/"+valid.length+"] "+esc(x.voce.descrizione)+" …</span>\n";
+    log.scrollTop=log.scrollHeight;
+    try{
+      const req=buildReq(x.voce.idconto);
+      const res=await api("/api/vocecassa/save",{body:{req, vocecassa:x.voce}});
+      if(typeof res==="string") throw new Error(res);
+      ok++; log.innerHTML+='<span class="ok">  ✅ OK</span>\n';
+      pushHistory({data:x.voce.data_operazione, descrizione:x.voce.descrizione, tipo:x.tipo, importo:x.tipo==="i"?x.voce.e_importo:x.voce.u_importo, conto:x.voce.conto, ok:true});
+    }catch(err){
+      ko++; log.innerHTML+='<span class="ko">  ❌ '+esc(err.message)+'</span>\n';
+      pushHistory({data:x.voce.data_operazione, descrizione:x.voce.descrizione, tipo:x.tipo, importo:x.tipo==="i"?x.voce.e_importo:x.voce.u_importo, conto:x.voce.conto, ok:false, error:err.message});
+    }
+    log.scrollTop=log.scrollHeight;
+    await sleep(350);
+  }
+  $("csvProgress").style.width="100%";
+  log.innerHTML+='<span class="info">\nFatto: '+ok+' OK, '+ko+' errori.</span>\n';
+  state.csvSending=false; $("btnSendCsv").disabled=false;
+  loadRecent();
+}
+
+/* ---------- recenti ---------- */
+async function loadRecent(){
+  const wrap=$("recentWrap");
+  wrap.innerHTML='<p class="muted">Caricamento…</p>';
+  try{
+    const req=buildReq(0); req.loadMovimentiGroupedRF=true;
+    const rows=await api("/api/vocecassa/listbyparams",{body:{req}});
+    const arr=Array.isArray(rows)?rows:[];
+    if(!arr.length){ wrap.innerHTML='<p class="muted">Nessuna operazione per questo contesto.</p>'; return; }
+    const sorted=[...arr].sort((a,b)=>new Date(b.data_operazione)-new Date(a.data_operazione)).slice(0,30);
+    let html='<table><thead><tr><th>Data</th><th>Descrizione</th><th>Entrata</th><th>Uscita</th><th>Tipologia</th><th>Saldo</th><th>Azioni</th></tr></thead><tbody>';
+    sorted.forEach(r=>{
+      html+="<tr><td>"+fmtDateIT(r.data_operazione)+"</td><td>"+esc(r.descrizione||"")+(r.unitaFullName? "<br><span class='muted'>"+esc(r.unitaFullName)+"</span>":"")+"</td><td>"+(r.e_importo?fmtEUR(r.e_importo):"—")+"</td><td>"+(r.u_importo?fmtEUR(r.u_importo):"—")+"</td><td>"+esc(r.e_descrizionetipo||r.u_descrizionetipo||"—")+"</td><td>"+(r.saldo!=null?fmtEUR(r.saldo):"—")+"</td><td><button class='btn ghost small' data-dup='"+r.id+"'>⧉ Duplica</button> <button class='btn danger small' data-del='"+r.id+"' data-conto='"+(r.idconto||0)+"'>🗑</button></td></tr>";
+    });
+    html+="</tbody></table><p class='muted'>Mostrate "+sorted.length+" di "+arr.length+" operazioni.</p>";
+    wrap.innerHTML=html;
+    wrap.querySelectorAll("[data-dup]").forEach(b=>b.onclick=async()=>{
+      if(!confirm("Duplicare questa operazione?")) return;
+      try{
+        const req2=buildReq(0);
+        const res=await api("/api/vocecassa/duplicate",{body:{req:req2, voceCassaToDuplicateId:Number(b.dataset.dup)}});
+        if(typeof res==="string") throw new Error(res);
+        alert("✅ Operazione duplicata."); loadRecent();
+      }catch(e){ alert("❌ "+e.message); }
+    });
+    wrap.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{
+      if(!confirm("Eliminare questa operazione? Azione irreversibile.")) return;
+      try{
+        const req2=buildReq(Number(b.dataset.conto));
+        const res=await api("/api/vocecassa/delete",{body:{req:req2, voceCassaToDeleteId:Number(b.dataset.del)}});
+        if(typeof res==="string") throw new Error(res);
+        alert("✅ Operazione eliminata."); loadRecent();
+      }catch(e){ alert("❌ "+e.message); }
+    });
+  }catch(err){ wrap.innerHTML='<div class="msg err" style="display:block">Errore: '+esc(err.message)+'</div>'; }
+}
+
+/* ---------- tabs / tipo ---------- */
+function switchTab(name){
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on", b.dataset.tab===name));
+  ["nuova","modelli","massivo","recenti"].forEach(t=>$("tab-"+t).classList.toggle("hidden", t!==name));
+  if(name==="recenti") loadRecent();
+}
+function setTipo(t){
+  state.tipo=t;
+  document.querySelectorAll("#tipoToggle button").forEach(b=>b.classList.toggle("on", b.dataset.t===t));
+  refreshTipiSelect();
+  updatePayloadPreview();
+}
+
+/* ---------- events ---------- */
+$("btnLogin").onclick=doLogin;
+$("password").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
+$("username").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
+$("btnLogout").onclick=()=>{ localStorage.removeItem(LS.user); state.user=null; updateConnUI(); };
+$("btnForget").onclick=()=>{ localStorage.removeItem(LS.creds); localStorage.removeItem(LS.user); state.user=null; updateConnUI(); showMsg("loginMsg","🗑 Password salvata dimenticata. Dovrai accedere di nuovo con la password.","warn"); };
+$("btnRefresh").onclick=async()=>{ await loadYears(); await loadContextData(); };
+$("selYear").onchange=async e=>{ state.year=state.years.find(y=>String(y.value)===e.target.value)||null; if(state.year) localStorage.setItem(LS.year, JSON.stringify(state.year)); await loadContextData(); await checkEditable(); };
+$("selIncarico").onchange=e=>{ const list=state.user?.userInfo?.incarichiSocio||[]; state.incarico=list[Number(e.target.value)]||null; if(state.incarico) localStorage.setItem(LS.incarico, JSON.stringify(state.incarico)); updateUnitaSelect(); loadContextData(); checkEditable(); };
+$("selUnita").onchange=e=>{ const unita=state.incarico?.dati?.unita||[]; state.unita=unita.find(u=>(u.cun+u.prog)===e.target.value)||null; if(state.unita) localStorage.setItem(LS.unita, JSON.stringify(state.unita)); else localStorage.removeItem(LS.unita); loadContextData(); };
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+document.querySelectorAll("#tipoToggle button").forEach(b=>b.onclick=()=>setTipo(b.dataset.t));
+["fConto","fData","fImporto","fTipo","fDesc","fCat","fNote","fUnita"].forEach(id=>$(id).addEventListener("input",updatePayloadPreview));
+$("btnSave").onclick=()=>saveOperation(false);
+$("btnSaveDup").onclick=()=>saveOperation(true);
+$("btnSaveTpl").onclick=saveCurrentAsTemplate;
+$("btnClear").onclick=()=>{ ["fDesc","fImporto","fNote"].forEach(id=>$(id).value=""); $("fTipo").value=""; updatePayloadPreview(); };
+$("btnPreviewCsv").onclick=previewCSV;
+$("btnSendCsv").onclick=sendCSV;
+$("btnLoadRecent").onclick=loadRecent;
+$("btnExample").onclick=()=>{
+  $("csvText").value="data;descrizione;tipo;importo;tipologia;conto;categoria;note\n15/03/2026;Quota Lupetti gennaio;E;25;Quote associative;Cassa;;\n20/03/2026;Spesa cancelleria;U;18.50;Materiale cancelleria;Cassa;;\n";
+  previewCSV();
+};
+$("btnTplCsv").onclick=()=>{
+  const blob=new Blob(["data;descrizione;tipo;importo;tipologia;conto;categoria;note\n15/03/2026;Esempio;E;10;Quote associative;Cassa;;\n"],{type:"text/csv"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="operazioni_modello.csv"; a.click();
+};
+$("fileCsv").onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader(); r.onload=()=>{ $("csvText").value=r.result; previewCSV(); }; r.readAsText(f);
+};
+
+/* ---------- PWA: service worker + installazione ---------- */
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("sw.js").catch(err=>console.warn("SW non registrato:", err));
+  });
+}
+let deferredInstallPrompt = null;
+window.addEventListener("beforeinstallprompt", (e)=>{
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  $("btnInstall").classList.remove("hidden");
+});
+$("btnInstall").addEventListener("click", async ()=>{
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  const choice = await deferredInstallPrompt.userChoice;
+  if(choice.outcome==="accepted") $("btnInstall").classList.add("hidden");
+  deferredInstallPrompt = null;
+});
+window.addEventListener("appinstalled", ()=>{ $("btnInstall").classList.add("hidden"); });
+
+/* ---------- rinnovo automatico: controlla la scadenza ogni 30s ---------- */
+setInterval(async ()=>{
+  if(!state.user) return;
+  const ms=msUntilExpiry();
+  if(ms===null) return;
+  // Rinnova 2 minuti prima della scadenza (o subito se già scaduto).
+  if(ms<120000){
+    const creds=getSavedCreds();
+    if(creds && !reloginInProgress){
+      const ok=await silentLogin(creds.username, creds.password);
+      if(ok){ updateConnUI(); }
+    }
+  }
+}, 30000);
+
+/* ---------- boot ---------- */
+(async function boot(){
+  if(location.protocol==="file:") $("fileWarn").classList.remove("hidden");
+  else $("fileWarn").classList.add("hidden");
+  const hasToken=restoreSession();
+  if(hasToken && !isTokenExpired()){
+    await initAfterLogin();
+  } else if(hasToken && isTokenExpired()){
+    // Token scaduto mentre l'app era chiusa: prova il rinnovo automatico.
+    const creds=getSavedCreds();
+    if(creds){
+      const ok=await silentLogin(creds.username, creds.password);
+      if(ok){ await initAfterLogin(); return; }
+    }
+    localStorage.removeItem(LS.user); state.user=null; updateConnUI();
+    showMsg("loginMsg","⏰ Il token è scaduto. Fai di nuovo l'accesso per continuare.","warn");
+  } else {
+    // Nessun token: se c'è una password salvata, accedi subito da solo.
+    const creds=getSavedCreds();
+    if(creds){
+      const ok=await silentLogin(creds.username, creds.password);
+      if(ok){ await initAfterLogin(); return; }
+    }
+    updateConnUI();
+  }
+})();
+</script>
+</body>
+</html>
