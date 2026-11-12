@@ -16,124 +16,43 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Bilancio Helper">
 <style>
-  :root{
-    --viola:#462678; --viola2:#5c3186; --giallo:#FDC500; --bg:#f4f2f7;
-    --card:#fff; --border:#e2ddef; --txt:#2b2140; --muted:#7a7390;
-    --ok:#1b7f4d; --err:#c0392b; --warn:#b7791f; --radius:14px;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt)}
-  header{background:var(--viola);color:#fff;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  header .logo{width:42px;height:42px;border-radius:10px;background:var(--giallo);color:var(--viola);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px}
-  header h1{font-size:19px;margin:0}
-  header p{margin:2px 0 0;font-size:12.5px;opacity:.85}
-  header .spacer{flex:1}
-  .badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);padding:5px 10px;border-radius:999px;font-size:12px}
-  .wrap{max-width:1080px;margin:0 auto;padding:18px}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px;box-shadow:0 2px 10px rgba(70,38,120,.06)}
-  .card h2{margin:0 0 4px;font-size:17px}
-  .card .sub{color:var(--muted);font-size:13px;margin:0 0 14px}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-  @media(max-width:760px){.grid2,.grid3{grid-template-columns:1fr}}
-  label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin:0 0 5px}
-  input,select,textarea{width:100%;padding:10px 11px;border:1px solid var(--border);border-radius:9px;font-size:14px;background:#fff;color:var(--txt)}
-  input:focus,select:focus,textarea:focus{outline:2px solid var(--viola2);outline-offset:1px;border-color:var(--viola2)}
-  textarea{resize:vertical;min-height:90px;font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
-  .field{margin-bottom:12px}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .btn{border:0;border-radius:10px;padding:11px 18px;font-size:14px;font-weight:700;cursor:pointer;background:var(--viola);color:#fff}
-  .btn:hover{background:var(--viola2)}
-  .btn:disabled{opacity:.5;cursor:not-allowed}
-  .btn.ghost{background:#fff;color:var(--viola);border:1px solid var(--viola)}
-  .btn.ghost:hover{background:#f0eaf7}
-  .btn.yellow{background:var(--giallo);color:var(--viola)}
-  .btn.danger{background:#fff;color:var(--err);border:1px solid var(--err)}
-  .btn.small{padding:7px 12px;font-size:12.5px;border-radius:8px}
-  .toggle{display:flex;background:#eee9f5;border-radius:10px;padding:4px;gap:4px}
-  .toggle button{flex:1;border:0;background:transparent;padding:9px;border-radius:8px;font-weight:700;cursor:pointer;color:var(--muted)}
-  .toggle button.on{background:var(--viola);color:#fff}
-  .msg{padding:11px 13px;border-radius:10px;font-size:13.5px;margin:10px 0;display:none}
-  .msg.ok{display:block;background:#e6f4ec;color:var(--ok);border:1px solid #bfe3cf}
-  .msg.err{display:block;background:#fdecea;color:var(--err);border:1px solid #f3c2bb}
-  .msg.warn{display:block;background:#fdf6e3;color:var(--warn);border:1px solid #f0dfa8}
-  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
-  .tabs button{border:1px solid var(--border);background:#fff;padding:9px 14px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer;color:var(--muted)}
-  .tabs button.on{background:var(--viola);color:#fff;border-color:var(--viola)}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--border);vertical-align:top}
-  th{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em}
-  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11.5px;font-weight:700}
-  .pill.e{background:#e6f4ec;color:var(--ok)} .pill.u{background:#fdecea;color:var(--err)}
-  .pill.ok{background:#e6f4ec;color:var(--ok)} .pill.ko{background:#fdecea;color:var(--err)} .pill.wait{background:#fdf6e3;color:var(--warn)}
-  .muted{color:var(--muted);font-size:12.5px}
-  .hidden{display:none!important}
-  .log{background:#1e1433;color:#d9d2f0;border-radius:10px;padding:12px;font-family:ui-monospace,Consolas,monospace;font-size:12px;max-height:220px;overflow:auto;white-space:pre-wrap}
-  .log .ok{color:#7be3a8}.log .ko{color:#ff9d94}.log .info{color:#b9a8e8}
-  .tpl{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--border);border-radius:10px;padding:11px 13px;margin-bottom:8px;align-items:center}
-  .tpl b{font-size:14px}.tpl span{font-size:12.5px;color:var(--muted)}
-  .progress{height:8px;background:#eee9f5;border-radius:999px;overflow:hidden;margin:10px 0}
-  .progress>div{height:100%;background:var(--viola);width:0%}
-  details{margin-top:8px}
-  summary{cursor:pointer;font-weight:700;font-size:13px;color:var(--viola)}
-  code{background:#f0eaf7;padding:1px 6px;border-radius:6px;font-size:12px}
-  .kbd{font-size:11px;background:#eee9f5;border-radius:6px;padding:2px 7px}
-  footer{color:var(--muted);font-size:12px;text-align:center;padding:20px}
-  .check{display:flex;gap:8px;align-items:center;font-size:13px}
-  .check input{width:auto}
+:root{--viola:#462678;--viola2:#6b478d;--giallo:#fdc500;--bg:#fafafa;--card:#fff;--border:#d5d7da;--txt:#181d27;--muted:#535862;--ok:#168054;--err:#b42318;--warn:#936000;--surface:#f5f5f5;--radius:16px;color-scheme:light}
+:root.dark-mode{--bg:#13161b;--card:#0c0e12;--border:#373a41;--txt:#fafafa;--muted:#a4a7ae;--surface:#22262f;--viola:#aeb0d9;--viola2:#c6c2e5;--ok:#75d6a5;--err:#ffaaa1;--warn:#f6cf72;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font-family:Roboto,Tahoma,Arial,sans-serif;line-height:1.5}.wrap{max-width:1000px;margin:auto;padding:32px 20px 70px}.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:20px;box-shadow:0 1px 3px #1018280d}.card h2{font-size:22px;line-height:1.3;margin:0 0 6px}.sub,.muted{color:var(--muted);font-size:14px}.sub{margin:0 0 22px}.grid2,.grid3{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.grid3{grid-template-columns:repeat(3,minmax(0,1fr))}.field{margin-bottom:18px;min-width:0}label{display:block;font-size:14px;font-weight:600;margin-bottom:6px;color:var(--txt)}input,select,textarea{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--txt);font:inherit;font-size:15px;box-shadow:0 1px 2px #1018280d}input:focus,select:focus,textarea:focus{outline:3px solid #aeb0d966;border-color:var(--viola2)}textarea{min-height:100px;resize:vertical}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.btn{border:1px solid transparent;border-radius:8px;padding:10px 16px;font:600 14px Roboto,Tahoma,Arial,sans-serif;cursor:pointer;background:#462678;color:white;box-shadow:0 1px 2px #1018280d,0 -2px 0 #0000000d inset}.btn:hover{filter:brightness(1.13)}.btn:disabled{opacity:.5;cursor:not-allowed}.btn.ghost,.btn.danger{background:var(--card);color:var(--txt);border-color:var(--border)}.btn.danger{color:var(--err)}.btn.small{padding:8px 12px}.toggle,.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px}.tabs{margin-bottom:24px;overflow-x:auto}.toggle button,.tabs button{flex:1;white-space:nowrap;border:0;background:transparent;padding:9px 12px;border-radius:7px;font:600 14px Roboto,Tahoma,Arial,sans-serif;cursor:pointer;color:var(--muted)}.toggle button.on,.tabs button.on{background:var(--card);color:var(--txt);box-shadow:0 1px 3px #10182826}.msg{display:none;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:14px;margin:12px 0}.msg.ok{display:block;color:var(--ok)}.msg.err{display:block;color:var(--err)}.msg.warn{display:block;color:var(--warn)}.hidden{display:none!important}.hero{max-width:480px;margin:8vh auto}.brand-icon{width:64px;height:64px;border-radius:15px;display:block}.hero .brand-icon{width:80px;height:80px;margin-bottom:24px}.hero h1{font-size:30px;line-height:1.2;margin:0 0 10px}.hero .btn.primary-wide{width:100%;padding:15px;margin-top:6px}.greeting{display:flex;align-items:center;gap:16px}.greeting h2{margin:0}.context-head{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:26px}.context-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.theme-control{display:flex;align-items:center;gap:10px;margin:0 8px 0 0}.switch{appearance:none;width:44px;height:24px;border:0;border-radius:20px;background:#a4a7ae;position:relative;padding:0;cursor:pointer;box-shadow:none}.switch:checked{background:#6b478d}.switch:before{content:"";position:absolute;width:20px;height:20px;top:2px;left:2px;background:white;border-radius:50%;transition:transform .15s}.switch:checked:before{transform:translateX(20px)}.password-wrap{position:relative}.password-wrap input{padding-right:70px}.password-wrap button{position:absolute;right:4px;top:4px;background:transparent;border:0;color:var(--muted);cursor:pointer;padding:8px}.section-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin:28px 0 16px}.section-heading h2{margin:0;font-size:20px}.add-btn{font-size:15px;padding:13px 20px}.add-btn span{font-size:22px;vertical-align:middle;margin-right:8px}.count{text-align:right;margin-top:4px}.log{background:var(--surface);color:var(--txt);border-radius:8px;padding:12px;max-height:220px;overflow:auto;white-space:pre-wrap}.tpl{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;align-items:center}.tpl span{color:var(--muted)}.progress{height:8px;background:var(--surface);border-radius:99px;overflow:hidden;margin:10px 0}.progress>div{height:100%;background:#6b478d;width:0}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:9px;border-bottom:1px solid var(--border)}#recentWrap,#csvPreview{overflow-x:auto}.pill{display:inline-block;border-radius:99px;padding:2px 9px;background:var(--surface)}code{font-size:12px}details{margin-top:12px}summary{cursor:pointer;color:var(--viola)}
+@media(max-width:700px){.wrap{padding:20px 16px 50px}.card{padding:20px}.grid2,.grid3{grid-template-columns:1fr;gap:0}.hero{margin:5vh auto}.section-heading .btn{width:100%}.tabs button{flex:none}.context-actions{width:100%}.context-head{align-items:flex-start}}
 </style>
 </head>
 <body>
-<header>
-  <div class="logo">⚜</div>
-  <div>
-    <h1>Tool Bilancio AGESCI — Helper personale</h1>
-    <p>Accedi una volta, poi inserisci le operazioni senza aprire il sito ufficiale ogni volta.</p>
-  </div>
-  <div class="spacer"></div>
-  <button class="btn yellow small hidden" id="btnInstall" type="button">📲 Installa app</button>
-  <span class="badge" id="connBadge">Non collegato</span>
-</header>
-
 <div class="wrap">
-
-  <div class="msg warn hidden" id="fileWarn" style="display:block">
-    ⚠️ Stai aprendo il file direttamente (<code>file://</code>): in questo modo <b>token, rinnovo automatico e installazione PWA potrebbero non funzionare</b> (il browser tratta i file locali in modo diverso). Per usare l'app correttamente avvia un server locale:
-    <br><code>cd agesci-bilancio-helper &amp;&amp; python3 -m http.server 8000</code> poi apri <code>http://localhost:8000</code> — oppure pubblica la cartella su Netlify/GitHub Pages (HTTPS) e installala come PWA.
-  </div>
-
-  <!-- LOGIN -->
-  <section class="card" id="loginCard">
-    <h2>🔑 Accesso (una sola volta, poi rinnovo automatico)</h2>
-    <p class="sub">Usa le stesse credenziali di <b>BuonaStrada</b>. Il token di AGESCI scade in poco tempo: con il <b>rinnovo automatico</b> l'app riaccede da sola prima della scadenza, così non devi più inserire la password.</p>
+  <div class="msg warn hidden" id="fileWarn">Apri l'app tramite HTTPS per utilizzare installazione e rinnovo automatico.</div>
+  <section class="card hero hidden" id="installScreen">
+    <img class="brand-icon" src="icons/icon-192.png" alt="Icona Bilancio AGESCI">
+    <h1>Il bilancio, sempre con te.</h1>
+    <p class="sub">Installa l'app sul telefono per ritrovare facilmente le tue operazioni.</p>
+    <button class="btn primary-wide" id="btnInstall" type="button">Installa l'app sul telefono</button>
+    <div class="msg" id="installHelp" role="status"></div>
+    <button class="btn ghost primary-wide" id="btnContinue" type="button">Continua nel browser</button>
+  </section>
+  <section class="card hero hidden" id="loginCard">
+    <img class="brand-icon" src="icons/icon-192.png" alt="Icona Bilancio AGESCI">
+    <h1>Bentornato!</h1>
+    <p class="sub">Accedi con BuonaStrada: l'accesso è uno solo, il rinnovo sarà automatico. Se le credenziali cambiano, potrebbe essere necessario accedere di nuovo.</p>
     <div class="grid2">
-      <div class="field"><label>Username</label><input id="username" autocomplete="username" placeholder="es. m.rossi"></div>
-      <div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+      <div class="field"><label for="firstName">Nome</label><input id="firstName" autocomplete="given-name"></div>
+      <div class="field"><label for="lastName">Cognome</label><input id="lastName" autocomplete="family-name"></div>
     </div>
-    <label class="check" style="margin-bottom:12px"><input type="checkbox" id="chkRemember" checked> <span>🔄 <b>Rinnovo automatico:</b> salva la password <b>solo su questo dispositivo</b> per riaccedere da solo quando il token scade. <span class="muted">(Usalo solo sul tuo telefono/PC personale, mai su PC condivisi. Puoi dimenticarla in qualsiasi momento dal pulsante "Dimentica password".)</span></span></label>
-    <div class="row">
-      <button class="btn" id="btnLogin">Accedi e resta collegato</button>
-      <span class="muted">Token + (se attivo) password restano in questo browser (localStorage).</span>
-    </div>
-    <div class="msg" id="loginMsg"></div>
-    <details>
-      <summary>Perché non devo accedere ogni volta?</summary>
-      <p class="muted">Il sito ufficiale usa un token JWT (<code>Bearer</code>) salvato in <code>sessionStorage</code>, che si perde chiudendo il browser. Questo helper lo salva in <code>localStorage</code> e lo riusa per tutte le chiamate API (<code>/api/vocecassa/save</code>, ecc.), finché il token non scade. Quando scade, l'helper te lo segnala e basta un nuovo login.</p>
-    </details>
+    <div class="field"><label for="username">Utente BuonaStrada</label><input id="username" autocomplete="username"></div>
+    <div class="field"><label for="password">Password</label><div class="password-wrap"><input id="password" type="password" autocomplete="current-password"><button id="showPassword" type="button" aria-label="Mostra password" aria-pressed="false">Mostra</button></div></div>
+    <p class="muted">Le credenziali vengono salvate su questo dispositivo per il rinnovo automatico. Usa solo un dispositivo personale.</p>
+    <button class="btn primary-wide" id="btnLogin">Accedi e resta collegato</button>
+    <div class="msg" id="loginMsg" role="status"></div>
   </section>
 
   <!-- CONTESTO -->
   <section class="card hidden" id="ctxCard">
-    <div class="row" style="justify-content:space-between">
-      <div>
-        <h2>👋 <span id="helloName">Ciao</span></h2>
-        <p class="sub" id="tokenInfo">Token valido</p>
-      </div>
-      <div class="row">
-        <button class="btn ghost small" id="btnRefresh">↻ Ricarica dati</button>
-        <button class="btn ghost small" id="btnForget">🗑 Dimentica password</button>
-        <button class="btn danger small" id="btnLogout">Esci</button>
-      </div>
+    <div class="context-head">
+      <div class="greeting"><img class="brand-icon" src="icons/icon-192.png" alt=""><div><h2 id="helloName">Ciao</h2><span class="muted">Il tuo bilancio a portata di mano</span></div></div>
+      <div class="context-actions"><label class="theme-control" for="darkToggle">Dark mode <input class="switch" id="darkToggle" type="checkbox" role="switch"></label><button class="btn ghost small" id="btnRefresh">Ricarica</button><button class="btn ghost small" id="btnForget">Dimentica password</button><button class="btn danger small" id="btnLogout">Esci</button></div>
     </div>
     <div class="grid3">
       <div class="field"><label>Anno sociale</label><select id="selYear"></select></div>
@@ -144,6 +63,7 @@
     <p class="muted" id="editableInfo"></p>
   </section>
 
+  <div id="operationHeading" class="section-heading hidden"><div><h2>Le tue operazioni</h2><span class="muted">Gestisci la prima nota</span></div><button class="btn add-btn" id="btnAdd" aria-expanded="false" aria-controls="appCard"><span>+</span> Aggiungi entrata/uscita</button></div>
   <!-- APP -->
   <section class="card hidden" id="appCard">
     <div class="tabs">
@@ -155,29 +75,14 @@
 
     <!-- NUOVA OPERAZIONE -->
     <div id="tab-nuova">
-      <h2>Nuova operazione (Prima Nota)</h2>
-      <p class="sub">Compila il form e invia: l'operazione viene inserita direttamente su <code>bilancio.agesci.it</code> tramite la stessa API del sito ufficiale.</p>
-      <div class="grid2">
-        <div class="field"><label>Conto *</label><select id="fConto"></select></div>
-        <div class="field"><label>Data operazione *</label><input id="fData" type="date"></div>
-      </div>
-      <div class="field">
-        <label>Tipo *</label>
-        <div class="toggle" id="tipoToggle">
-          <button type="button" class="on" data-t="i">💰 Entrata</button>
-          <button type="button" data-t="o">💸 Uscita</button>
-        </div>
-      </div>
-      <div class="grid2">
-        <div class="field"><label>Importo (€) *</label><input id="fImporto" type="number" step="0.01" min="0.01" placeholder="25.00"></div>
-        <div class="field"><label>Tipologia *</label><select id="fTipo"></select></div>
-      </div>
-      <div class="field"><label>Descrizione *</label><input id="fDesc" placeholder="es. Quota associativa Lupetti — gennaio"></div>
-      <div class="grid2">
-        <div class="field"><label>Categoria</label><select id="fCat"><option value="">— Nessuna —</option></select></div>
-        <div class="field"><label>Note (max 150)</label><input id="fNote" maxlength="150" placeholder="facoltative"></div>
-      </div>
-      <div class="field hidden" id="unitaField"><label>Unità</label><select id="fUnita"></select></div>
+      <h2>Nuova operazione</h2><p class="sub">Inserisci i dettagli della tua entrata o uscita.</p>
+      <div class="grid2"><div class="field"><label for="fData">Data operazione *</label><input id="fData" type="date"></div><div class="field"><label for="fConto">Conto *</label><select id="fConto"></select></div></div>
+      <div class="field"><label>Tipo operazione *</label><div class="toggle" id="tipoToggle"><button type="button" class="on" data-t="i">Entrata</button><button type="button" data-t="o">Uscita</button></div></div>
+      <div class="grid2"><div class="field"><label for="fTipo">Tipologia *</label><select id="fTipo"></select></div><div class="field"><label>Elenco voci</label><div class="toggle" id="voceToggle"><button type="button" class="on" data-mode="scout">Voci Scout</button><button type="button" data-mode="ministero">Voci Ministero</button></div></div></div>
+      <div class="field"><label for="fImporto">Importo (€) *</label><input id="fImporto" type="number" step="0.01" min="0.01" placeholder="0,00"></div>
+      <div class="field"><label for="fDesc">Descrizione *</label><input id="fDesc" placeholder="Descrivi l'operazione"></div>
+      <div class="grid2"><div class="field"><label for="fCat">Categoria</label><select id="fCat"><option value="">— Nessuna —</option></select></div><div class="field hidden" id="unitaField"><label for="fUnita">Unità</label><select id="fUnita"></select></div></div>
+      <div class="field"><label for="fNote">Note</label><input id="fNote" maxlength="150" placeholder="Facoltative"><div class="muted count" id="noteCount">0/150</div></div>
       <div class="row">
         <button class="btn" id="btnSave">💾 Salva operazione</button>
         <button class="btn ghost" id="btnSaveDup">Salva e duplica (per la prossima)</button>
@@ -185,10 +90,7 @@
         <button class="btn ghost" id="btnClear">Pulisci</button>
       </div>
       <div class="msg" id="saveMsg"></div>
-      <details>
-        <summary>Anteprima payload API (per debug)</summary>
-        <div class="log" id="payloadPreview" style="margin-top:8px"></div>
-      </details>
+
     </div>
 
     <!-- MODELLI -->
@@ -231,28 +133,18 @@
     </div>
   </section>
 
-  <section class="card">
-    <h2>ℹ️ Avvertenze</h2>
-    <p class="muted" style="line-height:1.6">
-      Strumento <b>personale e non ufficiale</b>: usa le stesse API di <code>bilancio.agesci.it</code> ma non è sviluppato da AGESCI e può smettere di funzionare se le API cambiano.
-      Usa l'helper solo sul tuo dispositivo personale, verifica sempre le operazioni sul sito ufficiale prima della chiusura dell'anno sociale, e non condividere mai il token.
-      I modelli e lo storico restano solo in questo browser (<code>localStorage</code>); nessuna chiamata va a server terzi.
-    </p>
-  </section>
 </div>
-
-<footer>Helper personale per Tool Bilancio AGESCI · Le chiamate vanno solo a bilancio.agesci.it · Nessun dato lascia il tuo browser</footer>
 
 <script>
 "use strict";
 const API = "https://bilancio.agesci.it";
 const $ = id => document.getElementById(id);
-const LS = { user:"ab_user", creds:"ab_creds", loggedOut:"ab_logged_out", years:"ab_years", year:"ab_selectedYear", incarico:"ab_selectedIncarico", unita:"ab_selectedUnita", tpl:"ab_templates", hist:"ab_history" };
+const LS = { user:"ab_user", creds:"ab_creds", loggedOut:"ab_logged_out", years:"ab_years", year:"ab_selectedYear", incarico:"ab_selectedIncarico", unita:"ab_selectedUnita", tpl:"ab_templates", hist:"ab_history", onboarded:"ab_onboarded", firstName:"ab_first_name", lastName:"ab_last_name", theme:"ab_theme" };
 
 let state = {
   user:null, years:[], year:null, incarico:null, unita:null,
   conti:[], tipiE:[], tipiU:[], categorie:[], tipo:"i",
-  csvRows:[], csvSending:false
+  voceMode:"scout", csvRows:[], csvSending:false
 };
 
 /* ---------- utils ---------- */
@@ -496,18 +388,17 @@ async function fetchLogin(username, password){
 }
 async function doLogin(){
   const username=$("username").value.trim(), password=$("password").value;
-  if(!username||!password){ showMsg("loginMsg","Inserisci username e password.","err"); return; }
+  if(!username||!password){ showMsg("loginMsg","Inserisci utente e password.","err"); return; }
+  if(!$("firstName").value.trim()||!$("lastName").value.trim()){ showMsg("loginMsg","Inserisci nome e cognome.","err"); return; }
   hideMsg("loginMsg");
   $("btnLogin").disabled=true; $("btnLogin").textContent="Accesso in corso…";
   try{
     autoLoginBlocked = false;
     localStorage.removeItem(LS.loggedOut);
     const data=await fetchLogin(username, password);
-    if($("chkRemember").checked){
-      localStorage.setItem(LS.creds, JSON.stringify({username, password}));
-    } else {
-      localStorage.removeItem(LS.creds);
-    }
+    localStorage.setItem(LS.creds, JSON.stringify({username, password}));
+    localStorage.setItem(LS.firstName, $("firstName").value.trim());
+    localStorage.setItem(LS.lastName, $("lastName").value.trim());
     setSession(data);
     $("password").value="";
     showMsg("loginMsg","✅ Accesso riuscito. Caricamento dati…","ok");
@@ -533,23 +424,15 @@ function restoreSession(){
   }catch(e){}
   return false;
 }
+function isStandalone(){ return window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true; }
 function updateConnUI(){
-  const badge=$("connBadge");
-  if(state.user){
-    badge.textContent="🟢 Collegato";
-    const exp=tokenExpiry();
-    const name = state.user?.userInfo?.codiceSocio? "Socio "+state.user.userInfo.codiceSocio : "Utente";
-    $("helloName").textContent="Ciao, "+name;
-    const dur=tokenDurationText();
-    const auto=(getSavedCreds() && !autoLoginBlocked)? " · 🔄 Rinnovo automatico ATTIVO" : " · 🔄 Rinnovo automatico disattivo";
-    $("tokenInfo").textContent = exp? ("Token valido fino al "+exp.toLocaleString("it-IT")+(dur? " ("+dur+")":"")+auto) : ("Token salvato (scadenza non leggibile)"+auto);
-    $("loginCard").classList.add("hidden");
-    $("ctxCard").classList.remove("hidden"); $("appCard").classList.remove("hidden");
-  } else {
-    badge.textContent="⚪ Non collegato";
-    $("loginCard").classList.remove("hidden");
-    $("ctxCard").classList.add("hidden"); $("appCard").classList.add("hidden");
-  }
+  const onboarding=!localStorage.getItem(LS.onboarded) && !isStandalone() && !state.user;
+  $("installScreen").classList.toggle("hidden",!onboarding);
+  $("loginCard").classList.toggle("hidden",!!state.user || onboarding);
+  $("ctxCard").classList.toggle("hidden",!state.user);
+  $("operationHeading").classList.toggle("hidden",!state.user);
+  if(!state.user){ $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); }
+  else { const name=localStorage.getItem(LS.firstName) || (state.user?.userInfo?.codiceSocio ? "Socio "+state.user.userInfo.codiceSocio : "Utente"); $("helloName").textContent="Ciao, "+name; }
 }
 let initPromise = null;
 async function initAfterLogin(){
@@ -674,10 +557,14 @@ function fillSelect(sel, arr, placeholder){
   if(placeholder){ const o=document.createElement("option"); o.value=""; o.textContent=placeholder; sel.appendChild(o); }
   arr.forEach(x=>{ const o=document.createElement("option"); o.value=x.value; o.textContent=x.label; sel.appendChild(o); });
 }
+function isScout(x){ return x.voceMinisteroId != null || !!x.gruppoZona; }
+function setVoceMode(mode){ state.voceMode=mode; document.querySelectorAll("#voceToggle button").forEach(b=>b.classList.toggle("on",b.dataset.mode===mode)); refreshTipiSelect(); }
 function refreshTipiSelect(){
-  const arr = state.tipo==="i"? state.tipiE : state.tipiU;
+  const arr=(state.tipo==="i"?state.tipiE:state.tipiU).filter(x=>x.selezionabile!==false);
+  let choices=arr.filter(x=>state.voceMode==="scout"?isScout(x):!isScout(x));
+  if(state.voceMode==="scout") { const level=state.incarico?.tipoIncarico===1?"z":"g"; const matching=choices.filter(x=>x.gruppoZona===level); if(matching.length) choices=matching; }
   const sel=$("fTipo"); sel.innerHTML='<option value="">— Seleziona tipologia —</option>';
-  arr.forEach(x=>{ const o=document.createElement("option"); o.value=x.value; o.textContent=x.label+(x.codice? " ("+x.codice+")":""); sel.appendChild(o); });
+  choices.forEach(x=>{ const o=document.createElement("option"); o.value=x.value; o.textContent=x.label+(x.codiceVoceMinistero?" ("+x.codiceVoceMinistero+")":""); sel.appendChild(o); });
 }
 
 /* ---------- form operazione ---------- */
@@ -696,7 +583,7 @@ function readForm(){
   }
   const voce = {
     idconto: contoId,
-    data_operazione: dataVal? new Date(dataVal+"T00:00:00").toISOString() : null,
+    data_operazione: dataVal? dataVal+"T00:00:00.000Z" : null,
     descrizione: $("fDesc").value.trim(),
     e_importo: state.tipo==="i"? (isNaN(importo)?null:importo) : null,
     u_importo: state.tipo==="o"? (isNaN(importo)?null:importo) : null,
@@ -746,14 +633,7 @@ function validateForm(voce, contoObj){
   }
   return errs;
 }
-function updatePayloadPreview(){
-  if(!state.user) return;
-  try{
-    const {voce}=readForm();
-    const payload={req:buildReq(voce.idconto||0), vocecassa:voce};
-    $("payloadPreview").textContent=JSON.stringify(payload,null,2);
-  }catch(e){ $("payloadPreview").textContent="—"; }
-}
+function updatePayloadPreview(){ $("noteCount").textContent=$("fNote").value.length+"/150"; }
 async function saveOperation(duplicateAfter=false){
   hideMsg("saveMsg");
   const {voce, contoObj}=readForm();
@@ -807,6 +687,8 @@ function applyTemplate(t){
   switchTab("nuova");
   $("fConto").value=t.idconto??"";
   setTipo(t.tipo);
+  const item=(state.tipo==="i"?state.tipiE:state.tipiU).find(x=>String(x.value)===String(t.idtipo));
+  if(item) setVoceMode(isScout(item)?"scout":"ministero");
   $("fTipo").value=t.idtipo??"";
   $("fDesc").value=t.descrizione||"";
   $("fCat").value=t.idcategoria??"";
@@ -875,7 +757,7 @@ function buildVoceFromRow(r){
   const importo=parseFloat(String(r.importo||"").replace(",","."));
   const voce={
     idconto: conto? conto.value:null,
-    data_operazione: d? d.toISOString():null,
+    data_operazione: d? isoToInputDate(d)+"T00:00:00.000Z":null,
     descrizione: String(r.descrizione||"").trim(),
     e_importo: tipo==="i"? (isNaN(importo)?null:importo):null,
     u_importo: tipo==="o"? (isNaN(importo)?null:importo):null,
@@ -998,6 +880,14 @@ function setTipo(t){
 
 /* ---------- events ---------- */
 $("btnLogin").onclick=doLogin;
+$("firstName").value=localStorage.getItem(LS.firstName)||""; $("lastName").value=localStorage.getItem(LS.lastName)||"";
+$("showPassword").onclick=()=>{ const el=$("password"), show=el.type==="password"; el.type=show?"text":"password"; $("showPassword").textContent=show?"Nascondi":"Mostra"; $("showPassword").setAttribute("aria-label",show?"Nascondi password":"Mostra password"); $("showPassword").setAttribute("aria-pressed",String(show)); };
+function applyTheme(dark){ document.documentElement.classList.toggle("dark-mode",dark); $("darkToggle").checked=dark; document.querySelector('meta[name="theme-color"]').content=dark?"#13161b":"#fafafa"; }
+applyTheme(localStorage.getItem(LS.theme)==="dark");
+$("darkToggle").onchange=e=>{ localStorage.setItem(LS.theme,e.target.checked?"dark":"light"); applyTheme(e.target.checked); };
+$("btnAdd").onclick=()=>{ const opening=$("appCard").classList.contains("hidden"); $("appCard").classList.toggle("hidden",!opening); $("btnAdd").setAttribute("aria-expanded",String(opening)); if(opening){ $("fData").value=isoToInputDate(new Date()); switchTab("nuova"); } };
+document.querySelectorAll("#voceToggle button").forEach(b=>b.onclick=()=>setVoceMode(b.dataset.mode));
+$("fData").value=isoToInputDate(new Date());
 $("password").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
 $("username").addEventListener("keydown",e=>{ if(e.key==="Enter") doLogin(); });
 $("btnLogout").onclick=()=>{
@@ -1050,19 +940,14 @@ if("serviceWorker" in navigator){
   });
 }
 let deferredInstallPrompt = null;
-window.addEventListener("beforeinstallprompt", (e)=>{
-  e.preventDefault();
-  deferredInstallPrompt = e;
-  $("btnInstall").classList.remove("hidden");
-});
-$("btnInstall").addEventListener("click", async ()=>{
-  if(!deferredInstallPrompt) return;
-  deferredInstallPrompt.prompt();
-  const choice = await deferredInstallPrompt.userChoice;
-  if(choice.outcome==="accepted") $("btnInstall").classList.add("hidden");
-  deferredInstallPrompt = null;
-});
-window.addEventListener("appinstalled", ()=>{ $("btnInstall").classList.add("hidden"); });
+window.addEventListener("beforeinstallprompt", e=>{ e.preventDefault(); deferredInstallPrompt=e; });
+function finishOnboarding(){ localStorage.setItem(LS.onboarded,"1"); updateConnUI(); }
+$("btnContinue").onclick=finishOnboarding;
+$("btnInstall").onclick=async()=>{
+  if(deferredInstallPrompt){ const prompt=deferredInstallPrompt; deferredInstallPrompt=null; await prompt.prompt(); const choice=await prompt.userChoice; if(choice.outcome==="accepted") finishOnboarding(); }
+  else { const ios=/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1); showMsg("installHelp",ios?"In Safari tocca Condividi, poi ‘Aggiungi alla schermata Home’. Dopo l'installazione apri l'app dalla schermata Home.":"Nel menu del browser scegli ‘Installa app’ o ‘Aggiungi alla schermata Home’. Se l'opzione non è disponibile, continua nel browser.","ok"); }
+};
+window.addEventListener("appinstalled", finishOnboarding);
 
 /* ---------- rinnovo automatico e sincronizzazione tra schede ---------- */
 async function maybeProactiveRefresh(){
@@ -1118,7 +1003,7 @@ window.addEventListener("storage", (e)=>{
   }
 
   if(creds){
-    $("connBadge").textContent="🔄 Riconnessione…";
+    updateConnUI();
     $("btnLogin").disabled=true;
     showMsg("loginMsg","🔄 Riconnessione automatica in corso…","ok");
     const ok=await ensureFreshToken(true);
