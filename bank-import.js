@@ -4,6 +4,24 @@
   const $bank=id=>document.getElementById(id);
   const screen=$bank('bankScreen'), file=$bank('bankFile'), account=$bank('bankAccount'), rowsEl=$bank('bankRows'), summary=$bank('bankSummary'), upload=$bank('bankUpload'), reset=$bank('bankReset');
   const confirmDialog=$bank('bankConfirmDialog');
+  // Una pagina PWA precedente può ancora essere in cache durante un aggiornamento.
+  // In quel caso creiamo i contatori mancanti prima di registrare i pulsanti.
+  (function ensureCounters(){
+    let added=false, stats=$bank('bankStats'), box=$bank('bankReadyBox');
+    if(!stats){
+      stats=document.createElement('div');stats.id='bankStats';stats.className='bank-stats hidden';stats.setAttribute('aria-label','Riepilogo operazioni');
+      const detected=document.createElement('p');detected.id='bankDetected';
+      const pending=document.createElement('button');pending.type='button';pending.id='bankPending';pending.className='bank-pending-link';
+      stats.append(detected,pending);rowsEl.before(stats);added=true;
+    }
+    if(!box){
+      box=document.createElement('aside');box.id='bankReadyBox';box.className='bank-ready-box hidden';box.setAttribute('aria-live','polite');
+      const ready=document.createElement('span');ready.id='bankReady';box.append(ready);screen.append(box);added=true;
+    }
+    if(added){
+      const style=document.createElement('style');style.textContent='.bank-stats p{margin:4px 0}.bank-pending-link{display:block;padding:0;border:0;background:transparent;color:#fff;text-decoration:underline;text-align:left;font:inherit;font-size:14px;cursor:pointer}.bank-pending-link:disabled{cursor:default;opacity:.75;text-decoration:none}.bank-screen.has-counters{padding-bottom:calc(86px + env(safe-area-inset-bottom))}.bank-ready-box{position:fixed;z-index:1;right:16px;bottom:calc(12px + env(safe-area-inset-bottom));max-width:calc(100% - 32px);padding:10px 14px;background:var(--card);color:var(--txt);border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 18px #0006;font-size:14px;font-weight:700}';document.head.append(style);
+    }
+  })();
   let rows=[], errors=[], processing=false, attempted=false, importing=false, marker=null, generation=0, pendingAction=null, hasResult=false, outcome='';
   const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
   function categoryMatch(name){const matches=state.categorie.filter(c=>Number.isInteger(Number(c.value)) && Number(c.value)>0 && norm(c.label)===norm(name));return matches.length===1?matches[0]:null;}
