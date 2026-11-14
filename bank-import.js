@@ -84,7 +84,7 @@
     for(let i=0;i<rows.length;i++){
       const r=rows[i],typ=validTypes(r).find(t=>String(t.value)===String(r.type)),category=categoryMatch(r.category),inc=r.amount>0;
       if(!state.user||!typ||!acct){r.status='Interrotta: contesto non più disponibile.';break;}
-      const unit=state.unita,voce={idconto:Number(acct.value),data_operazione:r.date+'T00:00:00.000Z',descrizione:r.description,e_importo:inc?r.amount:null,u_importo:inc?null:Math.abs(r.amount),e_idtipo:inc?Number(typ.value):null,u_idtipo:inc?null:Number(typ.value),e_descrizionetipo:inc?typ.label:null,u_descrizionetipo:inc?null:typ.label,conto:acct.label,idcategoria:category?Number(category.value):null,note:'',unita_codice:unit?unit.cun+unit.prog:null,unita_nome:unit?.nome||null};
+      const unit=state.unita,voce={idconto:Number(acct.value),data_operazione:r.date+'T00:00:00.000Z',descrizione:r.description,e_importo:inc?r.amount:null,u_importo:inc?null:Math.abs(r.amount),e_idtipo:inc?Number(typ.value):null,u_idtipo:inc?null:Number(typ.value),e_descrizionetipo:inc?typ.label:null,u_descrizionetipo:inc?null:typ.label,conto:acct.label,idcategoria:category?Number(category.value):null,note:'HelperBA',unita_codice:unit?unit.cun+unit.prog:null,unita_nome:unit?.nome||null};
       r.status='Caricamento…';r.statusNode.textContent=r.status;
       try{
         const result=await api('/api/vocecassa/save',{body:{req:buildReq(voce.idconto),vocecassa:voce}});

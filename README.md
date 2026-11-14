@@ -16,7 +16,7 @@ Dalla dashboard apri **Carica operazioni da estratto conto** e scegli un PDF con
 
 Per ogni riga apri la descrizione, verificala e scegli la tipologia di entrata o uscita. La categoria della banca viene associata a quella del bilancio solo se il nome coincide in modo univoco; altrimenti viene indicata come non associata e l'operazione viene salvata senza categoria. Le righe non contabilizzate dalla banca vengono evidenziate, non escluse: controllale prima della conferma. Le date fuori dall'anno o dal periodo di attività del conto impediscono l'invio.
 
-Dopo aver verificato tutte le righe, conferma il caricamento. Le operazioni sono inviate una alla volta; in caso di errore o risposta incerta l'invio si ferma, senza ritentare automaticamente. Controlla nel Tool Bilancio quelle già registrate prima di avviare un nuovo import, per evitare duplicati. L'elenco e lo stato dell'importazione restano solo nella memoria della pagina e si perdono ricaricandola.
+Dopo aver verificato tutte le righe, conferma il caricamento. Ogni operazione importata riporta `HelperBA` nel campo note, senza modificare descrizione o categoria. Le operazioni sono inviate una alla volta; in caso di errore o risposta incerta l'invio si ferma, senza ritentare automaticamente. Controlla nel Tool Bilancio quelle già registrate prima di avviare un nuovo import, per evitare duplicati. L'elenco e lo stato dell'importazione restano solo nella memoria della pagina e si perdono ricaricandola.
 
 Il lettore PDF usa PDF.js 4.10.38 (licenza Apache 2.0, `vendor/pdfjs/LICENSE`).
 
