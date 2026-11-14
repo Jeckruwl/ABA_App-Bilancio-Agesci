@@ -27,10 +27,29 @@
   function categoryMatch(name){const matches=state.categorie.filter(c=>Number.isInteger(Number(c.value)) && Number(c.value)>0 && norm(c.label)===norm(name));return matches.length===1?matches[0]:null;}
   function chosenAccount(){return state.conti.find(c=>Number.isInteger(Number(c.value)) && Number(c.value)>0 && String(c.value)===account.value);}
   function validTypes(r){return (r.amount>0?state.tipiE:state.tipiU).filter(t=>Number.isInteger(Number(t.value)) && Number(t.value)>0 && t.selezionabile!==false && !(t.codice==='C.2' && Number(String(state.year?.label||'').split('-')[1])>=25));}
+  function transferAccounts(){return state.conti.filter(c=>Number(c.value)>0 && (c.assigned===true || c.assigned===1) && (c.isdummy===false || c.isdummy===0));}
+  function otherAccount(r,acct){return transferAccounts().find(c=>String(c.value)===String(r.otherAccount) && String(c.value)!==String(acct?.value));}
+  function transferNote(r){return 'HelperBA — '+r.description.trim();}
+  function ready(r,acct){return r.transfer ? !!otherAccount(r,acct) : !!r.type && validTypes(r).some(t=>String(t.value)===String(r.type));}
+  function transferReq(){
+    const e=state.user,t=state.incarico,o=state.unita;
+    if(t){
+      const req={rendicontoid:state.year?.value,filterbydate:true,codicesocio:e?.userInfo?.codiceSocio,creg:t?.dati?.creg,czona:t?.dati?.czona,ord:t?.dati?.ord,contoid:0,tipoIncaricoMain:e?.userInfo?.tipoIncarico,tipoIncarico:t?.tipoIncarico,accessoTipo:t?.accessoTipo,gruppozona_nome:t?.dati?.nome,codiceUnita:t?.codiceUnita||null,unita_nome:getNomeUnitaByIncarico(t)};
+      if(o){req.codiceUnita=o.cun+o.prog;req.unita_nome=o.nome;}return req;
+    }
+    return {rendicontoid:state.year?.value,filterbydate:true,codicesocio:e?.userInfo?.codiceSocio,creg:null,czona:0,ord:0,contoid:0};
+  }
   function problems(r,acct){
     const issues=[];
     if(!r.description.trim())issues.push('Descrizione mancante');
-    if(!r.type || !validTypes(r).some(t=>String(t.value)===String(r.type)))issues.push('Tipologia da assegnare');
+    if(r.transfer){
+      const other=otherAccount(r,acct);
+      if(!other)issues.push('Seleziona un altro conto abilitato');
+      if(acct && !transferAccounts().some(c=>String(c.value)===String(acct.value)))issues.push('Il conto dell’estratto non è abilitato ai giroconti');
+      if(transferNote(r).length>255)issues.push('Descrizione troppo lunga per le note del giroconto (massimo 255 caratteri, incluso HelperBA)');
+      const date=r.date+'T00:00:00.000Z';
+      if(other?.data_inizio_attivita && date<other.data_inizio_attivita.slice(0,10)+'T00:00:00.000Z' || other?.data_fine_attivita && date>other.data_fine_attivita.slice(0,10)+'T00:00:00.000Z')issues.push('Data fuori dal periodo di attività dell’altro conto');
+    }else if(!ready(r,acct))issues.push('Tipologia da assegnare');
     const date=r.date+'T00:00:00.000Z';
     if(state.year?.start && date<state.year.start.slice(0,10)+'T00:00:00.000Z' || state.year?.end && date>state.year.end.slice(0,10)+'T00:00:00.000Z')issues.push('Data fuori dall’anno selezionato');
     if(acct?.data_inizio_attivita && date<acct.data_inizio_attivita.slice(0,10)+'T00:00:00.000Z')issues.push('Data precedente al conto');
@@ -53,11 +72,14 @@
         button.replaceWith(input);resize();input.focus();
       };row.append(button);
       row.append(paragraph((r.amount>0?'Entrata: ':'Uscita: ')+fmtEUR(r.amount),'bank-amount '+(r.amount>0?'bank-income':'bank-expense')));
-      const typeLabel=document.createElement('label');typeLabel.htmlFor='bankRowType-'+i;typeLabel.textContent='Tipologia *';row.append(typeLabel);
-      const dropdown=document.createElement('select');dropdown.id=typeLabel.htmlFor;dropdown.disabled=attempted||importing;
-      const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='— Seleziona tipologia —';dropdown.append(placeholder);
-      validTypes(r).forEach(t=>{const option=document.createElement('option');option.value=t.value;option.textContent=t.label;dropdown.append(option);});
-      dropdown.value=r.type||'';dropdown.addEventListener('change',()=>{r.type=dropdown.value||null;updateSummary();});row.append(dropdown);
+      const transferLabel=document.createElement('label');transferLabel.className='bank-transfer-check';
+      const check=document.createElement('input');check.type='checkbox';check.checked=!!r.transfer;check.disabled=attempted||importing;check.setAttribute('aria-label','Giroconto operazione '+(i+1));
+      check.addEventListener('change',()=>{r.transfer=check.checked;render();});transferLabel.append(check,document.createTextNode(' Giroconto'));row.append(transferLabel);
+      const label=document.createElement('label');label.htmlFor=(r.transfer?'bankRowAccount-':'bankRowType-')+i;label.textContent=r.transfer?(r.amount>0?'Dal conto *':'Verso il conto *'):'Tipologia *';row.append(label);
+      const dropdown=document.createElement('select');dropdown.id=label.htmlFor;dropdown.disabled=attempted||importing;
+      const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=r.transfer?'— Seleziona conto —':'— Seleziona tipologia —';dropdown.append(placeholder);
+      (r.transfer?transferAccounts().filter(c=>String(c.value)!==String(acct?.value)):validTypes(r)).forEach(t=>{const option=document.createElement('option');option.value=t.value;option.textContent=t.label;dropdown.append(option);});
+      dropdown.value=(r.transfer?r.otherAccount:r.type)||'';dropdown.addEventListener('change',()=>{if(r.transfer){r.otherAccount=dropdown.value||null;render();}else{r.type=dropdown.value||null;updateSummary();}});row.append(dropdown);
       if(!r.booked){
         row.append(paragraph('Operazione non contabilizzata: tieni premuto per rimuoverla dalla lista.','bank-warning'));
         const remove=document.createElement('button');remove.type='button';remove.className='bank-remove';remove.textContent='Rimuovi dalla lista';remove.disabled=attempted||importing;
@@ -66,7 +88,7 @@
         let timer=null,start=null,suppressClickUntil=0;
         const cancelPress=()=>{if(timer!==null)clearTimeout(timer);timer=null;start=null;};
         row.addEventListener('pointerdown',e=>{
-          if(attempted||importing||!e.isPrimary||e.button!==0||e.target.closest('textarea,.select-wrapper'))return;
+          if(attempted||importing||!e.isPrimary||e.button!==0||e.target.closest('textarea,.select-wrapper,input,label'))return;
           start={x:e.clientX,y:e.clientY,id:e.pointerId};
           timer=setTimeout(()=>{timer=null;start=null;suppressClickUntil=Date.now()+1000;confirmRemoval(r);},650);
         });
@@ -75,7 +97,7 @@
         row.addEventListener('contextmenu',e=>{if(!attempted&&!importing)e.preventDefault();});
         row.addEventListener('click',e=>{if(Date.now()<suppressClickUntil){e.preventDefault();e.stopImmediatePropagation();suppressClickUntil=0;}},true);
       }
-      const issues=problems(r,acct).filter(x=>x!=='Tipologia da assegnare');if(issues.length)row.append(paragraph(issues.join('. '),'bank-warning'));
+      r.issuesNode=paragraph('', 'bank-warning');row.append(r.issuesNode);
       r.statusNode=paragraph(r.status||'', 'bank-status');row.append(r.statusNode);
       rowsEl.append(row);
       window.registerSelectMenu?.(dropdown);
@@ -84,7 +106,8 @@
   }
   function updateSummary(){
     const acct=chosenAccount();
-    const missing=rows.filter(r=>!r.type || !validTypes(r).some(t=>String(t.value)===String(r.type))).length;
+    rows.forEach(r=>{if(r.issuesNode)r.issuesNode.textContent=problems(r,acct).filter(x=>x!=='Tipologia da assegnare').join('. ');});
+    const missing=rows.filter(r=>!ready(r,acct)).length;
     const pending=rows.filter(r=>!r.booked).length;
     const showCounters=hasResult||rows.length>0;
     $bank('bankStats').classList.toggle('hidden',!showCounters);
@@ -127,17 +150,19 @@
   upload.onclick=()=>{
     render();if(upload.disabled)return;
     const pending=rows.filter(r=>!r.booked).length;
-    confirmAction('Hai verificato tutte le '+rows.length+' operazioni, le date, i segni e le tipologie? '+(pending?pending+' operazioni risultano non contabilizzate dalla banca. ':'')+'Verifica anche che non siano già presenti: il caricamento può creare duplicati.','Sì, carica',send);
+    confirmAction('Hai verificato tutte le '+rows.length+' operazioni, le date, i segni, le tipologie e i conti dei giroconti? '+(pending?pending+' operazioni risultano non contabilizzate dalla banca. ':'')+'Verifica anche che non siano già presenti: il caricamento può creare duplicati.','Sì, carica',send);
   };
   async function send(){
     render();if(upload.disabled)return;const acct=chosenAccount();attempted=true;importing=true;outcome='Caricamento in corso…';render();
     for(let i=0;i<rows.length;i++){
       const r=rows[i],typ=validTypes(r).find(t=>String(t.value)===String(r.type)),category=categoryMatch(r.category),inc=r.amount>0;
-      if(!state.user||!typ||!acct){r.status='Interrotta: contesto non più disponibile.';break;}
-      const unit=state.unita,voce={idconto:Number(acct.value),data_operazione:r.date+'T00:00:00.000Z',descrizione:r.description,e_importo:inc?r.amount:null,u_importo:inc?null:Math.abs(r.amount),e_idtipo:inc?Number(typ.value):null,u_idtipo:inc?null:Number(typ.value),e_descrizionetipo:inc?typ.label:null,u_descrizionetipo:inc?null:typ.label,conto:acct.label,idcategoria:category?Number(category.value):null,note:'HelperBA',unita_codice:unit?unit.cun+unit.prog:null,unita_nome:unit?.nome||null};
+      if(!state.user||!acct||problems(r,acct).length){r.status='Interrotta: contesto non più disponibile.';break;}
+      const unit=state.unita,voce=r.transfer?null:{idconto:Number(acct.value),data_operazione:r.date+'T00:00:00.000Z',descrizione:r.description,e_importo:inc?r.amount:null,u_importo:inc?null:Math.abs(r.amount),e_idtipo:inc?Number(typ.value):null,u_idtipo:inc?null:Number(typ.value),e_descrizionetipo:inc?typ.label:null,u_descrizionetipo:inc?null:typ.label,conto:acct.label,idcategoria:category?Number(category.value):null,note:'HelperBA',unita_codice:unit?unit.cun+unit.prog:null,unita_nome:unit?.nome||null};
       r.status='Caricamento…';r.statusNode.textContent=r.status;
       try{
-        const result=await api('/api/vocecassa/save',{body:{req:buildReq(voce.idconto),vocecassa:voce}});
+        const other=otherAccount(r,acct);
+        const giroconto=r.transfer?{dataEffettuazione:r.date+'T00:00:00.000Z',fromContoId:Number(inc?other.value:acct.value),toContoId:Number(inc?acct.value:other.value),importo:Math.abs(r.amount),note:transferNote(r)}:null;
+        const result=r.transfer ? await api('/api/conto/saveGiroconto',{body:{req:transferReq(),giroconto}}) : await api('/api/vocecassa/save',{body:{req:buildReq(voce.idconto),vocecassa:voce}});
         if(typeof result==='string'||result==null||result===false||result?.success===false||result?.ok===false){r.status='Risposta non confermata: verifica sul Tool Bilancio prima di riprovare.';break;}
         r.status='Caricata';r.statusNode.textContent=r.status;
       }catch(err){r.status='Esito non confermato: verifica sul Tool Bilancio prima di riprovare.';break;}

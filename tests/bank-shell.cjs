@@ -2,7 +2,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
-for(const script of ['bank-import.js','bank-import-v6.js']){
+for(const script of ['bank-import.js','bank-import-v6.js','bank-import-v7.js']){
   const ids=new Map();
   class Element{
     constructor(){this.listeners={};this.children=[];this.disabled=false;this.value='';this.textContent='';this.classList={values:new Set(),add:x=>this.classList.values.add(x),remove:x=>this.classList.values.delete(x),contains:x=>this.classList.values.has(x),toggle:(x,on)=>on?this.classList.values.add(x):this.classList.values.delete(x)};}
@@ -22,6 +22,6 @@ for(const script of ['bank-import.js','bank-import-v6.js']){
   assert.equal(ids.get('bankReady').textContent,'Operazioni pronte: 0/0');
   assert(ids.get('bankPending').disabled);
 }
-assert(fs.readFileSync('index.html','utf8').includes('src="bank-import-v6.js"'));
-assert(fs.readFileSync('sw.js','utf8').includes('./bank-import-v6.js'));
+assert(fs.readFileSync('index.html','utf8').includes('src="bank-import-v7.js"'));
+assert(fs.readFileSync('sw.js','utf8').includes('./bank-import-v7.js'));
 console.log('Apertura importazione con pagina PWA precedente e script aggiornato: OK');
