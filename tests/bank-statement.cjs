@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict');
+const {parsePages,parseDate,parseAmount}=require('../bank-statement.js');
+const cell=(str,x,y)=>({str,transform:[1,0,0,1,x,y]});
+const header=[cell('CONTABILE',50,770),cell('OPERAZIONE',126,770),cell('CONTABILIZZATO',302,770),cell('CATEGORIA',408,770),cell('IMPORTO',498,770)];
+const row=(date,y,desc,cat,amount,status='SI')=>[cell(date,50,y),cell(desc,126,y),cell(status,341,y),cell(cat,396,y),cell(amount,498,y)];
+const pages=[[...header,...row('12.11.2026',730,'Acquisto','Attività','€ -1.234,56'),...row('13.11.2026',690,'Versamento','Altro','€ 20,00','NO')], [...row('14.11.2026',730,'Altra','Altro','€ 1,00')]];
+const r=parsePages(pages);assert.deepEqual(r.errors,[]);assert.equal(r.rows.length,3);assert.equal(r.rows[0].date,'2026-11-12');assert.equal(r.rows[0].amount,-1234.56);assert.equal(r.rows[0].description,'Acquisto');assert.equal(r.rows[1].booked,false);assert.equal(r.rows[2].amount,1);
+assert.equal(parseDate('31.02.2026'),null);assert.equal(parseAmount('€ 1,00'),1);assert.equal(parseAmount('1.234,00'),1234);assert.equal(parseAmount('12,00-'),null);assert.equal(parseAmount('0,00'),null);
+assert(parsePages([[...header,...row('31.02.2026',730,'Test','Altro','1,00')]]).errors.length);assert(parsePages([[...header,...row('12.11.2026',730,'Test','Altro','senza importo')]]).errors.length);assert(parsePages([[cell('Nessun dato',20,20)]]).errors.length);
+console.log('Parser estratto conto: colonne, segni, pagine, righe incomplete e date non valide OK');

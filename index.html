@@ -200,6 +200,16 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 @media(max-width:700px){#editScreen .operation-inner{height:100%;display:flex;flex-direction:column}#editScreen .operation-footer{position:static;transform:none;width:100%;padding:16px 0 0;flex:none}#editScreen{padding-bottom:calc(8px + env(safe-area-inset-bottom))}#edit-fields{display:flex;flex-direction:column;flex:1;min-height:0;gap:4px}#edit-fields>.grid2,#edit-fields>.field:not(.hidden){flex:1;min-height:0}#edit-fields>.field:has(.toggle){flex:none}#edit-fields .field{margin-bottom:0}#edit-fields input,#edit-fields .select-wrapper{min-height:25px}#edit-fields .edit-title{font-size:16px}}
 @media(max-width:700px) and (max-height:500px){#editScreen{overflow-y:auto}#edit-fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));height:auto}#edit-fields>*{grid-column:span 2}#edit-fields .edit-title{grid-column:1/-1}#editScreen .operation-inner{height:auto}#editScreen .operation-footer{position:static} }
 @media(max-width:700px){.keyboard-open #editScreen{overflow-y:auto}}
+
+/* Importazione estratto conto */
+.dashboard-active #operationHeading:not(.hidden){flex-direction:column;flex-wrap:nowrap;gap:10px}
+.dashboard-active #operationHeading #btnAdd{height:auto;min-height:0;flex:1 1 0}
+.dashboard-active #btnBankImport{width:100%;min-height:48px;flex:0 0 auto;background:#fff;color:#462678;border-color:#462678}
+.bank-screen{position:fixed;inset:0;z-index:110;background:#462678;color:#fff;overflow-y:auto;overscroll-behavior:contain;padding:calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))}
+.bank-inner{max-width:760px;margin:auto}.bank-screen h2{margin:0 0 8px;font-size:21px}.bank-screen p{margin:8px 0;font-size:14px}.bank-screen label{color:#fff}.bank-screen select,.bank-screen input[type=file]{background:#fff;color:#181d27;color-scheme:light}.bank-screen .field{margin-bottom:14px}
+.bank-row{background:#fff;color:#181d27;border-radius:10px;padding:12px;margin:10px 0;overflow-wrap:anywhere;font-size:14px}.bank-row p{margin:4px 0}.bank-row .bank-description{width:100%;text-align:left;padding:8px;border:1px solid #d5d7da;border-radius:6px;background:#fff;color:#462678;font:600 14px/1.4 Roboto,Tahoma,Arial,sans-serif;overflow-wrap:anywhere}.bank-row .bank-warning{color:#a02622}.bank-row .bank-status{font-weight:700}.bank-row .bank-amount{font-weight:700}
+.bank-actions{display:flex;gap:8px;margin-top:16px}.bank-actions .btn{flex:1}.bank-screen #bankUpload{background:#fdc500;color:#462678}.bank-screen #bankReset{background:#fff;color:#462678}
+.bank-dialog{width:min(540px,calc(100% - 32px));max-height:85dvh;overflow:auto;border:0;border-radius:14px;padding:18px;background:var(--card);color:var(--txt)}.bank-dialog::backdrop{background:#0009}.bank-dialog h2{font-size:18px;margin:0 0 12px}.bank-dialog p{font-size:14px;overflow-wrap:anywhere}.bank-dialog label{color:var(--txt)}.bank-dialog textarea,.bank-dialog select{background:#fff;color:#181d27;color-scheme:light}.bank-dialog textarea{min-height:90px}.bank-dialog .row{justify-content:flex-end}.bank-dialog .btn{background:#fdc500;color:#462678}.bank-dialog .btn.ghost{background:#fff;color:#462678;border-color:#d5d7da}
 </style>
 </head>
 <body>
@@ -245,7 +255,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
     <div class="context-bottom"><div class="context-actions"><button class="btn ghost small" id="btnRefresh">Ricarica</button><button class="btn danger small" id="btnLogout">Esci</button></div><label class="theme-switch"><input id="darkToggle" type="checkbox" role="switch" aria-label="Attiva modalità scura"><span class="theme-track" aria-hidden="true"><svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg><svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></svg></span></label></div>
   </section>
 
-  <div id="operationHeading" class="section-heading hidden"><button class="btn add-btn" id="btnAdd" aria-expanded="false" aria-controls="appCard"><span>+</span> Aggiungi entrata/uscita</button></div>
+  <div id="operationHeading" class="section-heading hidden"><button class="btn add-btn" id="btnAdd" aria-expanded="false" aria-controls="appCard"><span>+</span> Aggiungi entrata/uscita</button><button class="btn" id="btnBankImport" type="button">Carica operazioni da estratto conto</button></div>
   <!-- APP -->
   <section class="card operation-screen hidden" id="appCard" role="dialog" aria-modal="true" aria-label="Operazione">
     <div class="operation-inner">
@@ -297,6 +307,24 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 
 </div>
 
+
+<section class="bank-screen hidden" id="bankScreen" role="dialog" aria-modal="true" aria-labelledby="bankTitle" tabindex="-1">
+ <div class="bank-inner"><h2 id="bankTitle">Carica operazioni da estratto conto</h2>
+ <p>Il PDF viene letto sul dispositivo. Controlla ogni movimento e assegna una tipologia prima del caricamento.</p>
+ <div class="field"><label for="bankFile">Estratto conto PDF</label><input id="bankFile" type="file" accept="application/pdf,.pdf"></div>
+ <div class="field"><label for="bankAccount">Conto di destinazione</label><select id="bankAccount"><option value="">— Seleziona conto —</option></select></div>
+ <p id="bankSummary" role="status"></p><div id="bankRows"></div>
+ <div class="bank-actions"><button type="button" id="bankReset" class="btn hidden">Nuovo estratto</button><button type="button" id="bankUpload" class="btn" disabled>Carica estratto conto</button></div>
+ <p>Per tornare alla dashboard usa il tasto o il gesto indietro.</p></div>
+</section>
+<dialog class="bank-dialog" id="bankEditDialog" aria-labelledby="bankEditTitle"><h2 id="bankEditTitle">Modifica operazione</h2>
+ <p><strong>Descrizione originale</strong></p><p id="bankOriginal"></p>
+ <div class="field"><label for="bankDescription">Nuova descrizione</label><textarea id="bankDescription" maxlength="150"></textarea></div>
+ <div class="field"><label for="bankType">Tipologia obbligatoria</label><select id="bankType"></select></div>
+ <p id="bankEditError" role="status"></p><div class="row"><button type="button" class="btn ghost" id="bankEditCancel">Annulla</button><button type="button" class="btn" id="bankEditSave">Conferma</button></div>
+</dialog>
+<dialog class="bank-dialog" id="bankConfirmDialog" aria-labelledby="bankConfirmTitle"><h2 id="bankConfirmTitle">Conferma caricamento</h2><p id="bankConfirmText"></p><div class="row"><button type="button" class="btn ghost" id="bankConfirmCancel">Annulla</button><button type="button" class="btn" id="bankConfirmAccept">Conferma caricamento</button></div></dialog>
+
 <dialog class="select-dialog" id="selectDialog" aria-labelledby="selectDialogTitle">
   <div class="select-panel">
     <header><h2 id="selectDialogTitle">Seleziona</h2><button type="button" class="select-close" id="selectDialogClose" aria-label="Chiudi">×</button></header>
@@ -304,6 +332,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
     <div class="select-list" id="selectList" role="listbox" aria-labelledby="selectDialogTitle"></div>
   </div>
 </dialog>
+<script src="bank-statement.js?v=1"></script>
 <script>
 "use strict";
 const API = "https://bilancio.agesci.it";
@@ -621,7 +650,7 @@ function updateConnUI(){
   $("loginCard").classList.toggle("hidden",!!state.user || onboarding);
   $("ctxCard").classList.toggle("hidden",!state.user);
   $("operationHeading").classList.toggle("hidden",!state.user);
-  if(!state.user){ invalidateNavigation(); cancelTemplateEdit(); $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open","keyboard-open"); }
+  if(!state.user){ window.bankSessionLost?.(); invalidateNavigation(); cancelTemplateEdit(); $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open","keyboard-open"); }
   else { const name=localStorage.getItem(LS.firstName) || (state.user?.userInfo?.codiceSocio ? "Socio "+state.user.userInfo.codiceSocio : "Utente"); $("helloName").textContent="Ciao, "+name; }
 }
 let initPromise = null;
@@ -688,7 +717,7 @@ function updateUnitaSelect(){
 }
 let yearsCheckVersion=0;
 function setOperationEnabled(enabled){
-  $("btnAdd").disabled=!enabled; $("btnSave").disabled=!enabled; $("btnSaveDup").disabled=!enabled;
+  $("btnAdd").disabled=!enabled; $("btnBankImport").disabled=!enabled; $("btnSave").disabled=!enabled; $("btnSaveDup").disabled=!enabled;
 }
 function readOnlyRole(){ return !!(state.incarico && ([11,12,13].includes(state.incarico.accessoTipo) || [4,5].includes(state.incarico.tipoIncarico))); }
 function editableResult(res){
@@ -1285,5 +1314,6 @@ window.addEventListener("storage", (e)=>{
   updateConnUI();
 })();
 </script>
+<script src="bank-import.js?v=1"></script>
 </body>
 </html>
