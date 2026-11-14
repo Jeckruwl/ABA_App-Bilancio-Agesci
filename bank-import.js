@@ -1,4 +1,4 @@
-/* Importazione estratto conto. I file e le righe rimangono solo in memoria. */
+/* Importazione estratto conto. Le bozze sono salvate localmente, senza il PDF. */
 (function(){
   'use strict';
   const $bank=id=>document.getElementById(id);
@@ -23,6 +23,36 @@
     }
   })();
   let rows=[], errors=[], processing=false, attempted=false, importing=false, marker=null, generation=0, pendingAction=null, hasResult=false, outcome='';
+  let draftKey=null, draftWarning='', draftNotice=null, draftRaw=null, draftConflict=false;
+  function contextKey(){
+    const user=state.user?.userInfo?.codiceSocio, year=state.year?.value, i=state.incarico, u=state.unita;
+    if(user==null || year==null)return null;
+    return 'ab_bank_draft_v1:'+JSON.stringify([user,year,i?.tipoIncarico??null,i?.accessoTipo??null,i?.dati?.creg??null,i?.dati?.czona??null,i?.dati?.ord??null,i?.codiceUnita??null,u?.cun??null,u?.prog??null]);
+  }
+  function persistDraft(){
+    if(!draftKey || processing || !hasResult || draftConflict)return false;
+    try{
+      if(localStorage.getItem(draftKey)!==draftRaw){draftConflict=true;draftWarning='La bozza è stata modificata in un’altra scheda. Riapri l’app prima di continuare.';return false;}
+      const clean=rows.map(r=>({date:r.date,description:r.description,amount:r.amount,booked:r.booked,category:r.category,type:r.type??null,transfer:!!r.transfer,otherAccount:r.otherAccount??null,status:r.status||''}));
+      const raw=JSON.stringify({version:1,account:account.value,rows:clean,errors,attempted,outcome});localStorage.setItem(draftKey,raw);draftRaw=raw;
+      draftWarning='';return true;
+    }catch(e){draftWarning='Impossibile salvare la bozza sul dispositivo. Non chiudere l’app: le modifiche potrebbero andare perse.';return false;}
+  }
+  function loadDraft(){
+    rows=[];errors=[];attempted=false;hasResult=false;outcome='';file.value='';account.value='';draftWarning='';draftRaw=null;draftConflict=false;
+    if(!draftKey){draftWarning='Salvataggio locale non disponibile per questo account o anno.';return;}
+    try{
+      const raw=localStorage.getItem(draftKey);draftRaw=raw;if(!raw)return;
+      const d=JSON.parse(raw);
+      if(d.version!==1 || !Array.isArray(d.rows) || !Array.isArray(d.errors) || d.rows.some(r=>typeof r.description!=='string'||typeof r.date!=='string'||!Number.isFinite(r.amount)))throw new Error('Bozza non valida');
+      rows=d.rows;errors=d.errors;attempted=!!d.attempted;hasResult=true;account.value=d.account||'';
+      outcome=attempted?'Bozza ripristinata dopo un caricamento già avviato. Verifica tutte le operazioni nel Tool Bilancio prima di iniziare un nuovo estratto, per evitare duplicati.': 'Bozza ripristinata dal dispositivo.';
+    }catch(e){draftWarning='Impossibile leggere la bozza salvata su questo dispositivo.';}
+  }
+  function showDraftNotice(){
+    if(!draftNotice){draftNotice=document.createElement('p');draftNotice.id='bankDraftNotice';draftNotice.setAttribute('aria-live','polite');summary.after(draftNotice);}
+    draftNotice.textContent=draftWarning || (hasResult?'Bozza salvata su questo dispositivo.':'');
+  }
   const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
   function categoryMatch(name){const matches=state.categorie.filter(c=>Number.isInteger(Number(c.value)) && Number(c.value)>0 && norm(c.label)===norm(name));return matches.length===1?matches[0]:null;}
   function chosenAccount(){return state.conti.find(c=>Number.isInteger(Number(c.value)) && Number(c.value)>0 && String(c.value)===account.value);}
@@ -105,6 +135,8 @@
     updateSummary();
   }
   function updateSummary(){
+    if(hasResult && !processing)persistDraft();
+    showDraftNotice();
     const acct=chosenAccount();
     rows.forEach(r=>{if(r.issuesNode)r.issuesNode.textContent=problems(r,acct).filter(x=>x!=='Tipologia da assegnare').join('. ');});
     const missing=rows.filter(r=>!ready(r,acct)).length;
@@ -121,11 +153,11 @@
     else if(processing) summary.textContent='Analisi del PDF sul dispositivo…';
     else summary.textContent=outcome;
     const invalid=!acct||!state.user||!state.year||$bank('btnBankImport').disabled||!rows.length||errors.length||rows.some(r=>problems(r,acct).length);
-    upload.disabled=!!(invalid||processing||importing||attempted);
-    file.disabled=processing||attempted||importing;account.disabled=attempted||importing;reset.classList.toggle('hidden',!attempted);reset.disabled=importing;
+    upload.disabled=!!(invalid||processing||importing||attempted||draftConflict);
+    file.disabled=processing||attempted||importing;account.disabled=attempted||importing;reset.classList.toggle('hidden',!hasResult);reset.disabled=importing;
   }
   async function readPdf(f){
-    if(!f || attempted||importing)return; const id=++generation;rows=[];errors=[];hasResult=false;outcome='';processing=true;summary.textContent='Analisi del PDF sul dispositivo…';render();
+    if(!f || attempted||importing)return; const id=++generation;processing=true;summary.textContent='Analisi del PDF sul dispositivo…';render();
     try{
       if(f.size>20*1024*1024)throw new Error('Il file supera 20 MB.');
       const pdfjs=await import('./vendor/pdfjs/pdf.min.mjs');pdfjs.GlobalWorkerOptions.workerSrc=new URL('./vendor/pdfjs/pdf.worker.min.mjs',document.baseURI).href;
@@ -134,9 +166,9 @@
       try{
         doc=await task.promise;if(doc.numPages>100)throw new Error('Il PDF supera 100 pagine.');
         const pages=[];for(let n=1;n<=doc.numPages;n++){const page=await doc.getPage(n);pages.push((await page.getTextContent()).items);page.cleanup();}
-        const result=BankStatement.parsePages(pages);if(id!==generation)return;rows=result.rows.map(r=>({...r,original:r.description,type:null,status:''}));errors=result.errors;hasResult=rows.length>0||!errors.length;
+        const result=BankStatement.parsePages(pages);if(id!==generation)return;if(result.errors.length && hasResult){outcome='Il nuovo PDF non è stato riconosciuto. La bozza precedente è stata mantenuta.';return;}outcome='';rows=result.rows.map(r=>({...r,original:r.description,type:null,status:''}));errors=result.errors;hasResult=rows.length>0||!errors.length;
       }finally{if(doc)await doc.destroy();else await task.destroy();}
-    }catch(err){if(id!==generation)return;errors=[err?.name==='PasswordException'?'PDF protetto da password: usa una copia senza password.':'PDF non leggibile o formato non supportato.'];}
+    }catch(err){if(id!==generation)return;const message=err?.name==='PasswordException'?'PDF protetto da password: usa una copia senza password.':'PDF non leggibile o formato non supportato.';if(hasResult)outcome=message+' La bozza precedente è stata mantenuta.';else errors=[message];}
     finally{if(id===generation){processing=false;render();}}
   }
   function confirmRemoval(r){
@@ -153,30 +185,38 @@
     confirmAction('Hai verificato tutte le '+rows.length+' operazioni, le date, i segni, le tipologie e i conti dei giroconti? '+(pending?pending+' operazioni risultano non contabilizzate dalla banca. ':'')+'Verifica anche che non siano già presenti: il caricamento può creare duplicati.','Sì, carica',send);
   };
   async function send(){
-    render();if(upload.disabled)return;const acct=chosenAccount();attempted=true;importing=true;outcome='Caricamento in corso…';render();
+    render();if(upload.disabled)return;const acct=chosenAccount();attempted=true;outcome='Caricamento in corso…';if(!persistDraft()){attempted=false;outcome='Caricamento bloccato: impossibile salvare lo stato di sicurezza sul dispositivo.';updateSummary();return;}importing=true;render();
     for(let i=0;i<rows.length;i++){
       const r=rows[i],typ=validTypes(r).find(t=>String(t.value)===String(r.type)),category=categoryMatch(r.category),inc=r.amount>0;
       if(!state.user||!acct||problems(r,acct).length){r.status='Interrotta: contesto non più disponibile.';break;}
       const unit=state.unita,voce=r.transfer?null:{idconto:Number(acct.value),data_operazione:r.date+'T00:00:00.000Z',descrizione:r.description,e_importo:inc?r.amount:null,u_importo:inc?null:Math.abs(r.amount),e_idtipo:inc?Number(typ.value):null,u_idtipo:inc?null:Number(typ.value),e_descrizionetipo:inc?typ.label:null,u_descrizionetipo:inc?null:typ.label,conto:acct.label,idcategoria:category?Number(category.value):null,note:'HelperBA',unita_codice:unit?unit.cun+unit.prog:null,unita_nome:unit?.nome||null};
-      r.status='Caricamento…';r.statusNode.textContent=r.status;
+      r.status='Caricamento…';r.statusNode.textContent=r.status;if(!persistDraft()){r.status='Interrotta: impossibile salvare lo stato sul dispositivo.';break;}
       try{
         const other=otherAccount(r,acct);
         const giroconto=r.transfer?{dataEffettuazione:r.date+'T00:00:00.000Z',fromContoId:Number(inc?other.value:acct.value),toContoId:Number(inc?acct.value:other.value),importo:Math.abs(r.amount),note:transferNote(r)}:null;
         const result=r.transfer ? await api('/api/conto/saveGiroconto',{body:{req:transferReq(),giroconto}}) : await api('/api/vocecassa/save',{body:{req:buildReq(voce.idconto),vocecassa:voce}});
         if(typeof result==='string'||result==null||result===false||result?.success===false||result?.ok===false){r.status='Risposta non confermata: verifica sul Tool Bilancio prima di riprovare.';break;}
-        r.status='Caricata';r.statusNode.textContent=r.status;
+        r.status='Caricata';r.statusNode.textContent=r.status;if(!persistDraft()){r.status='Caricata; salvataggio locale non riuscito.';break;}
       }catch(err){r.status='Esito non confermato: verifica sul Tool Bilancio prima di riprovare.';break;}
     }
     importing=false;render();
     const done=rows.filter(r=>r.status==='Caricata').length;
-    outcome=done+' di '+rows.length+' operazioni confermate. '+(done<rows.length?'Caricamento interrotto: verifica la riga non confermata e le operazioni rimanenti nel Tool Bilancio prima di ripetere.':'Caricamento completato.');summary.textContent=outcome;
+    outcome=done+' di '+rows.length+' operazioni confermate. '+(done<rows.length?'Caricamento interrotto: verifica la riga non confermata e le operazioni rimanenti nel Tool Bilancio prima di ripetere.':'Caricamento completato.');updateSummary();
   }
-  reset.onclick=()=>confirmAction('Aprire un nuovo estratto cancella l’elenco corrente dalla memoria. Se il caricamento era parziale, verifica prima le operazioni già presenti per evitare duplicati.','Nuovo estratto',()=>{++generation;rows=[];errors=[];attempted=false;hasResult=false;outcome='';file.value='';render();});
+  reset.onclick=()=>confirmAction('Eliminare la bozza salvata su questo dispositivo? Se il caricamento era iniziato, verifica prima le operazioni nel Tool Bilancio per evitare duplicati.','Elimina bozza',()=>{
+    try{if(draftKey){if(draftConflict || localStorage.getItem(draftKey)!==draftRaw){draftConflict=true;draftWarning='La bozza è stata modificata in un’altra scheda. Riapri l’app prima di continuare.';showDraftNotice();return;}localStorage.removeItem(draftKey);draftRaw=null;}}catch(e){draftWarning='Impossibile eliminare la bozza dal dispositivo.';showDraftNotice();return;}
+    ++generation;rows=[];errors=[];attempted=false;hasResult=false;outcome='';draftWarning='';file.value='';render();
+  });
   $bank('bankPending').addEventListener('click',()=>{const row=rowsEl.querySelector('.bank-unbooked');if(row){row.scrollIntoView({behavior:'smooth',block:'center'});row.focus({preventScroll:true});}});
-  file.addEventListener('change',()=>readPdf(file.files?.[0]));account.addEventListener('change',render);
+  file.addEventListener('change',()=>{
+    const f=file.files?.[0];if(!f)return;
+    if(hasResult){file.value='';confirmAction('Sostituire la bozza corrente con questo estratto? Le modifiche alla bozza andranno perse se il nuovo PDF viene letto correttamente.','Sostituisci bozza',()=>readPdf(f));}
+    else readPdf(f);
+  });account.addEventListener('change',render);
   $bank('btnBankImport').onclick=()=>{
     if(!state.user||$bank('btnBankImport').disabled)return;
     const old=account.value;fillSelect(account,state.conti,'— Seleziona conto —');if(old)account.value=old;
+    const key=contextKey();if(key!==draftKey || !hasResult){draftKey=key;loadDraft();}
     marker=Date.now().toString(36)+Math.random().toString(36).slice(2);history.pushState({...history.state,abaBank:marker},'');document.querySelector('.wrap').inert=true;screen.classList.remove('hidden');screen.focus({preventScroll:true});render();
   };
   window.addEventListener('popstate',()=>{
@@ -190,5 +230,5 @@
   screen.addEventListener('touchend',e=>{const p=screen._swipe;screen._swipe=null;if(!p||importing)return;const t=e.changedTouches[0],dx=t.clientX-p.x,dy=t.clientY-p.y;if(dx>70&&dx>Math.abs(dy)*1.5)history.back();},{passive:true});
   window.bankSessionLost=()=>{screen.classList.add('hidden');document.querySelector('.wrap').inert=false;if(confirmDialog.open)confirmDialog.close();};
   window.addEventListener('beforeunload',e=>{if(importing){e.preventDefault();e.returnValue='';}});
-  document.addEventListener('click',e=>{if(e.target?.id==='btnLogout'||e.target?.id==='btnForget'){++generation;rows=[];errors=[];attempted=false;processing=false;hasResult=false;outcome='';file.value='';screen.classList.add('hidden');document.querySelector('.wrap').inert=false;}});
+  document.addEventListener('click',e=>{if(e.target?.id==='btnLogout'||e.target?.id==='btnForget'){++generation;rows=[];errors=[];attempted=false;processing=false;hasResult=false;outcome='';draftKey=null;file.value='';screen.classList.add('hidden');document.querySelector('.wrap').inert=false;}});
 })();

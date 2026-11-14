@@ -323,7 +323,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
  </div>
  <div id="bankRows"></div>
  <aside id="bankReadyBox" class="bank-ready-box hidden" aria-live="polite"><span id="bankReady"></span></aside>
- <div class="bank-actions"><button type="button" id="bankReset" class="btn hidden">Nuovo estratto</button><button type="button" id="bankUpload" class="btn" disabled>Carica estratto conto</button></div>
+ <div class="bank-actions"><button type="button" id="bankReset" class="btn hidden">Elimina bozza</button><button type="button" id="bankUpload" class="btn" disabled>Carica estratto conto</button></div>
  <p>Per tornare alla dashboard usa il tasto o il gesto indietro.</p></div>
 </section>
 <dialog class="bank-dialog" id="bankConfirmDialog" aria-labelledby="bankConfirmTitle"><h2 id="bankConfirmTitle">Conferma caricamento</h2><p id="bankConfirmText"></p><div class="row"><button type="button" class="btn ghost" id="bankConfirmCancel">Annulla</button><button type="button" class="btn" id="bankConfirmAccept">Conferma caricamento</button></div></dialog>
@@ -1320,6 +1320,6 @@ window.addEventListener("storage", (e)=>{
   updateConnUI();
 })();
 </script>
-<script src="bank-import-v7.js"></script>
+<script src="bank-import-v8.js"></script>
 </body>
 </html>
