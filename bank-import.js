@@ -4,7 +4,7 @@
   const $bank=id=>document.getElementById(id);
   const screen=$bank('bankScreen'), file=$bank('bankFile'), account=$bank('bankAccount'), rowsEl=$bank('bankRows'), summary=$bank('bankSummary'), upload=$bank('bankUpload'), reset=$bank('bankReset');
   const confirmDialog=$bank('bankConfirmDialog');
-  let rows=[], errors=[], processing=false, attempted=false, importing=false, marker=null, generation=0, pendingAction=null;
+  let rows=[], errors=[], processing=false, attempted=false, importing=false, marker=null, generation=0, pendingAction=null, hasResult=false, outcome='';
   const norm=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
   function categoryMatch(name){const matches=state.categorie.filter(c=>Number.isInteger(Number(c.value)) && Number(c.value)>0 && norm(c.label)===norm(name));return matches.length===1?matches[0]:null;}
   function chosenAccount(){return state.conti.find(c=>Number.isInteger(Number(c.value)) && Number(c.value)>0 && String(c.value)===account.value);}
@@ -23,7 +23,7 @@
   function render(){
     rowsEl.replaceChildren();const acct=chosenAccount();
     rows.forEach((r,i)=>{
-      const row=document.createElement('article');row.className='bank-row'+(r.booked?'':' bank-unbooked');row.setAttribute('aria-label','Operazione '+(i+1));
+      const row=document.createElement('article');row.className='bank-row'+(r.booked?'':' bank-unbooked');row.tabIndex=-1;row.setAttribute('aria-label','Operazione '+(i+1));
       row.append(paragraph('Data contabile: '+r.date.split('-').reverse().join('/'),'bank-date'));
       row.append(paragraph('Operazione / descrizione:'));
       const button=document.createElement('button');button.type='button';button.className='bank-description';button.textContent=r.description;button.disabled=attempted||importing;button.setAttribute('aria-label','Modifica descrizione operazione '+(i+1));
@@ -68,15 +68,23 @@
     const acct=chosenAccount();
     const missing=rows.filter(r=>!r.type || !validTypes(r).some(t=>String(t.value)===String(r.type))).length;
     const pending=rows.filter(r=>!r.booked).length;
+    const showCounters=hasResult||rows.length>0;
+    $bank('bankStats').classList.toggle('hidden',!showCounters);
+    $bank('bankReadyBox').classList.toggle('hidden',!showCounters);
+    screen.classList.toggle('has-counters',showCounters);
+    $bank('bankDetected').textContent='Operazioni rilevate: '+rows.length;
+    $bank('bankPending').textContent='Operazioni non contabilizzate: '+pending;
+    $bank('bankPending').disabled=pending===0;
+    $bank('bankReady').textContent='Operazioni pronte: '+(rows.length-missing)+'/'+rows.length;
     if(errors.length) summary.textContent='Lettura non completata: '+errors.join(' ')+' Nessuna operazione può essere caricata.';
-    else if(rows.length)summary.textContent=rows.length+' operazioni rilevate. Tipologie da assegnare: '+missing+'. Non contabilizzate dalla banca: '+pending+'.';
-    else if(!processing)summary.textContent='';
+    else if(processing) summary.textContent='Analisi del PDF sul dispositivo…';
+    else summary.textContent=outcome;
     const invalid=!acct||!state.user||!state.year||$bank('btnBankImport').disabled||!rows.length||errors.length||rows.some(r=>problems(r,acct).length);
     upload.disabled=!!(invalid||processing||importing||attempted);
     file.disabled=processing||attempted||importing;account.disabled=attempted||importing;reset.classList.toggle('hidden',!attempted);reset.disabled=importing;
   }
   async function readPdf(f){
-    if(!f || attempted||importing)return; const id=++generation;rows=[];errors=[];processing=true;summary.textContent='Analisi del PDF sul dispositivo…';render();
+    if(!f || attempted||importing)return; const id=++generation;rows=[];errors=[];hasResult=false;outcome='';processing=true;summary.textContent='Analisi del PDF sul dispositivo…';render();
     try{
       if(f.size>20*1024*1024)throw new Error('Il file supera 20 MB.');
       const pdfjs=await import('./vendor/pdfjs/pdf.min.mjs');pdfjs.GlobalWorkerOptions.workerSrc=new URL('./vendor/pdfjs/pdf.worker.min.mjs',document.baseURI).href;
@@ -85,7 +93,7 @@
       try{
         doc=await task.promise;if(doc.numPages>100)throw new Error('Il PDF supera 100 pagine.');
         const pages=[];for(let n=1;n<=doc.numPages;n++){const page=await doc.getPage(n);pages.push((await page.getTextContent()).items);page.cleanup();}
-        const result=BankStatement.parsePages(pages);if(id!==generation)return;rows=result.rows.map(r=>({...r,original:r.description,type:null,status:''}));errors=result.errors;
+        const result=BankStatement.parsePages(pages);if(id!==generation)return;rows=result.rows.map(r=>({...r,original:r.description,type:null,status:''}));errors=result.errors;hasResult=rows.length>0||!errors.length;
       }finally{if(doc)await doc.destroy();else await task.destroy();}
     }catch(err){if(id!==generation)return;errors=[err?.name==='PasswordException'?'PDF protetto da password: usa una copia senza password.':'PDF non leggibile o formato non supportato.'];}
     finally{if(id===generation){processing=false;render();}}
@@ -104,7 +112,7 @@
     confirmAction('Hai verificato tutte le '+rows.length+' operazioni, le date, i segni e le tipologie? '+(pending?pending+' operazioni risultano non contabilizzate dalla banca. ':'')+'Verifica anche che non siano già presenti: il caricamento può creare duplicati.','Sì, carica',send);
   };
   async function send(){
-    render();if(upload.disabled)return;const acct=chosenAccount();attempted=true;importing=true;render();
+    render();if(upload.disabled)return;const acct=chosenAccount();attempted=true;importing=true;outcome='Caricamento in corso…';render();
     for(let i=0;i<rows.length;i++){
       const r=rows[i],typ=validTypes(r).find(t=>String(t.value)===String(r.type)),category=categoryMatch(r.category),inc=r.amount>0;
       if(!state.user||!typ||!acct){r.status='Interrotta: contesto non più disponibile.';break;}
@@ -118,9 +126,10 @@
     }
     importing=false;render();
     const done=rows.filter(r=>r.status==='Caricata').length;
-    summary.textContent=done+' di '+rows.length+' operazioni confermate. '+(done<rows.length?'Caricamento interrotto: verifica la riga non confermata e le operazioni rimanenti nel Tool Bilancio prima di ripetere.':'Caricamento completato.');
+    outcome=done+' di '+rows.length+' operazioni confermate. '+(done<rows.length?'Caricamento interrotto: verifica la riga non confermata e le operazioni rimanenti nel Tool Bilancio prima di ripetere.':'Caricamento completato.');summary.textContent=outcome;
   }
-  reset.onclick=()=>confirmAction('Aprire un nuovo estratto cancella l’elenco corrente dalla memoria. Se il caricamento era parziale, verifica prima le operazioni già presenti per evitare duplicati.','Nuovo estratto',()=>{++generation;rows=[];errors=[];attempted=false;file.value='';render();});
+  reset.onclick=()=>confirmAction('Aprire un nuovo estratto cancella l’elenco corrente dalla memoria. Se il caricamento era parziale, verifica prima le operazioni già presenti per evitare duplicati.','Nuovo estratto',()=>{++generation;rows=[];errors=[];attempted=false;hasResult=false;outcome='';file.value='';render();});
+  $bank('bankPending').addEventListener('click',()=>{const row=rowsEl.querySelector('.bank-unbooked');if(row){row.scrollIntoView({behavior:'smooth',block:'center'});row.focus({preventScroll:true});}});
   file.addEventListener('change',()=>readPdf(file.files?.[0]));account.addEventListener('change',render);
   $bank('btnBankImport').onclick=()=>{
     if(!state.user||$bank('btnBankImport').disabled)return;
@@ -138,5 +147,5 @@
   screen.addEventListener('touchend',e=>{const p=screen._swipe;screen._swipe=null;if(!p||importing)return;const t=e.changedTouches[0],dx=t.clientX-p.x,dy=t.clientY-p.y;if(dx>70&&dx>Math.abs(dy)*1.5)history.back();},{passive:true});
   window.bankSessionLost=()=>{screen.classList.add('hidden');document.querySelector('.wrap').inert=false;if(confirmDialog.open)confirmDialog.close();};
   window.addEventListener('beforeunload',e=>{if(importing){e.preventDefault();e.returnValue='';}});
-  document.addEventListener('click',e=>{if(e.target?.id==='btnLogout'||e.target?.id==='btnForget'){++generation;rows=[];errors=[];attempted=false;processing=false;file.value='';screen.classList.add('hidden');document.querySelector('.wrap').inert=false;}});
+  document.addEventListener('click',e=>{if(e.target?.id==='btnLogout'||e.target?.id==='btnForget'){++generation;rows=[];errors=[];attempted=false;processing=false;hasResult=false;outcome='';file.value='';screen.classList.add('hidden');document.querySelector('.wrap').inert=false;}});
 })();

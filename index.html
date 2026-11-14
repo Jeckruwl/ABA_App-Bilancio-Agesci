@@ -208,6 +208,9 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 .bank-screen{position:fixed;inset:0;z-index:110;background:#462678;color:#fff;overflow-y:auto;overscroll-behavior:contain;padding:calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))}
 .bank-inner{max-width:760px;margin:auto}.bank-screen h2{margin:0 0 8px;font-size:21px}.bank-screen p{margin:8px 0;font-size:14px}.bank-screen label{color:#fff}.bank-screen select,.bank-screen input[type=file]{background:#fff;color:#181d27;color-scheme:light}.bank-screen .field{margin-bottom:14px}
 .bank-row{background:#fff;color:#181d27;border-radius:10px;padding:12px;margin:10px 0;overflow-wrap:anywhere;font-size:14px}.bank-row.bank-unbooked{border:2px solid #e74030;touch-action:pan-y;-webkit-user-select:none;user-select:none}.bank-remove{background:#fff;color:#b42318;border:1px solid #e74030;border-radius:6px;padding:6px 10px;cursor:pointer;font:600 13px Roboto,Tahoma,Arial,sans-serif}.bank-row p{margin:4px 0}.bank-row .bank-description{width:100%;text-align:left;padding:8px;border:1px solid #d5d7da;border-radius:6px;background:#fff;color:#462678;font:600 14px/1.4 Roboto,Tahoma,Arial,sans-serif;overflow-wrap:anywhere}.bank-row .bank-warning{color:#a02622}.bank-row .bank-status{font-weight:700}.bank-row .bank-amount{font-weight:700}.bank-row .bank-income{color:#168054}.bank-row .bank-expense{color:#b42318}.bank-row .bank-date{font-weight:700}.bank-row label{color:#181d27}.bank-row textarea.bank-description{display:block;resize:vertical;min-height:0;line-height:1.4;overflow-wrap:anywhere;-webkit-user-select:text;user-select:text}
+.bank-stats p{margin:4px 0}.bank-pending-link{display:block;padding:0;border:0;background:transparent;color:#fff;text-decoration:underline;text-align:left;font:inherit;font-size:14px;cursor:pointer}.bank-pending-link:disabled{cursor:default;opacity:.75;text-decoration:none}
+.bank-screen.has-counters{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+.bank-ready-box{position:fixed;z-index:1;right:16px;bottom:calc(12px + env(safe-area-inset-bottom));max-width:calc(100% - 32px);padding:10px 14px;background:var(--card);color:var(--txt);border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 18px #0006;font-size:14px;font-weight:700}
 .bank-actions{display:flex;gap:8px;margin-top:16px}.bank-actions .btn{flex:1}.bank-screen #bankUpload{background:#fdc500;color:#462678}.bank-screen #bankReset{background:#fff;color:#462678}
 .bank-dialog{width:min(540px,calc(100% - 32px));max-height:85dvh;overflow:auto;border:0;border-radius:14px;padding:18px;background:var(--card);color:var(--txt)}.bank-dialog::backdrop{background:#0009}.bank-dialog h2{font-size:18px;margin:0 0 12px}.bank-dialog p{font-size:14px;overflow-wrap:anywhere}.bank-dialog label{color:var(--txt)}.bank-dialog textarea,.bank-dialog select{background:#fff;color:#181d27;color-scheme:light}.bank-dialog textarea{min-height:90px}.bank-dialog .row{justify-content:flex-end}.bank-dialog .btn{background:#fdc500;color:#462678}.bank-dialog .btn.ghost{background:#fff;color:#462678;border-color:#d5d7da}
 </style>
@@ -313,7 +316,13 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
  <p>Il PDF viene letto sul dispositivo. Controlla ogni movimento e assegna una tipologia prima del caricamento.</p>
  <div class="field"><label for="bankFile">Estratto conto PDF</label><input id="bankFile" type="file" accept="application/pdf,.pdf"></div>
  <div class="field"><label for="bankAccount">Conto di destinazione</label><select id="bankAccount"><option value="">— Seleziona conto —</option></select></div>
- <p id="bankSummary" role="status"></p><div id="bankRows"></div>
+ <p id="bankSummary" role="status"></p>
+ <div id="bankStats" class="bank-stats hidden" aria-label="Riepilogo operazioni">
+  <p id="bankDetected"></p>
+  <button type="button" id="bankPending" class="bank-pending-link"></button>
+ </div>
+ <div id="bankRows"></div>
+ <aside id="bankReadyBox" class="bank-ready-box hidden" aria-live="polite"><span id="bankReady"></span></aside>
  <div class="bank-actions"><button type="button" id="bankReset" class="btn hidden">Nuovo estratto</button><button type="button" id="bankUpload" class="btn" disabled>Carica estratto conto</button></div>
  <p>Per tornare alla dashboard usa il tasto o il gesto indietro.</p></div>
 </section>
@@ -1311,6 +1320,6 @@ window.addEventListener("storage", (e)=>{
   updateConnUI();
 })();
 </script>
-<script src="bank-import.js?v=4"></script>
+<script src="bank-import.js?v=5"></script>
 </body>
 </html>
