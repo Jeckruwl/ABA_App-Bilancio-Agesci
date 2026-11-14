@@ -207,7 +207,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 .dashboard-active #btnBankImport{width:100%;min-height:48px;flex:0 0 auto;background:#fff;color:#462678;border-color:#462678}
 .bank-screen{position:fixed;inset:0;z-index:110;background:#462678;color:#fff;overflow-y:auto;overscroll-behavior:contain;padding:calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))}
 .bank-inner{max-width:760px;margin:auto}.bank-screen h2{margin:0 0 8px;font-size:21px}.bank-screen p{margin:8px 0;font-size:14px}.bank-screen label{color:#fff}.bank-screen select,.bank-screen input[type=file]{background:#fff;color:#181d27;color-scheme:light}.bank-screen .field{margin-bottom:14px}
-.bank-row{background:#fff;color:#181d27;border-radius:10px;padding:12px;margin:10px 0;overflow-wrap:anywhere;font-size:14px}.bank-row p{margin:4px 0}.bank-row .bank-description{width:100%;text-align:left;padding:8px;border:1px solid #d5d7da;border-radius:6px;background:#fff;color:#462678;font:600 14px/1.4 Roboto,Tahoma,Arial,sans-serif;overflow-wrap:anywhere}.bank-row .bank-warning{color:#a02622}.bank-row .bank-status{font-weight:700}.bank-row .bank-amount{font-weight:700}
+.bank-row{background:#fff;color:#181d27;border-radius:10px;padding:12px;margin:10px 0;overflow-wrap:anywhere;font-size:14px}.bank-row.bank-unbooked{border:2px solid #e74030;touch-action:pan-y;-webkit-user-select:none;user-select:none}.bank-remove{background:#fff;color:#b42318;border:1px solid #e74030;border-radius:6px;padding:6px 10px;cursor:pointer;font:600 13px Roboto,Tahoma,Arial,sans-serif}.bank-row p{margin:4px 0}.bank-row .bank-description{width:100%;text-align:left;padding:8px;border:1px solid #d5d7da;border-radius:6px;background:#fff;color:#462678;font:600 14px/1.4 Roboto,Tahoma,Arial,sans-serif;overflow-wrap:anywhere}.bank-row .bank-warning{color:#a02622}.bank-row .bank-status{font-weight:700}.bank-row .bank-amount{font-weight:700}
 .bank-actions{display:flex;gap:8px;margin-top:16px}.bank-actions .btn{flex:1}.bank-screen #bankUpload{background:#fdc500;color:#462678}.bank-screen #bankReset{background:#fff;color:#462678}
 .bank-dialog{width:min(540px,calc(100% - 32px));max-height:85dvh;overflow:auto;border:0;border-radius:14px;padding:18px;background:var(--card);color:var(--txt)}.bank-dialog::backdrop{background:#0009}.bank-dialog h2{font-size:18px;margin:0 0 12px}.bank-dialog p{font-size:14px;overflow-wrap:anywhere}.bank-dialog label{color:var(--txt)}.bank-dialog textarea,.bank-dialog select{background:#fff;color:#181d27;color-scheme:light}.bank-dialog textarea{min-height:90px}.bank-dialog .row{justify-content:flex-end}.bank-dialog .btn{background:#fdc500;color:#462678}.bank-dialog .btn.ghost{background:#fff;color:#462678;border-color:#d5d7da}
 </style>
@@ -1314,6 +1314,6 @@ window.addEventListener("storage", (e)=>{
   updateConnUI();
 })();
 </script>
-<script src="bank-import.js?v=2"></script>
+<script src="bank-import.js?v=3"></script>
 </body>
 </html>

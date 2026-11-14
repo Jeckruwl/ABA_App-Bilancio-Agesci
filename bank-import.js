@@ -23,14 +23,30 @@
   function render(){
     rowsEl.replaceChildren();const acct=chosenAccount();
     rows.forEach((r,i)=>{
-      const row=document.createElement('article');row.className='bank-row';row.setAttribute('aria-label','Operazione '+(i+1));
+      const row=document.createElement('article');row.className='bank-row'+(r.booked?'':' bank-unbooked');row.setAttribute('aria-label','Operazione '+(i+1));
       row.append(paragraph('Data contabile: '+r.date.split('-').reverse().join('/')));
       row.append(paragraph('Operazione / descrizione:'));
       const button=document.createElement('button');button.type='button';button.className='bank-description';button.textContent=r.description;button.disabled=attempted||importing;button.setAttribute('aria-label','Modifica descrizione e tipologia operazione '+(i+1));button.onclick=()=>edit(i);row.append(button);
       const cat=categoryMatch(r.category);row.append(paragraph('Categoria estratto: '+r.category+(cat?' — associata nel bilancio':' — non associata nel bilancio'),cat?'':'bank-warning'));
       row.append(paragraph((r.amount>0?'Entrata: ':'Uscita: ')+fmtEUR(r.amount),'bank-amount'));
       const typ=validTypes(r).find(t=>String(t.value)===String(r.type));row.append(paragraph('Tipologia: '+(typ?.label||'da assegnare'),typ?'':'bank-warning'));
-      if(!r.booked)row.append(paragraph('Attenzione: operazione non contabilizzata dalla banca.','bank-warning'));
+      if(!r.booked){
+        row.append(paragraph('Operazione non contabilizzata: tieni premuto per rimuoverla dalla lista.','bank-warning'));
+        const remove=document.createElement('button');remove.type='button';remove.className='bank-remove';remove.textContent='Rimuovi dalla lista';remove.disabled=attempted||importing;
+        remove.setAttribute('aria-label','Rimuovi dalla lista operazione non contabilizzata '+(i+1));
+        remove.onclick=()=>confirmRemoval(r);row.append(remove);
+        let timer=null,start=null,suppressClickUntil=0;
+        const cancelPress=()=>{if(timer!==null)clearTimeout(timer);timer=null;start=null;};
+        row.addEventListener('pointerdown',e=>{
+          if(attempted||importing||!e.isPrimary||e.button!==0)return;
+          start={x:e.clientX,y:e.clientY,id:e.pointerId};
+          timer=setTimeout(()=>{timer=null;start=null;suppressClickUntil=Date.now()+1000;confirmRemoval(r);},650);
+        });
+        row.addEventListener('pointermove',e=>{if(start&&e.pointerId===start.id&&Math.hypot(e.clientX-start.x,e.clientY-start.y)>10)cancelPress();});
+        row.addEventListener('pointerup',cancelPress);row.addEventListener('pointercancel',cancelPress);row.addEventListener('pointerleave',cancelPress);
+        row.addEventListener('contextmenu',e=>{if(!attempted&&!importing)e.preventDefault();});
+        row.addEventListener('click',e=>{if(Date.now()<suppressClickUntil){e.preventDefault();e.stopImmediatePropagation();suppressClickUntil=0;}},true);
+      }
       const issues=problems(r,acct).filter(x=>x!=='Tipologia da assegnare');if(issues.length)row.append(paragraph(issues.join('. '),'bank-warning'));
       r.statusNode=paragraph(r.status||'', 'bank-status');row.append(r.statusNode);
       rowsEl.append(row);
@@ -70,6 +86,10 @@
     if(!desc||!validTypes(r).some(t=>String(t.value)===choice)){$bank('bankEditError').textContent='Inserisci descrizione e tipologia.';return;}
     r.description=desc;r.type=choice;editor.close();render();rowsEl.children[selected]?.querySelector('button')?.focus({preventScroll:true});
   };
+  function confirmRemoval(r){
+    if(attempted||importing||confirmDialog.open||!rows.includes(r))return;
+    confirmAction('Vuoi rimuovere questa operazione non contabilizzata dall’elenco da caricare? Non verrà eliminata dalla banca.','Rimuovi',()=>{const index=rows.indexOf(r);if(index>=0)rows.splice(index,1);render();});
+  }
   function confirmAction(text,label,fn){$bank('bankConfirmText').textContent=text;$bank('bankConfirmAccept').textContent=label;pendingAction=fn;confirmDialog.showModal();$bank('bankConfirmCancel').focus();}
   $bank('bankConfirmCancel').onclick=()=>{pendingAction=null;confirmDialog.close();};
   $bank('bankConfirmAccept').onclick=()=>{const fn=pendingAction;pendingAction=null;confirmDialog.close();if(fn)fn();};
