@@ -12,7 +12,7 @@ Per rinnovare automaticamente la sessione, il nome utente e la password vengono 
 
 ## Mappatura Tipologie
 
-Dalla dashboard apri **Mappatura Tipologie**. I pannelli ai lati del grafo contengono tipologie Scout e categorie. Tocca o trascina le voci nel grafo; trascina il punto di una scheda sul punto dell’altra per collegarle, oppure tocca i due punti in successione. Usa i pulsanti + e − o il gesto con due dita per ingrandire e ridurre il grafo. Ogni nodo può avere più collegamenti; puoi eliminare una relazione dall'elenco o rimuovere il nodo con tutti i suoi collegamenti. Trascina l'etichetta di un nodo per spostarlo. Sul telefono scorri il grafo orizzontalmente.
+Dalla dashboard apri **Mappatura Tipologie**. I pannelli ai lati del grafo contengono tipologie Scout e categorie. Tocca o trascina le voci nel grafo; trascina il punto di una scheda sul punto dell’altra per collegarle, oppure tocca i due punti in successione. Usa la rotellina del mouse, i pulsanti + e − o il gesto con due dita per ingrandire e ridurre il grafo. Trascina lo sfondo per spostarti liberamente, oppure usa **Centra** per ritrovare tutte le schede. Ogni nodo può avere più collegamenti; puoi eliminare una relazione dall'elenco o rimuovere il nodo con tutti i suoi collegamenti. Trascina l'etichetta di un nodo per spostarlo. Sul telefono scorri il grafo orizzontalmente.
 
 Il pulsante **Esporta** scarica un file JSON con nodi, collegamenti, nomi e identificativi, senza credenziali o dati dell’account. Il file è destinato alla revisione e a una futura integrazione nell’app: esportarlo non rende la mappatura automaticamente condivisa. Verifica le voci non più disponibili prima di usarlo.
 
