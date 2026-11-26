@@ -12,7 +12,7 @@ Per rinnovare automaticamente la sessione, il nome utente e la password vengono 
 
 ## Mappatura Tipologie
 
-Dalla dashboard apri **Mappatura Tipologie**. Tocca o trascina nel grafo le tipologie Scout di entrata o uscita e le categorie; trascina tra i pulsanti **Collega** oppure toccali in successione. Ogni nodo può avere più collegamenti; puoi eliminare una relazione dall'elenco o rimuovere il nodo con tutti i suoi collegamenti. Trascina l'etichetta di un nodo per spostarlo. Sul telefono scorri il grafo orizzontalmente.
+Dalla dashboard apri **Mappatura Tipologie**. I pannelli ai lati del grafo contengono tipologie Scout e categorie. Tocca o trascina le voci nel grafo; trascina il punto di una scheda sul punto dell’altra per collegarle, oppure tocca i due punti in successione. Usa i pulsanti + e − o il gesto con due dita per ingrandire e ridurre il grafo. Ogni nodo può avere più collegamenti; puoi eliminare una relazione dall'elenco o rimuovere il nodo con tutti i suoi collegamenti. Trascina l'etichetta di un nodo per spostarlo. Sul telefono scorri il grafo orizzontalmente.
 
 Le associazioni sono salvate solo sul dispositivo, separate per socio, anno e contesto (incarico e unità); non vengono condivise con il Tool o con altri dispositivi e si perdono cancellando i dati del browser. Le voci non più disponibili nel contesto non vengono applicate. La mappatura usa solo tipologie Scout e distingue entrate da uscite; le tipologie Ministero non sono incluse nel grafo.
 
