@@ -223,6 +223,8 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 
 /* Il piano usa coordinate libere; lo spostamento è gestito dalla telecamera, non da bordi di scorrimento. */
 .map-scroll{position:relative;overflow:clip;touch-action:none;background-color:#f8f6fb;background-image:radial-gradient(#d2c8de 1px,transparent 1px);background-size:20px 20px;cursor:grab}.map-scroll:active{cursor:grabbing}#mapExtent{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible}.map-board{position:absolute;left:0;top:0;width:1px;min-height:0;height:1px;background:none;overflow:visible;touch-action:none}.map-board svg{width:1px;height:1px;overflow:visible}.map-node{cursor:default}
+
+.map-palette-item{display:flex;align-items:center;gap:5px}.map-palette-label{flex:1;min-width:0;overflow-wrap:anywhere}.map-link-count{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:22px;height:22px;border-radius:999px;background:#462678;color:#fff;font-size:11px;font-weight:700;padding:0 4px}.map-add-category{width:100%;margin:0 0 5px;padding:6px 4px;border:0;border-radius:6px;background:#fdc500;color:#462678;font-weight:700;line-height:1.2}.map-category-dialog input{width:100%;background:#fff;color:#181d27}.map-category-dialog #mapCategoryStatus{color:var(--txt);overflow-wrap:anywhere}.map-category-dialog #mapCategoryStatus:empty{display:none}@media(max-width:700px){.map-add-category{font-size:10px;overflow-wrap:anywhere}.map-link-count{min-width:19px;height:19px;font-size:10px}}
 </style>
 </head>
 <body>
@@ -345,10 +347,18 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
  <div class="map-workspace">
   <section class="map-side"><h3>Tipologie Scout</h3><input id="mapSearchTypes" type="search" placeholder="Cerca" aria-label="Cerca tipologia Scout"><div id="mapTypes" class="map-palette"></div></section>
   <div class="map-scroll" id="mapViewport" tabindex="0" aria-label="Area del grafo: trascina lo sfondo o usa le frecce per spostarti"><div id="mapExtent"><div id="mapBoard" class="map-board"><svg id="mapLines" aria-hidden="true"></svg></div></div></div>
-  <section class="map-side"><h3>Categorie</h3><input id="mapSearchCategories" type="search" placeholder="Cerca" aria-label="Cerca categoria"><div id="mapCategories" class="map-palette"></div></section>
+  <section class="map-side"><h3>Categorie</h3><button type="button" id="mapAddCategory" class="map-add-category">Aggiungi categoria</button><input id="mapSearchCategories" type="search" placeholder="Cerca" aria-label="Cerca categoria"><div id="mapCategories" class="map-palette"></div></section>
  </div>
  <details class="map-links-panel"><summary>Collegamenti</summary><div id="mapConnections"></div></details>
 </section>
+<dialog class="bank-dialog map-category-dialog" id="mapCategoryDialog" aria-labelledby="mapCategoryTitle">
+ <form id="mapCategoryForm"><h2 id="mapCategoryTitle">Aggiungi categoria</h2>
+ <p>La categoria verrà creata nel Tool Bilancio per il contesto selezionato.</p>
+ <label for="mapCategoryName">Nome categoria *</label><input id="mapCategoryName" autocomplete="off" required>
+ <p id="mapCategoryStatus" role="status" aria-live="polite"></p>
+ <div class="row"><button type="button" class="btn ghost" id="mapCategoryCancel">Annulla</button><button type="submit" class="btn" id="mapCategorySave">Aggiungi</button></div>
+ </form>
+</dialog>
 <dialog class="bank-dialog" id="bankConfirmDialog" aria-labelledby="bankConfirmTitle"><h2 id="bankConfirmTitle">Conferma caricamento</h2><p id="bankConfirmText"></p><div class="row"><button type="button" class="btn ghost" id="bankConfirmCancel">Annulla</button><button type="button" class="btn" id="bankConfirmAccept">Conferma caricamento</button></div></dialog>
 
 <dialog class="select-dialog" id="selectDialog" aria-labelledby="selectDialogTitle">
@@ -1350,7 +1360,7 @@ window.addEventListener("storage", (e)=>{
   updateConnUI();
 })();
 </script>
-<script src="mapping-v4.js"></script>
+<script src="mapping-v5.js"></script>
 <script src="bank-import-v9.js"></script>
 </body>
 </html>
