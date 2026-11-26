@@ -219,6 +219,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 
 .mapping-screen:not(.hidden){display:flex;flex-direction:column;gap:7px;overflow:hidden}.mapping-screen .map-header{flex:none}.mapping-screen .map-help,.mapping-screen .map-local-note{margin:0;font-size:12px;line-height:1.3}.map-toolbar{display:flex;align-items:center;gap:5px;flex:none}.map-toolbar button{background:#fff;color:#462678;border:0;border-radius:6px;min-width:38px;height:34px;font-weight:700}.map-toolbar span{font-size:12px}.map-workspace{display:grid;grid-template-columns:minmax(125px,18%) minmax(0,1fr) minmax(125px,18%);gap:8px;flex:1;min-height:220px;overflow:hidden}.map-side{min-width:0;display:flex;flex-direction:column;overflow:hidden}.map-side h3{margin:2px 0 6px;font-size:14px;overflow-wrap:anywhere}.map-side input{width:100%;min-width:0;height:34px;padding:4px 7px;background:#fff;color:#181d27;border:1px solid #ddd;border-radius:6px;margin-bottom:5px}.map-side .map-palette{height:auto;min-height:0;flex:1}.map-scroll{min-width:0;min-height:0;overflow:auto;overscroll-behavior:contain;touch-action:pan-x pan-y}#mapExtent{position:relative}.map-board{transform-origin:0 0;touch-action:pan-x pan-y}.map-node .map-port{position:absolute;top:24px;width:24px;height:24px;padding:0;margin:0;border:3px solid #fff;border-radius:50%;background:#6b478d;box-shadow:0 0 0 2px #462678;touch-action:none;z-index:2}.map-node-type .map-port{right:-13px}.map-node-category .map-port{left:-13px;background:#c59400}.map-node .map-port[aria-pressed="true"]{background:#21a067;box-shadow:0 0 0 3px #21a067}.map-node .map-port:focus-visible{outline:3px solid #fdc500;outline-offset:3px}.map-link-preview{stroke-dasharray:6 5}.map-links-panel{flex:none;max-height:20%;overflow:auto}.map-links-panel summary{cursor:pointer;font-weight:700}.map-connection button{touch-action:manipulation}
 @media(max-width:700px){.mapping-screen{padding:calc(8px + env(safe-area-inset-top)) 8px calc(8px + env(safe-area-inset-bottom))}.map-header h2{font-size:18px}.mapping-screen .map-help{font-size:11px}.mapping-screen .map-local-note{font-size:11px}.map-toolbar span{font-size:10px}.map-workspace{grid-template-columns:minmax(76px,23%) minmax(0,1fr) minmax(76px,23%);gap:5px}.map-side h3{font-size:12px}.map-side input{font-size:11px;padding:3px}.map-palette{padding:3px}.map-palette-item{font-size:11px;padding:6px 3px;overflow-wrap:anywhere}.map-links-panel{max-height:18%}}
+.map-header-actions{display:flex;gap:6px;flex:none}.map-header-actions button{white-space:nowrap}@media(max-width:360px){.map-header h2{font-size:15px}.map-header-actions button{padding:8px}}
 </style>
 </head>
 <body>
@@ -334,7 +335,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
  <p>Per tornare alla dashboard usa il tasto o il gesto indietro.</p></div>
 </section>
 <section id="mappingScreen" class="mapping-screen hidden" role="dialog" aria-modal="true" aria-labelledby="mappingTitle" tabindex="-1">
- <header class="map-header"><h2 id="mappingTitle">Mappatura Tipologie</h2><button type="button" id="mapClose">Chiudi</button></header>
+ <header class="map-header"><h2 id="mappingTitle">Mappatura Tipologie</h2><div class="map-header-actions"><button type="button" id="mapExport">Esporta</button><button type="button" id="mapClose">Chiudi</button></div></header>
  <p class="map-help">Trascina le voci nel grafo o toccale per aggiungerle. Collega i punti delle schede trascinandoli; puoi anche toccarli in successione.</p>
  <p class="map-local-note">Mappatura salvata solo su questo dispositivo.</p><p id="mapMessage" role="status" aria-live="polite"></p>
  <div class="map-toolbar" aria-label="Zoom grafo"><button type="button" id="mapZoomOut" aria-label="Riduci zoom">−</button><button type="button" id="mapZoomReset" aria-label="Ripristina zoom">100%</button><button type="button" id="mapZoomIn" aria-label="Aumenta zoom">+</button><span>Usa anche due dita per lo zoom</span></div>
@@ -1346,7 +1347,7 @@ window.addEventListener("storage", (e)=>{
   updateConnUI();
 })();
 </script>
-<script src="mapping-v2.js"></script>
+<script src="mapping-v3.js"></script>
 <script src="bank-import-v9.js"></script>
 </body>
 </html>
