@@ -33,7 +33,7 @@
     if(!draftKey || processing || !hasResult || draftConflict)return false;
     try{
       if(localStorage.getItem(draftKey)!==draftRaw){draftConflict=true;draftWarning='La bozza è stata modificata in un’altra scheda. Riapri l’app prima di continuare.';return false;}
-      const clean=rows.map(r=>({date:r.date,description:r.description,amount:r.amount,booked:r.booked,category:r.category,type:r.type??null,transfer:!!r.transfer,otherAccount:r.otherAccount??null,status:r.status||''}));
+      const clean=rows.map(r=>({date:r.date,description:r.description,amount:r.amount,booked:r.booked,category:r.category,categoryId:r.categoryId??null,mapSource:r.mapSource??null,type:r.type??null,transfer:!!r.transfer,otherAccount:r.otherAccount??null,status:r.status||''}));
       const raw=JSON.stringify({version:1,account:account.value,rows:clean,errors,attempted,outcome});localStorage.setItem(draftKey,raw);draftRaw=raw;
       draftWarning='';return true;
     }catch(e){draftWarning='Impossibile salvare la bozza sul dispositivo. Non chiudere l’app: le modifiche potrebbero andare perse.';return false;}
@@ -72,6 +72,8 @@
   function problems(r,acct){
     const issues=[];
     if(!r.description.trim())issues.push('Descrizione mancante');
+    if(!r.transfer && r.categoryId && !state.categorie.some(c=>String(c.value)===String(r.categoryId)))issues.push('Categoria non più disponibile');
+    if(!r.transfer && window.TypeMapping && !window.TypeMapping.compatible(r.amount>0?'i':'o',r.type,r.categoryId,r.mapSource))issues.push('Tipologia e categoria non sono collegate: correggi la selezione');
     if(r.transfer){
       const other=otherAccount(r,acct);
       if(!other)issues.push('Seleziona un altro conto abilitato');
@@ -90,6 +92,7 @@
   function render(){
     rowsEl.replaceChildren();const acct=chosenAccount();
     rows.forEach((r,i)=>{
+      if(r.categoryId===undefined){r.categoryId=categoryMatch(r.category)?.value||null;if(r.categoryId && window.TypeMapping){const initial=window.TypeMapping.apply(r.amount>0?'i':'o','category',r.type,r.categoryId,validTypes(r),state.categorie);r.type=initial.type||null;r.mapSource='category';}}
       const row=document.createElement('article');row.className='bank-row'+(r.booked?'':' bank-unbooked');row.tabIndex=-1;row.setAttribute('aria-label','Operazione '+(i+1));
       row.append(paragraph('Data contabile: '+r.date.split('-').reverse().join('/'),'bank-date'));
       row.append(paragraph('Operazione / descrizione:'));
@@ -108,8 +111,19 @@
       const label=document.createElement('label');label.htmlFor=(r.transfer?'bankRowAccount-':'bankRowType-')+i;label.textContent=r.transfer?(r.amount>0?'Dal conto *':'Verso il conto *'):'Tipologia *';row.append(label);
       const dropdown=document.createElement('select');dropdown.id=label.htmlFor;dropdown.disabled=attempted||importing;
       const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent=r.transfer?'— Seleziona conto —':'— Seleziona tipologia —';dropdown.append(placeholder);
-      (r.transfer?transferAccounts().filter(c=>String(c.value)!==String(acct?.value)):validTypes(r)).forEach(t=>{const option=document.createElement('option');option.value=t.value;option.textContent=t.label;dropdown.append(option);});
-      dropdown.value=(r.transfer?r.otherAccount:r.type)||'';dropdown.addEventListener('change',()=>{if(r.transfer){r.otherAccount=dropdown.value||null;render();}else{r.type=dropdown.value||null;updateSummary();}});row.append(dropdown);
+      const dir=r.amount>0?'i':'o',mapped=window.TypeMapping?.apply(dir,r.mapSource,r.type,r.categoryId,validTypes(r),state.categorie);
+      const visibleTypes=(!r.transfer&&r.mapSource==='category'&&mapped?.allowed)?validTypes(r).filter(t=>mapped.allowed.includes(String(t.value))):validTypes(r);
+      (r.transfer?transferAccounts().filter(c=>String(c.value)!==String(acct?.value)):visibleTypes).forEach(t=>{const option=document.createElement('option');option.value=t.value;option.textContent=t.label;dropdown.append(option);});
+      dropdown.value=(r.transfer?r.otherAccount:r.type)||'';dropdown.addEventListener('change',()=>{if(r.transfer){r.otherAccount=dropdown.value||null;render();}else{r.type=dropdown.value||null;r.mapSource='type';const m=window.TypeMapping?.apply(dir,'type',r.type,r.categoryId,validTypes(r),state.categorie);if(m)r.categoryId=m.category||null;render();}});row.append(dropdown);
+      let catSelect=null;
+      if(!r.transfer){
+        const cl=document.createElement('label');cl.htmlFor='bankRowCategory-'+i;cl.textContent='Categoria (facoltativa)';row.append(cl);
+        catSelect=document.createElement('select');catSelect.id=cl.htmlFor;catSelect.disabled=attempted||importing;
+        const empty=document.createElement('option');empty.value='';empty.textContent='— Nessuna —';catSelect.append(empty);
+        const cats=(r.mapSource==='type'&&mapped?.allowed)?state.categorie.filter(c=>mapped.allowed.includes(String(c.value))):state.categorie;
+        cats.forEach(c=>{const option=document.createElement('option');option.value=c.value;option.textContent=c.label;catSelect.append(option);});
+        catSelect.value=r.categoryId||'';catSelect.addEventListener('change',()=>{r.categoryId=catSelect.value||null;r.mapSource='category';const m=window.TypeMapping?.apply(dir,'category',r.type,r.categoryId,validTypes(r),state.categorie);if(m)r.type=m.type||null;render();});row.append(catSelect);
+      }
       if(!r.booked){
         row.append(paragraph('Operazione non contabilizzata: tieni premuto per rimuoverla dalla lista.','bank-warning'));
         const remove=document.createElement('button');remove.type='button';remove.className='bank-remove';remove.textContent='Rimuovi dalla lista';remove.disabled=attempted||importing;
@@ -130,7 +144,7 @@
       r.issuesNode=paragraph('', 'bank-warning');row.append(r.issuesNode);
       r.statusNode=paragraph(r.status||'', 'bank-status');row.append(r.statusNode);
       rowsEl.append(row);
-      window.registerSelectMenu?.(dropdown);
+      window.registerSelectMenu?.(dropdown);if(catSelect)window.registerSelectMenu?.(catSelect);
     });
     updateSummary();
   }
@@ -187,7 +201,7 @@
   async function send(){
     render();if(upload.disabled)return;const acct=chosenAccount();attempted=true;outcome='Caricamento in corso…';if(!persistDraft()){attempted=false;outcome='Caricamento bloccato: impossibile salvare lo stato di sicurezza sul dispositivo.';updateSummary();return;}importing=true;render();
     for(let i=0;i<rows.length;i++){
-      const r=rows[i],typ=validTypes(r).find(t=>String(t.value)===String(r.type)),category=categoryMatch(r.category),inc=r.amount>0;
+      const r=rows[i],typ=validTypes(r).find(t=>String(t.value)===String(r.type)),category=state.categorie.find(c=>String(c.value)===String(r.categoryId)),inc=r.amount>0;
       if(!state.user||!acct||problems(r,acct).length){r.status='Interrotta: contesto non più disponibile.';break;}
       const unit=state.unita,voce=r.transfer?null:{idconto:Number(acct.value),data_operazione:r.date+'T00:00:00.000Z',descrizione:r.description,e_importo:inc?r.amount:null,u_importo:inc?null:Math.abs(r.amount),e_idtipo:inc?Number(typ.value):null,u_idtipo:inc?null:Number(typ.value),e_descrizionetipo:inc?typ.label:null,u_descrizionetipo:inc?null:typ.label,conto:acct.label,idcategoria:category?Number(category.value):null,note:'HelperBA',unita_codice:unit?unit.cun+unit.prog:null,unita_nome:unit?.nome||null};
       r.status='Caricamento…';r.statusNode.textContent=r.status;if(!persistDraft()){r.status='Interrotta: impossibile salvare lo stato sul dispositivo.';break;}

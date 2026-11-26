@@ -213,6 +213,9 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 .bank-ready-box{position:fixed;z-index:1;right:16px;bottom:calc(12px + env(safe-area-inset-bottom));max-width:calc(100% - 32px);padding:10px 14px;background:var(--card);color:var(--txt);border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 18px #0006;font-size:14px;font-weight:700}
 .bank-actions{display:flex;gap:8px;margin-top:16px}.bank-actions .btn{flex:1}.bank-screen #bankUpload{background:#fdc500;color:#462678}.bank-screen #bankReset{background:#fff;color:#462678}
 .bank-dialog{width:min(540px,calc(100% - 32px));max-height:85dvh;overflow:auto;border:0;border-radius:14px;padding:18px;background:var(--card);color:var(--txt)}.bank-dialog::backdrop{background:#0009}.bank-dialog h2{font-size:18px;margin:0 0 12px}.bank-dialog p{font-size:14px;overflow-wrap:anywhere}.bank-dialog label{color:var(--txt)}.bank-dialog textarea,.bank-dialog select{background:#fff;color:#181d27;color-scheme:light}.bank-dialog textarea{min-height:90px}.bank-dialog .row{justify-content:flex-end}.bank-dialog .btn{background:#fdc500;color:#462678}.bank-dialog .btn.ghost{background:#fff;color:#462678;border-color:#d5d7da}
+
+.map-open{margin-top:8px;width:100%;background:#fff;color:#462678;border-color:#fff;min-height:38px}
+.mapping-screen{position:fixed;inset:0;z-index:115;background:#462678;color:#fff;overflow:auto;padding:calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom))}.mapping-screen p{font-size:14px}.map-header{display:flex;justify-content:space-between;align-items:center;gap:10px}.map-header h2{margin:0}.map-header button,.mapping-screen button{cursor:pointer}.map-header button{background:#fdc500;color:#462678;border:0;border-radius:8px;padding:10px}.map-palettes{display:grid;grid-template-columns:1fr 1fr;gap:10px}.map-palettes h3,.mapping-screen h3{font-size:15px}.map-palette{height:160px;overflow:auto;background:#fff;border-radius:8px;padding:6px}.map-palette-item{display:block;width:100%;text-align:left;background:#f5f1fa;color:#211638;border:1px solid #ded4e8;border-radius:6px;padding:8px;margin:3px 0;touch-action:pan-y;font-size:12px}.map-scroll{max-width:100%;overflow:auto;border-radius:10px;border:1px solid #b6a2ce;background:#f8f6fb}.map-board{position:relative;width:640px;min-height:400px;background-image:radial-gradient(#d2c8de 1px,transparent 1px);background-size:20px 20px}.map-board svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.map-link{fill:none;stroke:#6b478d;stroke-width:3}.map-node{position:absolute;width:190px;min-height:65px;box-sizing:border-box;border:2px solid #6b478d;border-radius:8px;background:#fff;color:#211638;padding:7px;box-shadow:0 2px 8px #0002}.map-node-category{border-color:#b58500}.map-node-label{font-size:12px;font-weight:700;min-height:30px;overflow-wrap:anywhere;touch-action:none;cursor:move}.map-node button,.map-connection button{border:0;border-radius:5px;padding:5px;margin:3px 4px 0 0;background:#462678;color:white;font-size:11px;touch-action:none}.map-node .map-node-remove,.map-connection button{background:#fff;color:#a02622;border:1px solid #e74030}.map-connection{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px;background:#fff;color:#211638;border-radius:6px;margin:5px 0;font-size:13px}.map-connection span{overflow-wrap:anywhere}#mapMessage:empty{display:none}
 </style>
 </head>
 <body>
@@ -256,6 +259,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
     <div class="msg" id="ctxMsg"></div>
     <p class="muted" id="editableInfo" role="status"></p>
     <div class="context-bottom"><div class="context-actions"><button class="btn ghost small" id="btnRefresh">Ricarica</button><button class="btn danger small" id="btnLogout">Esci</button></div><label class="theme-switch"><input id="darkToggle" type="checkbox" role="switch" aria-label="Attiva modalità scura"><span class="theme-track" aria-hidden="true"><svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg><svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></svg></span></label></div>
+    <button type="button" id="btnMapping" class="btn map-open" disabled>Mappatura Tipologie</button>
   </section>
 
   <div id="operationHeading" class="section-heading hidden"><button class="btn add-btn" id="btnAdd" aria-expanded="false" aria-controls="appCard"><span>+</span> Aggiungi entrata/uscita</button><button class="btn" id="btnBankImport" type="button">Carica operazioni da estratto conto</button></div>
@@ -325,6 +329,15 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
  <aside id="bankReadyBox" class="bank-ready-box hidden" aria-live="polite"><span id="bankReady"></span></aside>
  <div class="bank-actions"><button type="button" id="bankReset" class="btn hidden">Elimina bozza</button><button type="button" id="bankUpload" class="btn" disabled>Carica estratto conto</button></div>
  <p>Per tornare alla dashboard usa il tasto o il gesto indietro.</p></div>
+</section>
+<section id="mappingScreen" class="mapping-screen hidden" role="dialog" aria-modal="true" aria-labelledby="mappingTitle" tabindex="-1">
+ <header class="map-header"><h2 id="mappingTitle">Mappatura Tipologie</h2><button type="button" id="mapClose">Chiudi</button></header>
+ <p>Trascina o tocca una voce per aggiungerla al grafo. Trascina tra i pulsanti Collega oppure toccali uno dopo l’altro. Rimuovi un nodo o un collegamento per modificarlo.</p>
+ <p>Le associazioni sono salvate solo su questo dispositivo, per l’account, l’anno e il contesto selezionati.</p>
+ <p id="mapMessage" role="status" aria-live="polite"></p>
+ <div class="map-palettes"><section><h3>Tipologie Scout</h3><div id="mapTypes" class="map-palette"></div></section><section><h3>Categorie</h3><div id="mapCategories" class="map-palette"></div></section></div>
+ <h3>Grafo</h3><p>Scorri il grafo in orizzontale per vedere tutti i nodi.</p><div class="map-scroll"><div id="mapBoard" class="map-board"><svg id="mapLines" aria-hidden="true"></svg></div></div>
+ <h3>Collegamenti</h3><div id="mapConnections"></div>
 </section>
 <dialog class="bank-dialog" id="bankConfirmDialog" aria-labelledby="bankConfirmTitle"><h2 id="bankConfirmTitle">Conferma caricamento</h2><p id="bankConfirmText"></p><div class="row"><button type="button" class="btn ghost" id="bankConfirmCancel">Annulla</button><button type="button" class="btn" id="bankConfirmAccept">Conferma caricamento</button></div></dialog>
 
@@ -730,6 +743,7 @@ function editableResult(res){
 }
 async function filterEditableYears(){
   const version=++yearsCheckVersion;
+  state.mappingReady=false; $("btnMapping").disabled=true;
   const previous=state.year || JSON.parse(localStorage.getItem(LS.year)||"null");
   const req=buildReq(0);
   const sel=$("selYear");
@@ -759,8 +773,10 @@ async function checkEditable(){
   }catch(e){ setOperationEnabled(false); showMsg("editableInfo","Impossibile verificare l'anno. Ricarica per riprovare.","warn"); }
 }
 async function loadContextData(){
+  $("btnMapping").disabled=true; state.mappingReady=false;
   if(!state.year || !state.user) return;
   hideMsg("ctxMsg");
+  const contextSnapshot=[state.user?.userInfo?.codiceSocio,state.year,state.incarico,state.unita];
   const req=buildReq(0);
   const contoReq=Object.assign({}, req, {loadAllByZona:false});
   // NOTA: il sito ufficiale invia all=false / all=true (booleani), NON all=0 / all=1.
@@ -771,6 +787,7 @@ async function loadContextData(){
     api("/api/vocecassa/tipi_uscita?all=false&rendicontoId="+state.year.value,{method:"GET"}),
     postReq("/api/vocecassa/categorie", req)
   ]);
+  if(!state.user || state.user.userInfo?.codiceSocio!==contextSnapshot[0] || state.year!==contextSnapshot[1] || state.incarico!==contextSnapshot[2] || state.unita!==contextSnapshot[3])return;
   const errs=[];
   if(rConti.status==="fulfilled"){
     state.conti=(Array.isArray(rConti.value)?rConti.value:[]).filter(c=>c.isdummy!==true && c.isdummy!==1);
@@ -785,6 +802,8 @@ async function loadContextData(){
     state.categorie=Array.isArray(rCats.value)?rCats.value:[];
     fillSelect($("fCat"), state.categorie, "— Nessuna —");
   } else { errs.push("categorie: "+rCats.reason.message); }
+  state.mappingReady=rTipiE.status==="fulfilled" && rTipiU.status==="fulfilled" && rCats.status==="fulfilled";
+  $("btnMapping").disabled=!state.mappingReady;
   refreshTipiSelect();
   // unità nel form (per tesoriere di gruppo)
   const unitaList = state.incarico?.dati?.unita||[];
@@ -803,7 +822,7 @@ function fillSelect(sel, arr, placeholder){
   arr.forEach(x=>{ const o=document.createElement("option"); o.value=x.value; o.textContent=x.label; sel.appendChild(o); });
 }
 function isScout(x){ return x.voceMinisteroId != null || !!x.gruppoZona; }
-function setVoceMode(mode){ state.voceMode=mode; document.querySelectorAll("#voceToggle button").forEach(b=>b.classList.toggle("on",b.dataset.mode===mode)); refreshTipiSelect(); }
+function setVoceMode(mode){ state.voceMode=mode; document.querySelectorAll("#voceToggle button").forEach(b=>b.classList.toggle("on",b.dataset.mode===mode)); refreshTipiSelect(); window.resetManualMapping?.(); }
 function refreshTipiSelect(){
   const arr=(state.tipo==="i"?state.tipiE:state.tipiU).filter(x=>x.selezionabile!==false);
   let choices=arr.filter(x=>state.voceMode==="scout"?isScout(x):!isScout(x));
@@ -983,6 +1002,7 @@ function setTipo(t){
   state.tipo=t;
   document.querySelectorAll("#tipoToggle button").forEach(b=>b.classList.toggle("on", b.dataset.t===t));
   refreshTipiSelect();
+  window.resetManualMapping?.();
   updatePayloadPreview();
 }
 
@@ -1320,6 +1340,7 @@ window.addEventListener("storage", (e)=>{
   updateConnUI();
 })();
 </script>
-<script src="bank-import-v8.js"></script>
+<script src="mapping.js?v=1"></script>
+<script src="bank-import-v9.js"></script>
 </body>
 </html>
