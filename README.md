@@ -33,3 +33,5 @@ Il lettore PDF usa PDF.js 4.10.38 (licenza Apache 2.0, `vendor/pdfjs/LICENSE`).
 ## Sicurezza
 
 L'app non è sviluppata da AGESCI e usa API che possono cambiare. Non condividere le credenziali o il token; verifica le operazioni sul sito ufficiale prima della chiusura dell'anno sociale.
+
+Nel grafo, **Allinea alla griglia** allinea una volta le card del verso visualizzato. La casella accanto attiva l’allineamento automatico: allinea subito il grafo corrente e aggancia alla griglia le card aggiunte o spostate, anche in selezione multipla. La preferenza resta salvata sul dispositivo; l’altro grafo non viene modificato finché non lo si allinea o si spostano le sue card.
