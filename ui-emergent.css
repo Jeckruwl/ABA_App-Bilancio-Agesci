@@ -103,3 +103,12 @@ body{background-image:url('./assets/body-bg.png');background-repeat:repeat;backg
   .dashboard-active .wrap{min-height:0;align-items:stretch}
   .dashboard-active #operationHeading:not(.hidden){grid-template-rows:minmax(220px,1fr) auto auto}
 }
+/* Le schermate a pagina intera usano lo stesso sfondo della dashboard.
+   La mappatura conserva il suo canvas e la sua griglia. */
+:root:not(.dark-mode) :is(.card.operation-screen,.bank-screen,.categories-screen){background-color:#f4f1ee;background-image:url('./assets/body-bg.png');background-repeat:repeat;background-position:center top}
+:root.dark-mode :is(.card.operation-screen,.bank-screen,.categories-screen){background-color:#0f1016;background-image:url('./assets/body-bg-inverted.png');background-repeat:repeat;background-position:center top}
+@media(max-width:700px){
+  .card.operation-screen .operation-inner{background:transparent}
+  :root:not(.dark-mode) .operation-screen .operation-footer{background-color:#f4f1ee}
+  :root.dark-mode .operation-screen .operation-footer{background-color:#0f1016}
+}
