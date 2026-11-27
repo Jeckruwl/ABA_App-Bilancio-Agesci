@@ -237,6 +237,8 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 
 .mapping-screen .map-toolbar .map-grid-control{display:flex;align-items:center;gap:4px;flex:none;background:#fff;border-radius:6px;padding-right:8px}.mapping-screen .map-toolbar .map-grid-control button{padding:4px 8px;font-size:12px}.mapping-screen .map-grid-control label{display:flex;align-items:center;justify-content:center;cursor:pointer}.mapping-screen .map-grid-control input{width:19px;height:19px;margin:0;accent-color:#462678}
 @media(max-width:700px){.mapping-screen .map-toolbar{width:max-content;max-width:calc(100% - 8px);justify-content:center;flex-wrap:wrap}.mapping-screen .map-toolbar .map-grid-control button{font-size:10px;min-width:0;padding:4px}.mapping-screen .map-grid-control input{width:17px;height:17px}.mapping-screen .map-side{bottom:calc(100px + env(safe-area-inset-bottom))}}
+
+.desktop-back{display:none}@media(min-width:701px){.desktop-back{display:inline-flex;align-items:center;min-height:40px;margin:0 0 16px;padding:8px 14px;border:0;border-radius:8px;background:#fdc500;color:#462678;font:inherit;font-weight:700;cursor:pointer}.desktop-back:focus-visible{outline:3px solid #fff;outline-offset:3px}.bank-back-help{display:none}}
 </style>
 </head>
 <body>
@@ -287,6 +289,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
   <!-- APP -->
   <section class="card operation-screen hidden" id="appCard" role="dialog" aria-modal="true" aria-label="Operazione">
     <div class="operation-inner">
+    <button type="button" class="desktop-back" id="operationBack" aria-label="Torna alla schermata precedente">← Indietro</button>
     <div class="tabs">
       <button class="on" data-tab="nuova">Nuova operazione</button>
       <button data-tab="modelli">Modelli</button>
@@ -327,6 +330,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
     </div>
     <section class="card operation-screen hidden" id="editScreen" tabindex="-1" role="dialog" aria-modal="true" aria-label="Modifica modello">
       <div class="operation-inner" id="editInner">
+        <button type="button" class="desktop-back" id="editBack" aria-label="Torna ai modelli">← Indietro</button>
         <div id="editFormSlot"></div>
         <div class="operation-footer"><button type="button" class="btn" id="editSave">Salva modifiche</button></div>
       </div>
@@ -337,7 +341,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 
 
 <section class="bank-screen hidden" id="bankScreen" role="dialog" aria-modal="true" aria-labelledby="bankTitle" tabindex="-1">
- <div class="bank-inner"><h2 id="bankTitle">Carica operazioni da estratto conto</h2>
+ <div class="bank-inner"><button type="button" class="desktop-back" id="bankBack" aria-label="Torna alla dashboard">← Indietro</button><h2 id="bankTitle">Carica operazioni da estratto conto</h2>
  <p>Il PDF viene letto sul dispositivo. Controlla ogni movimento e assegna una tipologia prima del caricamento.</p>
  <div class="field"><label for="bankFile">Estratto conto PDF</label><input id="bankFile" type="file" accept="application/pdf,.pdf"></div>
  <div class="field"><label for="bankAccount">Conto di destinazione</label><select id="bankAccount"><option value="">— Seleziona conto —</option></select></div>
@@ -349,7 +353,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
  <div id="bankRows"></div>
  <aside id="bankReadyBox" class="bank-ready-box hidden" aria-live="polite"><span id="bankReady"></span></aside>
  <div class="bank-actions"><button type="button" id="bankReset" class="btn hidden">Elimina bozza</button><button type="button" id="bankUpload" class="btn" disabled>Carica estratto conto</button></div>
- <p>Per tornare alla dashboard usa il tasto o il gesto indietro.</p></div>
+ <p class="bank-back-help">Per tornare alla dashboard usa il tasto o il gesto indietro.</p></div>
 </section>
 <section id="mappingScreen" class="mapping-screen hidden" role="dialog" aria-modal="true" aria-labelledby="mappingTitle" tabindex="-1">
  <header class="map-header"><button type="button" id="mapClose" class="map-back" aria-label="Torna alla dashboard">←</button><h2 id="mappingTitle">Mappatura Tipologie</h2><div class="map-header-actions"><button type="button" id="mapFit">Centra</button><button type="button" id="mapExport">Esporta</button></div></header>
@@ -1075,6 +1079,8 @@ function navigateBack(){
   if(current){ history.back(); }
   else if(!$("appCard").classList.contains("hidden")) closeOperation();
 }
+$("operationBack").onclick=navigateBack;
+$("editBack").onclick=navigateBack;
 function navigateTab(name){
   const current=navEntry();
   if(name==="modelli" && current?.view==="nuova") pushView("modelli");
@@ -1093,7 +1099,7 @@ $("appCard").addEventListener("keydown",e=>{
   if(e.key==="Escape" || (e.key==="ArrowLeft" && e.altKey)){ e.preventDefault(); navigateBack(); return; }
   if(e.key!=="Tab") return;
   const scope=editingTemplate?$("editScreen"):$("appCard");
-  const items=[...scope.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)')].filter(el=>el.tabIndex>=0 && !el.closest('.hidden'));
+  const items=[...scope.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)')].filter(el=>el.tabIndex>=0 && !el.closest('.hidden') && el.getClientRects().length);
   if(!items.length) return;
   if(e.shiftKey && document.activeElement===items[0]){ e.preventDefault(); items[items.length-1].focus(); }
   else if(!e.shiftKey && document.activeElement===items[items.length-1]){ e.preventDefault(); items[0].focus(); }
@@ -1372,6 +1378,6 @@ window.addEventListener("storage", (e)=>{
 })();
 </script>
 <script src="mapping-v10.js"></script>
-<script src="bank-import-v9.js"></script>
+<script src="bank-import-v10.js"></script>
 </body>
 </html>
