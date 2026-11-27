@@ -39,3 +39,5 @@ Nel grafo, **Allinea alla griglia** allinea una volta le card del verso visualiz
 Su desktop i pulsanti **Indietro** nelle schermate di operazione, modifica modello e import PDF tornano alla schermata precedente; il grafo mantiene la freccia dedicata. Su mobile restano disponibili il gesto e il tasto indietro del dispositivo. Durante il caricamento delle operazioni l'uscita dall'import è bloccata per sicurezza.
 
 Le conferme di rimozione nel grafo usano finestre integrate nell’app, con colori adattati al tema. Gli avvisi operativi sono centrali e non bloccano l’interazione.
+
+Il carattere Roboto è incluso localmente nell’app (normale e corsivo, SIL Open Font License); è disponibile anche offline dopo l’installazione della cache. La licenza è in `vendor/roboto/OFL.txt`.
