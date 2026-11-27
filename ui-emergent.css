@@ -87,3 +87,9 @@ button:not(:disabled):active{filter:brightness(.95);transform:translateY(1px)}
 @media(max-width:700px){.dashboard-tools{flex:0 0 auto;gap:8px}.dashboard-active #operationHeading .dashboard-tools .btn{min-height:48px;padding:7px 4px;font-size:11px}.categories-screen{padding:calc(14px + env(safe-area-inset-top)) 14px calc(18px + env(safe-area-inset-bottom))}.categories-header h2{font-size:20px}.categories-controls{flex-wrap:wrap}.categories-controls input{flex:1 1 160px}.category-row{align-items:flex-start;flex-direction:column}.category-actions{width:100%}.category-actions .btn{flex:1}}
 @media(max-width:700px) and (max-height:650px){.dashboard-active #operationHeading .dashboard-tools .btn{min-height:38px;font-size:10px}.dashboard-active #btnBankImport{min-height:48px}}
 .bank-dialog .category-danger:not(.ghost){background:transparent!important;color:var(--err)!important;border-color:var(--err)!important}
+/* Ripristina la veste originale della mappatura anche nella nuova posizione. */
+.dashboard-active #operationHeading .dashboard-tools #btnMapping{justify-content:flex-start;text-align:left;background:var(--viola-soft);color:var(--viola);gap:8px}
+.dashboard-active #operationHeading .dashboard-tools #btnMapping::before{display:block}
+.dashboard-active #operationHeading .dashboard-tools #btnMapping::after{content:'→';margin-left:auto}
+@media(hover:hover){.dashboard-active #operationHeading .dashboard-tools #btnMapping:hover:not(:disabled){background:var(--viola-soft)}}
+@media(max-width:700px){.dashboard-active #operationHeading .dashboard-tools #btnMapping{gap:4px}.dashboard-active #operationHeading .dashboard-tools #btnMapping::before{width:14px;height:14px}}
