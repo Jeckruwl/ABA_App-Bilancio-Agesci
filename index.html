@@ -133,8 +133,6 @@
 #loginCard input:focus,#ctxCard select:focus,#appCard input:focus,#appCard select:focus,#appCard textarea:focus{outline:2px solid #fdc500;outline-offset:1px}
 #appCard input.field-invalid,#appCard select.field-invalid{border-color:#e74030!important;box-shadow:0 0 0 2px #e74030!important}
 button,summary,.theme-switch{-webkit-tap-highlight-color:transparent}
-button:not(:disabled):active{background:#fdc500!important;color:#462678!important;border-color:#fdc500!important;filter:none!important}
-#btnAdd:not(:disabled):active{background:#462678!important;color:#fff!important;border-color:#462678!important}
 button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-offset:2px}
 .theme-switch input:active+.theme-track{background:#fdc500;border-color:#fdc500}.theme-switch input:active+.theme-track svg{color:#462678}
 
@@ -264,9 +262,11 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 /* Tutti i controlli e le finestre, comprese le parti generate dinamicamente. */
 *,*::before,*::after{font-family:Roboto,sans-serif}
 </style>
+<link rel="stylesheet" href="ui-emergent.css">
 </head>
 <body>
 <div id="notifications" class="notifications" aria-label="Notifiche"></div>
+<header class="app-bar" aria-label="Intestazione"><img src="icons/icon-192.png" alt=""><div class="app-title"><b>Helper Bilancio AGESCI</b><span>Prima Nota · Tool Bilancio</span></div><div class="app-stripe"></div><span class="app-tag">Dashboard</span></header>
 <div class="wrap">
   <div class="msg warn hidden" id="fileWarn">Apri l'app tramite HTTPS per utilizzare installazione e rinnovo automatico.</div>
   <section class="card hero hidden" id="installScreen">
@@ -1073,12 +1073,12 @@ function setTipo(t){
 $("btnLogin").onclick=doLogin;
 $("firstName").value=localStorage.getItem(LS.firstName)||""; $("lastName").value=localStorage.getItem(LS.lastName)||"";
 $("showPassword").onclick=()=>{ const el=$("password"), show=el.type==="password"; el.type=show?"text":"password"; $("showPassword").textContent=show?"Nascondi":"Mostra"; $("showPassword").setAttribute("aria-label",show?"Nascondi password":"Mostra password"); $("showPassword").setAttribute("aria-pressed",String(show)); };
-function applyTheme(dark){ document.documentElement.classList.toggle("dark-mode",dark); $("darkToggle").checked=dark; $("darkToggle").setAttribute("aria-label",dark?"Disattiva modalità scura":"Attiva modalità scura"); document.querySelector('meta[name="theme-color"]').content=dark?"#13161b":"#fafafa"; }
+function applyTheme(dark){ document.documentElement.classList.toggle("dark-mode",dark); $("darkToggle").checked=dark; $("darkToggle").setAttribute("aria-label",dark?"Disattiva modalità scura":"Attiva modalità scura"); document.querySelector('meta[name="theme-color"]').content=dark?"#0f1016":"#f4f5f8"; }
 const systemTheme=window.matchMedia("(prefers-color-scheme: dark)");
 const savedTheme=localStorage.getItem(LS.theme);
-applyTheme(savedTheme==="dark" || (savedTheme!=="light" && systemTheme.matches));
-if(systemTheme.addEventListener) systemTheme.addEventListener("change", e=>{ if(!localStorage.getItem(LS.theme)) applyTheme(e.matches); });
-else if(systemTheme.addListener) systemTheme.addListener(e=>{ if(!localStorage.getItem(LS.theme)) applyTheme(e.matches); });
+applyTheme(savedTheme!=="light");
+if(systemTheme.addEventListener) systemTheme.addEventListener("change", e=>{ if(!localStorage.getItem(LS.theme)) applyTheme(true); });
+else if(systemTheme.addListener) systemTheme.addListener(e=>{ if(!localStorage.getItem(LS.theme)) applyTheme(true); });
 $("darkToggle").onchange=e=>{ localStorage.setItem(LS.theme,e.target.checked?"dark":"light"); applyTheme(e.target.checked); };
 // La cronologia rappresenta le schermate interne, così anche il tasto/gesto indietro di sistema funziona.
 function newNavSession(){ return Date.now().toString(36)+Math.random().toString(36).slice(2); }
