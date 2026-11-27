@@ -89,8 +89,8 @@ button:not(:disabled):active{filter:brightness(.95);transform:translateY(1px)}
 .bank-dialog .category-danger:not(.ghost){background:transparent!important;color:var(--err)!important;border-color:var(--err)!important}
 /* Azioni secondarie coordinate, con testo centrato e icona della mappatura. */
 .dashboard-active #operationHeading .dashboard-tools :is(#btnMapping,#btnManageCategories){justify-content:center;text-align:center;background:var(--viola-soft);color:var(--viola)}
-.dashboard-active #operationHeading .dashboard-tools #btnMapping{position:relative;padding-left:24px;padding-right:24px}
-.dashboard-active #operationHeading .dashboard-tools #btnMapping::before{display:block;position:absolute;left:8px;top:50%;transform:translateY(-50%)}
+.dashboard-active #operationHeading .dashboard-tools #btnMapping{gap:8px}
+.dashboard-active #operationHeading .dashboard-tools #btnMapping::before{display:block}
 .dashboard-active #operationHeading .dashboard-tools #btnMapping::after{content:none}
 @media(hover:hover){.dashboard-active #operationHeading .dashboard-tools :is(#btnMapping,#btnManageCategories):hover:not(:disabled){background:var(--viola-soft)}}
-@media(max-width:700px){.dashboard-active #operationHeading .dashboard-tools #btnMapping{padding-left:20px;padding-right:20px}.dashboard-active #operationHeading .dashboard-tools #btnMapping::before{left:5px;width:14px;height:14px}}
+@media(max-width:700px){.dashboard-active #operationHeading .dashboard-tools #btnMapping{gap:4px}.dashboard-active #operationHeading .dashboard-tools #btnMapping::before{width:14px;height:14px}}
