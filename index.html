@@ -1071,7 +1071,7 @@ function setTipo(t){
 $("btnLogin").onclick=doLogin;
 $("firstName").value=localStorage.getItem(LS.firstName)||""; $("lastName").value=localStorage.getItem(LS.lastName)||"";
 $("showPassword").onclick=()=>{ const el=$("password"), show=el.type==="password"; el.type=show?"text":"password"; $("showPassword").textContent=show?"Nascondi":"Mostra"; $("showPassword").setAttribute("aria-label",show?"Nascondi password":"Mostra password"); $("showPassword").setAttribute("aria-pressed",String(show)); };
-function applyTheme(dark){ document.documentElement.classList.toggle("dark-mode",dark); $("darkToggle").checked=dark; $("darkToggle").setAttribute("aria-label",dark?"Disattiva modalità scura":"Attiva modalità scura"); document.querySelector('meta[name="theme-color"]').content=dark?"#211638":"#f4f1ee"; }
+function applyTheme(dark){ document.documentElement.classList.toggle("dark-mode",dark); $("darkToggle").checked=dark; $("darkToggle").setAttribute("aria-label",dark?"Disattiva modalità scura":"Attiva modalità scura"); document.querySelector('meta[name="theme-color"]').content=dark?"#0f1016":"#f4f5f8"; }
 const systemTheme=window.matchMedia("(prefers-color-scheme: dark)");
 const savedTheme=localStorage.getItem(LS.theme);
 applyTheme(savedTheme!=="light");

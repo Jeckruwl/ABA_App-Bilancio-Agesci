@@ -184,34 +184,15 @@ body{background-image:url('./assets/body-bg.png');background-repeat:repeat;backg
 .mapping-screen .map-node.map-unavailable .map-port{background:var(--muted);box-shadow:none;cursor:not-allowed}
 .mapping-screen .map-node.map-unavailable .map-node-remove{color:var(--err)}
 .mapping-screen .map-link.map-link-unavailable{stroke:var(--err);stroke-dasharray:7 5}
-/* Palette AGESCI: superfici sullo sfondo e accenti coerenti in tutta l'app. */
-:root{
-  --agesci-viola-scuro:#211638;--agesci-viola:#462678;--agesci-giallo:#fdc500;
-  --agesci-viola-chiaro:#aeb0d9;--agesci-azzurro:#92b3d7;--agesci-crema:#f4f1ee;
-  --agesci-coca:#9b66a5;--agesci-rs:#e74030;--agesci-eg:#21a067;--agesci-lc:#fdc500;
-  --bg:#f4f1ee;--card:#f4f1ee;--elev:#f4f1ee;--surface:#f4f1ee;
-  --viola:#462678;--viola2:#462678;--viola-soft:#aeb0d9;--giallo-ink:#211638;
-  --border:#b4aabe;--border-soft:#d4cbd5;--txt:#211638;--muted:#554c60;--ok:#21a067;--err:#e74030;
-  --dash-shadow:3px 3px 6px #bbb6b5,-3px -3px 6px #fff;--dash-inset:inset 2px 2px 5px #bbb6b5,inset -3px -3px 7px #fff;
-}
-:root.dark-mode{
-  --bg:#211638;--card:#211638;--elev:#211638;--surface:#211638;
-  --viola:#aeb0d9;--viola2:#92b3d7;--viola-soft:#aeb0d9;--giallo-ink:#211638;
-  --border:#665779;--border-soft:#51445f;--txt:#fff;--muted:#d0c9db;--ok:#21a067;--err:#e74030;
-  --dash-shadow:3px 3px 6px #130c22,-3px -3px 6px #3b2a56;--dash-inset:inset 2px 2px 5px #130c22,inset -3px -3px 7px #3b2a56;
-}
-:root:not(.dark-mode) :is(body,.card.operation-screen,.bank-screen,.categories-screen){background-color:#f4f1ee}
-:root.dark-mode :is(body,.card.operation-screen,.bank-screen,.categories-screen){background-color:#211638}
-@media(max-width:700px){:root.dark-mode .operation-screen .operation-footer{background-color:#211638}}
+/* Accenti AGESCI per i controlli e il grafo. */
+:root{--agesci-viola-scuro:#211638;--agesci-viola:#462678;--agesci-giallo:#fdc500;--agesci-viola-chiaro:#aeb0d9;--agesci-azzurro:#92b3d7;--agesci-crema:#f4f1ee;--agesci-coca:#9b66a5;--agesci-rs:#e74030;--agesci-eg:#21a067;--agesci-lc:#fdc500}
 ::selection{background:#92b3d7;color:#211638}
 /* I pulsanti d'azione e i controlli usano viola chiaro; trigger e porte non sono pulsanti visibili. */
 button:not(.select-trigger,.map-port,.map-node-remove,.select-option,.map-palette-item,.bank-pending-link){background:#aeb0d9!important;color:#211638!important;border-color:#817a9e!important}
-/* Le azioni principali sono gialle; il bordo giallo della dashboard compare solo all'hover. */
-:is(#btnInstall,#btnLogin,#btnAdd,#btnBankImport,#btnSave,#btnSaveDup,#btnSaveTpl,#editSave,#bankUpload,#bankConfirmAccept,#categoriesAdd,#categoryEditSave){background:#fdc500!important;color:#211638!important}
+/* Le azioni principali fuori dalla dashboard sono gialle. */
+:is(#btnInstall,#btnLogin,#btnSave,#btnSaveDup,#btnSaveTpl,#editSave,#bankUpload,#bankConfirmAccept,#categoriesAdd,#categoryEditSave){background:#fdc500!important;color:#211638!important}
 .dashboard-active #operationHeading :is(#btnAdd,#btnBankImport){border-color:var(--border)!important}
 @media(hover:hover){.dashboard-active #operationHeading :is(#btnAdd,#btnBankImport):hover:not(:disabled){border-color:#fdc500!important}}
-#btnAdd::after{color:#462678}#btnAdd span{background:#462678;color:#fdc500}#btnBankImport::after{color:#462678;border-color:#817a9e}
-.dashboard-active #btnBankImport::before{background-color:#462678}
 /* Azioni distruttive distinguibili anche in finestre e modelli. */
 :is(.btn.danger,.category-danger,.tpl-delete,.bank-remove,#bankReset,#categoryDeleteConfirm,#mapConfirmAccept){background:var(--bg)!important;color:#e74030!important;border:1px solid #e74030!important}
 /* Evidenziazioni delle scelte: distinte dai pulsanti non selezionati. */
@@ -230,10 +211,15 @@ button:not(.select-trigger,.map-port,.map-node-remove,.select-option,.map-palett
 .mapping-screen .map-node:not(.map-unavailable) .map-node-remove{color:#fff}
 .mapping-screen .map-link{stroke:#92b3d7}
 .mapping-screen .map-link.map-link-unavailable{stroke:#e74030;stroke-dasharray:7 5}
-.dashboard-active #btnBankImport::after{color:#462678;border-color:#817a9e}
 /* Le voci interattive dei pannelli e dei menu sono anch'esse controlli. */
 .mapping-screen .map-palette-item,.dark-mode .mapping-screen .map-palette-item,.select-dialog .select-option{background:#aeb0d9;color:#211638;border-color:#817a9e}
 .select-dialog .select-option[aria-selected=true]{background:#462678;color:#fff;box-shadow:inset 3px 0 #92b3d7}
 .mapping-screen .map-link-count{background:#462678;color:#fff}
-#ctxCard .context-actions #btnLogout{background:#aeb0d9!important;color:#211638!important;border-color:#817a9e!important}
 .dark-mode .mapping-screen .map-link-count{background:#462678;color:#fff}
+
+/* Dashboard: superfici, ombre e colori precedenti al cambio di palette. */
+.dashboard-active #ctxCard .context-actions :is(#btnRefresh,#btnLogout){background:var(--elev)!important;border-color:var(--border)!important}
+.dashboard-active #ctxCard .context-actions #btnRefresh{color:var(--txt)!important}
+.dashboard-active #ctxCard .context-actions #btnLogout{color:var(--err)!important}
+.dashboard-active #operationHeading :is(#btnAdd,#btnBankImport){background:var(--bg)!important;color:var(--txt)!important}
+.dashboard-active #operationHeading .dashboard-tools :is(#btnMapping,#btnManageCategories){background:var(--viola-soft)!important;color:var(--viola)!important;border-color:var(--border)!important}
