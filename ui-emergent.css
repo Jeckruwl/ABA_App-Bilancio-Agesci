@@ -112,3 +112,20 @@ body{background-image:url('./assets/body-bg.png');background-repeat:repeat;backg
   :root:not(.dark-mode) .operation-screen .operation-footer{background-color:#f4f1ee}
   :root.dark-mode .operation-screen .operation-footer{background-color:#0f1016}
 }
+/* Desktop PWA: usa l'area disponibile tra i controlli nativi della finestra. */
+@media (display-mode: window-controls-overlay){
+  body{padding-top:env(titlebar-area-height, 0px)}
+  body::before{content:"";position:fixed;z-index:119;left:env(titlebar-area-x, 0px);top:env(titlebar-area-y, 0px);width:env(titlebar-area-width, 100%);height:env(titlebar-area-height, 0px);-webkit-app-region:drag;app-region:drag}
+  .dashboard-active .app-bar{position:absolute;z-index:120;top:env(titlebar-area-y, 0px);left:env(titlebar-area-x, 0px);width:env(titlebar-area-width, 100%);height:env(titlebar-area-height, 0px);max-width:none;margin:0;padding:0 12px;overflow:hidden;-webkit-app-region:drag;app-region:drag}
+  .dashboard-active .app-bar img{width:22px;height:22px;border-radius:6px}
+  .dashboard-active .app-title{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dashboard-active .app-title b{font-size:12px}
+  .dashboard-active .app-title span,.dashboard-active .app-stripe,.dashboard-active .app-tag{display:none}
+  .dashboard-active .wrap{padding-top:20px}
+  :is(.card.operation-screen,.bank-screen,.categories-screen,.mapping-screen){top:env(titlebar-area-height, 0px)}
+  @media(max-width:700px){
+    body.dashboard-active{height:100dvh;padding-top:env(titlebar-area-height, 0px)}
+    .dashboard-active .wrap{height:calc(100% - env(titlebar-area-height, 0px));padding-top:12px}
+    .card.operation-screen{height:auto}
+  }
+}
