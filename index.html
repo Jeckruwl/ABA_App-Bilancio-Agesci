@@ -231,6 +231,8 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 @media(max-width:700px){.mapping-screen .map-header{top:calc(8px + env(safe-area-inset-top));left:8px;right:8px;gap:5px}.mapping-screen .map-header h2{font-size:16px}.mapping-screen .map-header-actions button{padding:7px 5px;font-size:11px}.mapping-screen .map-back{width:32px;height:32px;font-size:21px}.mapping-screen .map-help{top:calc(46px + env(safe-area-inset-top));left:8px;right:8px;line-height:1.2}.mapping-screen .map-local-note{top:calc(75px + env(safe-area-inset-top));left:8px;right:8px}.mapping-screen #mapMessage{top:calc(96px + env(safe-area-inset-top));left:8px;right:8px}.mapping-screen .map-side{top:calc(128px + env(safe-area-inset-top));bottom:calc(60px + env(safe-area-inset-bottom));width:clamp(80px,23vw,125px);padding:4px}.mapping-screen .map-side:first-child{left:4px}.mapping-screen .map-side:last-child{right:4px}.mapping-screen .map-toolbar{bottom:calc(8px + env(safe-area-inset-bottom))}}
 
 .mapping-screen .map-toolbar .map-layer{min-width:86px;padding:4px 7px;font-size:12px;line-height:1.1}.mapping-screen .map-toolbar .map-layer.on{background:#fdc500;color:#462678}@media(max-width:700px){.mapping-screen .map-toolbar{gap:4px}.mapping-screen .map-toolbar button:not(.map-layer){min-width:34px;padding:4px}.mapping-screen .map-toolbar .map-layer{min-width:72px;padding:4px;font-size:10px}}
+
+.mapping-screen .map-node.map-selected{outline:3px solid #fdc500;outline-offset:2px}.mapping-screen .map-node-label{-webkit-user-select:none;user-select:none}.mapping-screen .map-selection-box{position:absolute;z-index:10;border:1px dashed #fdc500;background:#fdc50033;pointer-events:none;box-sizing:border-box}
 </style>
 </head>
 <body>
@@ -347,7 +349,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 </section>
 <section id="mappingScreen" class="mapping-screen hidden" role="dialog" aria-modal="true" aria-labelledby="mappingTitle" tabindex="-1">
  <header class="map-header"><button type="button" id="mapClose" class="map-back" aria-label="Torna alla dashboard">←</button><h2 id="mappingTitle">Mappatura Tipologie</h2><div class="map-header-actions"><button type="button" id="mapFit">Centra</button><button type="button" id="mapExport">Esporta</button></div></header>
- <p class="map-help">Trascina le voci e collegane i punti. Tocca una linea per eliminarla. Sposta lo sfondo per navigare.</p>
+ <p class="map-help">Collega i punti o tocca una linea per eliminarla. Shift e trascina per selezionare più schede.</p>
  <p class="map-local-note">Mappatura salvata solo su questo dispositivo.</p><p id="mapMessage" role="status" aria-live="polite"></p>
  <div class="map-toolbar" aria-label="Zoom grafo"><button type="button" id="mapZoomOut" aria-label="Riduci zoom">−</button><button type="button" id="mapZoomReset" aria-label="Ripristina zoom">100%</button><button type="button" id="mapZoomIn" aria-label="Aumenta zoom">+</button><button type="button" id="mapLayerIn" class="map-layer on" aria-pressed="true">Grafo entrate</button><button type="button" id="mapLayerOut" class="map-layer" aria-pressed="false">Grafo uscite</button></div>
  <div class="map-workspace">
@@ -1365,7 +1367,7 @@ window.addEventListener("storage", (e)=>{
   updateConnUI();
 })();
 </script>
-<script src="mapping-v8.js"></script>
+<script src="mapping-v9.js"></script>
 <script src="bank-import-v9.js"></script>
 </body>
 </html>
