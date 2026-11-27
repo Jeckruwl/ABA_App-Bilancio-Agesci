@@ -150,3 +150,5 @@ body{background-image:url('./assets/body-bg.png');background-repeat:repeat;backg
   .mapping-screen .map-toolbar button{height:34px;min-width:34px;padding:3px 6px;font-size:11px}
   .mapping-screen .map-toolbar .map-layer{min-width:68px;font-size:10px}
 }
+/* Nei pannelli touch lo scorrimento è nativo; non avvia trascinamenti sul grafo. */
+@media (pointer:coarse){.mapping-screen .map-palette-item{touch-action:pan-y}}

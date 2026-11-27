@@ -5,7 +5,7 @@
      (i dati di bilancio devono essere sempre aggiornati e non vanno salvati).
    - Richieste non-GET (POST/PUT/DELETE): sempre network-only.
 */
-const CACHE_NAME = "agesci-bilancio-helper-v74";
+const CACHE_NAME = "agesci-bilancio-helper-v75";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -29,6 +29,7 @@ const APP_SHELL = [
   "./mapping-v10.js",
   "./mapping-v11.js",
   "./mapping-v12.js",
+  "./mapping-v13.js",
   "./bank-import-v7.js",
   "./bank-import-v6.js",
   "./bank-import.js?v=4",
