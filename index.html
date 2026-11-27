@@ -239,6 +239,11 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 @media(max-width:700px){.mapping-screen .map-toolbar{width:max-content;max-width:calc(100% - 8px);justify-content:center;flex-wrap:wrap}.mapping-screen .map-toolbar .map-grid-control button{font-size:10px;min-width:0;padding:4px}.mapping-screen .map-grid-control input{width:17px;height:17px}.mapping-screen .map-side{bottom:calc(100px + env(safe-area-inset-bottom))}}
 
 .desktop-back{display:none}@media(min-width:701px){.desktop-back{display:inline-flex;align-items:center;min-height:40px;margin:0 0 16px;padding:8px 14px;border:0;border-radius:8px;background:#fdc500;color:#462678;font:inherit;font-weight:700;cursor:pointer}.desktop-back:focus-visible{outline:3px solid #fff;outline-offset:3px}.bank-back-help{display:none}}
+
+.map-confirm-dialog{box-sizing:border-box;width:min(460px,calc(100% - 32px));max-height:calc(100dvh - 32px);overflow:auto;margin:auto;border:1px solid var(--border);border-radius:14px;padding:22px;background:var(--card);color:var(--txt);box-shadow:0 12px 40px #0008}.map-confirm-dialog::backdrop{background:#0009}.map-confirm-dialog h2{font-size:18px;margin:0 0 12px}.map-confirm-dialog p{margin:0 0 22px;line-height:1.45;overflow-wrap:anywhere}.map-confirm-actions{display:flex;justify-content:flex-end;gap:10px}.map-confirm-actions button{min-height:42px;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--txt);font:inherit;font-weight:700;cursor:pointer}.map-confirm-actions #mapConfirmAccept{background:#e74030;color:#fff;border-color:#e74030}.map-confirm-actions button:focus-visible{outline:3px solid #fdc500;outline-offset:2px}
+
+/* Avvisi della mappatura integrati nell'interfaccia, senza interrompere il grafo. */
+.mapping-screen #mapMessage:not(:empty){position:absolute;z-index:4;top:50%;left:50%;right:auto;transform:translate(-50%,-50%);box-sizing:border-box;width:max-content;max-width:min(440px,calc(100% - 32px));padding:16px 20px;border:1px solid var(--border);border-radius:12px;background:var(--card);color:var(--txt);box-shadow:0 10px 32px #0008;text-shadow:none;text-align:center;line-height:1.4;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -366,6 +371,10 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
   <section class="map-side"><h3>Categorie</h3><button type="button" id="mapAddCategory" class="map-add-category">Aggiungi categoria</button><input id="mapSearchCategories" type="search" placeholder="Cerca" aria-label="Cerca categoria"><div id="mapCategories" class="map-palette"></div></section>
  </div>
 </section>
+<dialog class="map-confirm-dialog" id="mapConfirmDialog" aria-labelledby="mapConfirmTitle" aria-describedby="mapConfirmText">
+ <h2 id="mapConfirmTitle">Conferma eliminazione</h2><p id="mapConfirmText"></p>
+ <div class="map-confirm-actions"><button type="button" id="mapConfirmCancel">Annulla</button><button type="button" id="mapConfirmAccept">Elimina</button></div>
+</dialog>
 <dialog class="bank-dialog map-category-dialog" id="mapCategoryDialog" aria-labelledby="mapCategoryTitle">
  <form id="mapCategoryForm"><h2 id="mapCategoryTitle">Aggiungi categoria</h2>
  <p>La categoria verrà creata nel Tool Bilancio per il contesto selezionato.</p>
@@ -1377,7 +1386,7 @@ window.addEventListener("storage", (e)=>{
   updateConnUI();
 })();
 </script>
-<script src="mapping-v10.js"></script>
+<script src="mapping-v11.js"></script>
 <script src="bank-import-v10.js"></script>
 </body>
 </html>
