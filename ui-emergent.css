@@ -60,3 +60,11 @@ button:not(:disabled):active{filter:brightness(.95);transform:translateY(1px)}
  #btnAdd span{width:34px;height:34px;flex:none;margin:0;font-size:23px;border-radius:10px}
  #btnAdd::after{display:none}
 }
+
+/* Pulsanti della dashboard: rilievo a riposo e pressione incassata. */
+:root{--dash-shadow:5px 5px 10px #c4c8d1,-5px -5px 10px #fff;--dash-inset:inset 4px 4px 9px #c4c8d1,inset -4px -4px 9px #fff}
+:root.dark-mode{--dash-shadow:5px 5px 10px #090a10,-4px -4px 10px #272a38;--dash-inset:inset 4px 4px 9px #090a10,inset -4px -4px 9px #292c3b}
+.dashboard-active :is(#ctxCard,#operationHeading) :is(#btnRefresh,#btnLogout,#btnMapping,#btnAdd,#btnBankImport){border:1px solid #fdc500;box-shadow:var(--dash-shadow);transition:box-shadow .18s ease,border-color .18s ease}
+@media(hover:hover){.dashboard-active :is(#ctxCard,#operationHeading) :is(#btnRefresh,#btnLogout,#btnMapping,#btnAdd,#btnBankImport):hover:not(:disabled){border-color:#fdc500;box-shadow:var(--dash-inset);filter:none;transform:none}}
+.dashboard-active :is(#ctxCard,#operationHeading) :is(#btnRefresh,#btnLogout,#btnMapping,#btnAdd,#btnBankImport):active:not(:disabled){border-color:#fdc500;box-shadow:var(--dash-inset);filter:none;transform:none}
+@media(prefers-reduced-motion:reduce){.dashboard-active :is(#ctxCard,#operationHeading) :is(#btnRefresh,#btnLogout,#btnMapping,#btnAdd,#btnBankImport){transition:none}}
