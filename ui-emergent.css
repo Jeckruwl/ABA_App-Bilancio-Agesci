@@ -94,3 +94,10 @@ button:not(:disabled):active{filter:brightness(.95);transform:translateY(1px)}
 .dashboard-active #operationHeading .dashboard-tools #btnMapping::after{content:none}
 @media(hover:hover){.dashboard-active #operationHeading .dashboard-tools :is(#btnMapping,#btnManageCategories):hover:not(:disabled){background:var(--viola-soft)}}
 @media(max-width:700px){.dashboard-active #operationHeading .dashboard-tools #btnMapping{gap:4px}.dashboard-active #operationHeading .dashboard-tools #btnMapping::before{width:14px;height:14px}}
+/* Trama trasparente solo nel tema chiaro. */
+:root:not(.dark-mode) body{background-image:url('./assets/body-bg.png');background-repeat:repeat;background-position:center top}
+/* Su desktop le due colonne condividono la stessa altezza naturale. */
+@media(min-width:901px){
+  .dashboard-active .wrap{min-height:0;align-items:stretch}
+  .dashboard-active #operationHeading:not(.hidden){grid-template-rows:minmax(220px,1fr) auto auto}
+}
