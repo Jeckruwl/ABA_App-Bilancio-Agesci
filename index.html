@@ -244,6 +244,19 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 
 /* Avvisi della mappatura integrati nell'interfaccia, senza interrompere il grafo. */
 .mapping-screen #mapMessage:not(:empty){position:absolute;z-index:4;top:50%;left:50%;right:auto;transform:translate(-50%,-50%);box-sizing:border-box;width:max-content;max-width:min(440px,calc(100% - 32px));padding:16px 20px;border:1px solid var(--border);border-radius:12px;background:var(--card);color:var(--txt);box-shadow:0 10px 32px #0008;text-shadow:none;text-align:center;line-height:1.4;overflow-wrap:anywhere}
+
+/* Pannelli del grafo coordinati al tema dell'app; le card sul grafo conservano i colori del verso. */
+.mapping-screen .map-side{background:var(--card);color:var(--txt);border:1px solid var(--border)}
+.mapping-screen .map-side h3{color:var(--txt)}
+.mapping-screen .map-side input{background:var(--surface);color:var(--txt);border-color:var(--border);color-scheme:light}
+.mapping-screen .map-side input::placeholder{color:var(--muted);opacity:1}
+.mapping-screen .map-side .map-palette{background:var(--surface);scrollbar-color:var(--muted) var(--surface)}
+.mapping-screen .map-palette-item{background:#f5f1fa;color:#211638;border-color:#ded4e8}
+.mapping-screen .map-link-count{background:#462678;color:#fff}
+.dark-mode .mapping-screen .map-side input{color-scheme:dark}
+.dark-mode .mapping-screen .map-palette-item{background:#30283e;color:#fafafa;border-color:#655578}
+.dark-mode .mapping-screen .map-link-count{background:#aeb0d9;color:#211638}
+.mapping-screen .map-palette-item:focus-visible,.mapping-screen .map-add-category:focus-visible{outline:3px solid #fdc500;outline-offset:1px}
 </style>
 </head>
 <body>
