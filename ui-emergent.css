@@ -178,3 +178,9 @@ body{background-image:url('./assets/body-bg.png');background-repeat:repeat;backg
 @media (display-mode:window-controls-overlay) and (min-width:901px){
   .dashboard-active .app-bar{width:env(titlebar-area-width, 100%);padding:0 12px}
 }
+/* I nodi conservati ma non disponibili restano ispezionabili ed eliminabili. */
+.mapping-screen .map-node.map-unavailable{background:var(--elev);color:var(--txt);border:2px dashed var(--muted)}
+.mapping-screen .map-node.map-unavailable .map-unavailable-note{display:block;margin-top:4px;color:var(--muted);font-size:10px;font-weight:700;line-height:1.2}
+.mapping-screen .map-node.map-unavailable .map-port{background:var(--muted);box-shadow:none;cursor:not-allowed}
+.mapping-screen .map-node.map-unavailable .map-node-remove{color:var(--err)}
+.mapping-screen .map-link.map-link-unavailable{stroke:var(--err);stroke-dasharray:7 5}
