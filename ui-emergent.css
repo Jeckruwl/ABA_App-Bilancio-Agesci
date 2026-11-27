@@ -152,3 +152,29 @@ body{background-image:url('./assets/body-bg.png');background-repeat:repeat;backg
 }
 /* Nei pannelli touch lo scorrimento è nativo; non avvia trascinamenti sul grafo. */
 @media (pointer:coarse){.mapping-screen .map-palette-item{touch-action:pan-y}}
+/* Dashboard: controlli equidistanti e menu nativi nella sola vista desktop. */
+#ctxCard .context-actions{flex:1 1 0;min-width:0;display:flex}
+#ctxCard .context-actions .btn{flex:1 1 0;min-width:0}
+@media(min-width:701px){
+  #ctxCard .select-wrapper select{pointer-events:auto}
+  #ctxCard .select-wrapper .select-trigger{display:none}
+}
+@media(min-width:901px){
+  .dashboard-active .app-bar,.dashboard-active .wrap{max-width:none;width:100%;padding-left:clamp(24px,3vw,56px);padding-right:clamp(24px,3vw,56px)}
+  .dashboard-active .wrap{grid-template-columns:minmax(320px,36%) minmax(0,1fr);min-height:calc(100dvh - 52px);padding-bottom:32px}
+  .dashboard-active #ctxCard{display:flex;flex-direction:column}
+  .dashboard-active #ctxCard .grid3{flex:1;align-content:space-evenly}
+  .dashboard-active #ctxCard .context-bottom{margin-top:auto}
+  .dashboard-active #operationHeading:not(.hidden){grid-template-rows:minmax(220px,3fr) minmax(76px,1fr) minmax(52px,.75fr)}
+  .dashboard-active #operationHeading .dashboard-tools .btn{height:100%}
+}
+@media (display-mode:window-controls-overlay) and (min-width:901px){.dashboard-active .wrap{min-height:calc(100dvh - env(titlebar-area-height, 0px))}}
+
+@media(max-width:700px){
+  .select-dialog.context-select{position:fixed;inset:0;width:100%;height:100dvh;max-width:none;max-height:none;margin:0;border:0;border-radius:0}
+  .select-dialog.context-select .select-panel{height:100%;max-height:none;padding:calc(16px + env(safe-area-inset-top)) 16px calc(16px + env(safe-area-inset-bottom))}
+  .select-dialog.context-select .select-list{flex:1}
+}
+@media (display-mode:window-controls-overlay) and (min-width:901px){
+  .dashboard-active .app-bar{width:env(titlebar-area-width, 100%);padding:0 12px}
+}

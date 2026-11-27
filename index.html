@@ -266,7 +266,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 </head>
 <body>
 <div id="notifications" class="notifications" aria-label="Notifiche"></div>
-<header class="app-bar" aria-label="Intestazione"><img src="icons/icon-192.png" alt=""><div class="app-title"><b>Helper Bilancio AGESCI</b><span>Prima Nota · Tool Bilancio</span></div><div class="app-stripe"></div><span class="app-tag">Dashboard</span></header>
+<header class="app-bar" aria-label="Intestazione"><img src="icons/icon-192.png" alt=""><div class="app-title"><b>Helper Bilancio AGESCI</b><span>Prima Nota · Tool Bilancio</span></div><div class="app-stripe"></div></header>
 <div class="wrap">
   <div class="msg warn hidden" id="fileWarn">Apri l'app tramite HTTPS per utilizzare installazione e rinnovo automatico.</div>
   <section class="card hero hidden" id="installScreen">
@@ -1302,6 +1302,7 @@ window.addEventListener("storage", (e)=>{
   function open(select){
     if(select.disabled || dialog.open) return;
     active=select;
+    dialog.classList.toggle("context-select",!!select.closest("#ctxCard"));
     const label=select.labels?.[0] || select.closest(".field")?.querySelector("label");
     $("selectDialogTitle").textContent=label?.textContent.trim() || "Seleziona una voce";
     search.value=""; render();
@@ -1341,7 +1342,14 @@ window.addEventListener("storage", (e)=>{
     wrapper.className="select-wrapper"; trigger.type="button"; trigger.className="select-trigger";
     trigger.setAttribute("aria-haspopup","dialog");
     select.before(wrapper); wrapper.append(select,trigger);
-    select.tabIndex=-1; select.setAttribute("aria-hidden","true");
+    const contextSelect=!!select.closest("#ctxCard"), desktopQuery=window.matchMedia("(min-width: 701px)");
+    function syncPresentation(){
+      const native=contextSelect && desktopQuery.matches;
+      if(native){select.removeAttribute("tabindex");select.removeAttribute("aria-hidden");trigger.tabIndex=-1;trigger.setAttribute("aria-hidden","true");}
+      else{select.tabIndex=-1;select.setAttribute("aria-hidden","true");trigger.removeAttribute("tabindex");trigger.removeAttribute("aria-hidden");}
+    }
+    syncPresentation();
+    if(contextSelect)desktopQuery.addEventListener("change",syncPresentation);
     function sync(){
       trigger.disabled=select.disabled;
       trigger.setAttribute("aria-label",(label?.textContent.trim() || "Seleziona")+": "+(select.selectedOptions[0]?.textContent || "nessuna selezione"));
@@ -1352,7 +1360,7 @@ window.addEventListener("storage", (e)=>{
     select.addEventListener("input",sync); select.addEventListener("change",sync);
     trigger.addEventListener("focus",sync);
     trigger.addEventListener("click",()=>open(select));
-    if(label && label.htmlFor===select.id) label.addEventListener("click",e=>{e.preventDefault(); if(!trigger.disabled) trigger.focus();});
+    if(label && label.htmlFor===select.id) label.addEventListener("click",e=>{if(contextSelect && desktopQuery.matches)return;e.preventDefault(); if(!trigger.disabled) trigger.focus();});
     sync();
   };
   document.querySelectorAll("select").forEach(window.registerSelectMenu);
