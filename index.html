@@ -308,7 +308,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
     <div class="context-bottom"><div class="context-actions"><button class="btn ghost small" id="btnRefresh">Ricarica</button><button class="btn danger small" id="btnLogout">Esci</button></div><label class="theme-switch"><input id="darkToggle" type="checkbox" role="switch" aria-label="Attiva modalità scura"><span class="theme-track" aria-hidden="true"><svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg><svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z"/></svg></span></label></div>
   </section>
 
-  <div id="operationHeading" class="section-heading hidden"><button class="btn add-btn" id="btnAdd" aria-expanded="false" aria-controls="appCard"><span>+</span> Aggiungi entrata/uscita</button><button class="btn" id="btnBankImport" type="button">Carica operazioni da estratto conto</button><div class="dashboard-tools"><button type="button" id="btnMapping" class="btn map-open" disabled>Mappatura Tipologie</button><button type="button" id="btnManageCategories" class="btn category-open" disabled>Gestione categorie</button></div></div>
+  <div id="operationHeading" class="section-heading hidden"><button class="btn add-btn" id="btnAdd" aria-expanded="false" aria-controls="appCard"><span>+</span> Aggiungi entrata/uscita</button><div class="dashboard-records"><button class="btn" id="btnBankImport" type="button">Carica operazioni da estratto conto</button><button class="btn ledger-open" id="btnLedger" type="button" disabled>Mostra prima nota</button></div><div class="dashboard-tools"><button type="button" id="btnMapping" class="btn map-open" disabled>Mappatura Tipologie</button><button type="button" id="btnManageCategories" class="btn category-open" disabled>Gestione categorie</button></div></div>
   <!-- APP -->
   <section class="card operation-screen hidden" id="appCard" role="dialog" aria-modal="true" aria-label="Operazione">
     <div class="operation-inner">
@@ -393,6 +393,11 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
  <h2 id="mapConfirmTitle">Conferma eliminazione</h2><p id="mapConfirmText"></p>
  <div class="map-confirm-actions"><button type="button" id="mapConfirmCancel">Annulla</button><button type="button" id="mapConfirmAccept">Elimina</button></div>
 </dialog>
+<section id="ledgerScreen" class="ledger-screen hidden" role="dialog" aria-modal="true" aria-labelledby="ledgerTitle" tabindex="-1">
+ <div class="ledger-inner"><header class="ledger-header"><button type="button" class="ledger-back" id="ledgerBack" aria-label="Torna alla dashboard">←</button><div><h2 id="ledgerTitle">Prima nota</h2><p>Operazioni restituite dal Tool Bilancio per il contesto e l’anno selezionati; alcune possono essere raggruppate dal Tool.</p></div></header>
+ <div class="ledger-controls"><label class="ledger-search-label" for="ledgerSearch">Cerca nelle operazioni</label><input type="search" id="ledgerSearch" placeholder="Cerca descrizione, conto, tipologia o categoria" autocomplete="off"><button type="button" class="btn" id="ledgerReload">Aggiorna</button></div>
+ <p id="ledgerStatus" role="status" aria-live="polite"></p><div id="ledgerRows" class="ledger-rows"></div></div>
+</section>
 <section id="categoriesScreen" class="categories-screen hidden" role="dialog" aria-modal="true" aria-labelledby="categoriesTitle" tabindex="-1">
  <div class="categories-inner"><header class="categories-header"><button type="button" class="categories-back" id="categoriesBack" aria-label="Torna alla dashboard">←</button><div><h2 id="categoriesTitle">Gestione categorie</h2><p>Modifica le categorie del Tool Bilancio nel contesto selezionato.</p></div></header>
  <div class="categories-controls"><input type="search" id="categoriesSearch" placeholder="Cerca una categoria" aria-label="Cerca categoria"><button type="button" class="btn" id="categoriesAdd">Aggiungi categoria</button></div>
@@ -727,7 +732,7 @@ function updateConnUI(){
   $("loginCard").classList.toggle("hidden",!!state.user || onboarding);
   $("ctxCard").classList.toggle("hidden",!state.user);
   $("operationHeading").classList.toggle("hidden",!state.user);
-  if(!state.user){ window.bankSessionLost?.(); window.categoriesSessionLost?.(); invalidateNavigation(); cancelTemplateEdit(); $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open","keyboard-open"); }
+  if(!state.user){ window.bankSessionLost?.(); window.categoriesSessionLost?.(); window.ledgerSessionLost?.(); invalidateNavigation(); cancelTemplateEdit(); $("appCard").classList.add("hidden"); $("btnAdd").setAttribute("aria-expanded","false"); document.body.classList.remove("modal-open","keyboard-open"); }
   else { const name=localStorage.getItem(LS.firstName) || (state.user?.userInfo?.codiceSocio ? "Socio "+state.user.userInfo.codiceSocio : "Utente"); $("helloName").textContent="Ciao, "+name; }
 }
 let initPromise = null;
@@ -794,6 +799,7 @@ function updateUnitaSelect(){
 }
 let yearsCheckVersion=0;
 function setOperationEnabled(enabled){
+  window.ledgerUpdate?.();
   $("btnAdd").disabled=!enabled; $("btnBankImport").disabled=!enabled; $("btnSave").disabled=!enabled; $("btnSaveDup").disabled=!enabled;
 }
 function readOnlyRole(){ return !!(state.incarico && ([11,12,13].includes(state.incarico.accessoTipo) || [4,5].includes(state.incarico.tipoIncarico))); }
@@ -834,6 +840,7 @@ async function checkEditable(){
   }catch(e){ setOperationEnabled(false); showMsg("editableInfo","Impossibile verificare l'anno. Ricarica per riprovare.","warn"); }
 }
 async function loadContextData(){
+  window.ledgerUpdate?.();
   $("btnMapping").disabled=true; $("btnManageCategories").disabled=true; state.mappingReady=false;
   if(!state.year || !state.user) return;
   hideMsg("ctxMsg");
@@ -1414,5 +1421,6 @@ window.addEventListener("storage", (e)=>{
 <script src="mapping-v15.js"></script>
 <script src="bank-import-v10.js"></script>
 <script src="categories.js"></script>
+<script src="ledger.js"></script>
 </body>
 </html>

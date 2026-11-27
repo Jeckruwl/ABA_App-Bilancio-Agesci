@@ -43,3 +43,7 @@ Le conferme di rimozione nel grafo usano finestre integrate nell’app, con colo
 Il carattere Roboto è incluso localmente nell’app (normale e corsivo, SIL Open Font License); è disponibile anche offline dopo l’installazione della cache. La licenza è in `vendor/roboto/OFL.txt`.
 
 L'interfaccia usa i colori e la struttura del restyling Emergent, con superfici e ombre morbide; la modalità scura è predefinita e il selettore mantiene la preferenza chiara o scura sul dispositivo. Gli stili sono in `ui-emergent.css`, incluso nella cache offline. Il restyling non modifica le operazioni, le bozze o le mappature salvate.
+
+## Prima nota
+
+Dalla dashboard apri **Mostra prima nota** per consultare le operazioni restituite dal Tool Bilancio per anno e contesto selezionati. La schermata è in sola lettura, con ricerca e pulsante Aggiorna; non modifica né elimina movimenti. Alcune operazioni possono essere raggruppate dal Tool. È necessaria la connessione: le operazioni non vengono memorizzate offline.
