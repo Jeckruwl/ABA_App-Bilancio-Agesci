@@ -262,7 +262,7 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 /* Tutti i controlli e le finestre, comprese le parti generate dinamicamente. */
 *,*::before,*::after{font-family:Roboto,sans-serif}
 </style>
-<link rel="stylesheet" href="ui-emergent.css?v=84">
+<link rel="stylesheet" href="ui-emergent.css?v=86">
 </head>
 <body>
 <div id="notifications" class="notifications" aria-label="Notifiche"></div>
@@ -396,8 +396,8 @@ button:focus-visible,summary:focus-visible{outline:3px solid #fdc500;outline-off
 <section id="ledgerScreen" class="ledger-screen hidden" role="dialog" aria-modal="true" aria-labelledby="ledgerTitle" tabindex="-1">
  <div class="ledger-inner"><header class="ledger-header"><button type="button" class="ledger-back" id="ledgerBack" aria-label="Torna alla dashboard">←</button><h2 id="ledgerTitle">Prima nota</h2></header>
  <div class="ledger-filters"><div class="field"><label for="ledgerYear">Anno sociale</label><select id="ledgerYear"></select></div><div class="field"><label for="ledgerAccount">Conto</label><select id="ledgerAccount" disabled><option value="">Tutti i conti</option></select></div><div class="field"><label for="ledgerUnit">Unità</label><select id="ledgerUnit"></select></div></div>
- <div class="ledger-controls"><label class="ledger-search-label" for="ledgerSearch">Cerca nelle operazioni</label><input type="search" id="ledgerSearch" placeholder="Cerca nelle operazioni" autocomplete="off"><button type="button" class="btn" id="ledgerReload">Aggiorna</button></div><p id="ledgerStatus" role="status" aria-live="polite"></p><p class="ledger-summary-note">I totali escludono la riga di saldo iniziale; alcune operazioni possono essere raggruppate dal Tool. Il saldo finale è calcolato sui movimenti restituiti.</p>
- <div class="ledger-table-wrap"><table class="ledger-table"><caption>Operazioni di prima nota</caption>
+ <div class="ledger-controls"><label class="ledger-search-label" for="ledgerSearch">Cerca nelle operazioni</label><input type="search" id="ledgerSearch" placeholder="Cerca nelle operazioni" autocomplete="off"><button type="button" class="btn" id="ledgerReload">Aggiorna</button></div><p id="ledgerStatus" role="status" aria-live="polite"></p>
+ <div class="ledger-table-wrap" tabindex="0" role="region" aria-label="Operazioni di prima nota, tabella scorrevole"><table class="ledger-table"><caption>Operazioni di prima nota</caption>
  <colgroup><col class="ledger-col-date"><col class="ledger-col-description"><col class="ledger-col-type"><col class="ledger-col-category"><col class="ledger-col-amount"><col class="ledger-col-amount"><col class="ledger-col-notes"></colgroup>
  <thead><tr class="ledger-summary"><td colspan="3" aria-hidden="true"></td><th scope="col">Saldo iniziale <strong id="ledgerOpening">—</strong></th><th scope="col" class="ledger-amount-heading">Totale entrate <strong id="ledgerIncome">—</strong></th><th scope="col" class="ledger-amount-heading">Totale uscite <strong id="ledgerExpense">—</strong></th><th scope="col">Saldo finale <strong id="ledgerClosing">—</strong></th></tr><tr><th scope="col">Data</th><th scope="col">Descrizione</th><th scope="col">Tipologia</th><th scope="col">Categoria</th><th scope="col" class="ledger-amount-heading">Entrata</th><th scope="col" class="ledger-amount-heading">Uscita</th><th scope="col">Note</th></tr></thead><tbody id="ledgerRows"></tbody></table></div></div>
 </section>
@@ -1424,6 +1424,6 @@ window.addEventListener("storage", (e)=>{
 <script src="mapping-v15.js"></script>
 <script src="bank-import-v10.js"></script>
 <script src="categories.js"></script>
-<script src="ledger.js?v=85"></script>
+<script src="ledger.js?v=86"></script>
 </body>
 </html>

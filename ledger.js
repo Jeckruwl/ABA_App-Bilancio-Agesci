@@ -2,14 +2,14 @@
 (function(){
   'use strict';
   const $l=id=>document.getElementById(id),screen=$l('ledgerScreen'),status=$l('ledgerStatus'),list=$l('ledgerRows'),year=$l('ledgerYear'),account=$l('ledgerAccount'),unit=$l('ledgerUnit');
-  let rows=[],accounts=[],categories=[],marker=null,version=0,context=null;
+  let rows=[],accounts=[],categories=[],marker=null,version=0,context=null,ready=false;
   const key=()=>JSON.stringify([state.user?.userInfo?.codiceSocio??null,state.year?.value??null,state.incarico?.tipoIncarico??null,state.incarico?.accessoTipo??null,state.incarico?.dati?.creg??null,state.incarico?.dati?.czona??null,state.incarico?.dati?.ord??null,state.incarico?.codiceUnita??null,state.unita?.cun??null,state.unita?.prog??null]);
   const canChooseUnit=()=>!!state.incarico&&[3,4].includes(state.incarico.accessoTipo)&&Array.isArray(state.incarico.dati?.unita)&&state.incarico.dati.unita.length>0;
   const date=s=>{if(!s)return '—';const m=String(s).match(/^(\d{4})-(\d\d)-(\d\d)/);return m?m[3]+'/'+m[2]+'/'+m[1]:String(s);};
   const amount=x=>{if(x===null||x===undefined||x==='')return null;const n=Number(x);return Number.isFinite(n)?n:null;};
   function option(sel,value,text){const o=document.createElement('option');o.value=String(value);o.textContent=String(text);sel.append(o);}
   function resetTotals(){$l('ledgerOpening').textContent='—';$l('ledgerIncome').textContent='—';$l('ledgerExpense').textContent='—';$l('ledgerClosing').textContent='—';}
-  function clear(){rows=[];list.replaceChildren();resetTotals();}
+  function clear(){ready=false;rows=[];list.replaceChildren();resetTotals();}
   function reqForSelection(conto){
     const req=buildReq(conto);req.rendicontoid=year.value?Number(year.value):null;
     if(canChooseUnit()){
@@ -51,7 +51,7 @@
     const opening=account.value&&openings.length===1&&String(openings[0].idconto)===account.value?amounts(openings[0]):null;
     $l('ledgerOpening').textContent=opening?fmtEUR((opening.e-opening.u)/100):'—';
     $l('ledgerClosing').textContent=opening&&complete?fmtEUR((opening.e-opening.u+income-expense)/100):'—';
-    status.textContent=movements.length?(q?list.children.length+' di ':'')+movements.length+' operazioni restituite dal Tool.':'Nessuna operazione per la selezione corrente.';
+    status.textContent=movements.length?(q&&!list.children.length?'Nessuna operazione corrisponde alla ricerca.':''):'Nessuna operazione per la selezione corrente.';
     if(!complete)status.textContent+=' Totali non disponibili: alcuni importi mancano o non sono validi.';
     if(!account.value)status.textContent+=' Seleziona un conto per visualizzare i saldi.';
     else if(!opening)status.textContent+=' Saldo iniziale non disponibile o non univoco per il conto selezionato.';
@@ -59,7 +59,7 @@
   function isCurrent(run,c){return run===version&&c===key()&&!screen.classList.contains('hidden');}
   async function loadRows(run,c){
     clear();status.textContent='Caricamento delle operazioni…';
-    try{const req=reqForSelection(account.value?Number(account.value):0);req.loadMovimentiGroupedRF=true;const result=await postReq('/api/vocecassa/listbyparams',req);if(!isCurrent(run,c))return;if(!Array.isArray(result)||result.some(r=>!r||typeof r!=='object'||Array.isArray(r)))throw Error();rows=result.slice().sort((a,b)=>String(b.data_operazione||'').localeCompare(String(a.data_operazione||'')));render();}
+    try{const req=reqForSelection(account.value?Number(account.value):0);req.loadMovimentiGroupedRF=true;const result=await postReq('/api/vocecassa/listbyparams',req);if(!isCurrent(run,c))return;if(!Array.isArray(result)||result.some(r=>!r||typeof r!=='object'||Array.isArray(r)))throw Error();rows=result.slice().sort((a,b)=>String(b.data_operazione||'').localeCompare(String(a.data_operazione||'')));ready=true;render();}
     catch(err){if(isCurrent(run,c)){clear();status.textContent='Impossibile caricare la prima nota. Verifica la connessione e riprova cambiando selezione.';}}
   }
   async function loadContext(preserveAccount=false){
@@ -68,14 +68,14 @@
     const req=reqForSelection(0);try{const [ac,cat]=await Promise.all([postReq('/api/conto/listbyparams',{...req,loadAllByZona:false}),postReq('/api/vocecassa/categorie',req).catch(()=>[])]);if(!isCurrent(run,c))return;if(!Array.isArray(ac)||!Array.isArray(cat))throw Error();accounts=ac.filter(x=>x&&x.isdummy!==true&&x.isdummy!==1&&x.value!=null);categories=cat;accounts.sort((a,b)=>String(a.label||'').localeCompare(String(b.label||''),'it'));for(const a of accounts)option(account,a.value,a.label||a.value);if([...account.options].some(o=>o.value===selected))account.value=selected;account.disabled=false;await loadRows(run,c);}
     catch(e){if(isCurrent(run,c)){clear();status.textContent='Impossibile caricare conti e categorie. Verifica la connessione e riprova cambiando selezione.';}}
   }
-  function close(){version++;rows=[];accounts=[];categories=[];context=null;list.replaceChildren();resetTotals();status.textContent='';screen.classList.add('hidden');document.querySelector('.wrap').inert=false;const b=$l('btnLedger');if(state.user&&!b.disabled)b.focus({preventScroll:true});}
+  function close(){version++;ready=false;rows=[];accounts=[];categories=[];context=null;list.replaceChildren();resetTotals();status.textContent='';screen.classList.add('hidden');document.querySelector('.wrap').inert=false;const b=$l('btnLedger');if(state.user&&!b.disabled)b.focus({preventScroll:true});}
   window.ledgerUpdate=()=>{$l('btnLedger').disabled=!(state.user&&state.year);if(!screen.classList.contains('hidden')&&context!==key())close();};
   window.ledgerSessionLost=()=>{if(!screen.classList.contains('hidden'))close();window.ledgerUpdate();};
   $l('btnLedger').onclick=()=>{if(!state.user||!state.year)return;marker=Date.now().toString(36)+Math.random().toString(36).slice(2);history.pushState({...history.state,abaLedger:marker},'');document.querySelector('.wrap').inert=true;screen.classList.remove('hidden');$l('ledgerSearch').value='';initialize();screen.focus({preventScroll:true});loadContext();};
   $l('ledgerBack').onclick=()=>{if(history.state?.abaLedger===marker)history.back();else close();};
   window.addEventListener('popstate',()=>{if(!screen.classList.contains('hidden')&&history.state?.abaLedger!==marker)close();});
-  $l('ledgerReload').addEventListener('click',()=>loadContext(true));$l('ledgerSearch').addEventListener('input',()=>{if(!screen.classList.contains('hidden')&& !status.textContent.includes('Caricamento')&&!status.textContent.includes('Impossibile caricare'))render();});
+  $l('ledgerReload').addEventListener('click',()=>loadContext(true));$l('ledgerSearch').addEventListener('input',()=>{if(ready&&!screen.classList.contains('hidden'))render();});
   year.addEventListener('change',()=>loadContext());unit.addEventListener('change',()=>loadContext());account.addEventListener('change',()=>loadRows(++version,key()));
-  screen.addEventListener('keydown',e=>{if(e.key==='Escape'||(e.altKey&&e.key==='ArrowLeft')){e.preventDefault();$l('ledgerBack').click();return;}if(e.key==='Tab'){const a=[...screen.querySelectorAll('button:not(:disabled),select:not(:disabled),input:not(:disabled)')].filter(x=>x.tabIndex>=0&&x.getClientRects().length);if(a.length&&e.shiftKey&&document.activeElement===a[0]){e.preventDefault();a[a.length-1].focus();}else if(a.length&&!e.shiftKey&&document.activeElement===a[a.length-1]){e.preventDefault();a[0].focus();}}});
+  screen.addEventListener('keydown',e=>{if(e.key==='Escape'||(e.altKey&&e.key==='ArrowLeft')){e.preventDefault();$l('ledgerBack').click();return;}if(e.key==='Tab'){const a=[...screen.querySelectorAll('button:not(:disabled),select:not(:disabled),input:not(:disabled),.ledger-table-wrap[tabindex]')].filter(x=>x.tabIndex>=0&&x.getClientRects().length);if(a.length&&e.shiftKey&&document.activeElement===a[0]){e.preventDefault();a[a.length-1].focus();}else if(a.length&&!e.shiftKey&&document.activeElement===a[a.length-1]){e.preventDefault();a[0].focus();}}});
   window.ledgerUpdate();
 })();
