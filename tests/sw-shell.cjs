@@ -19,7 +19,7 @@ vm.runInNewContext(fs.readFileSync('sw.js', 'utf8'), {self, caches, URL, Promise
   assert(shell.includes('./assets/body-bg.png'));
   assert(shell.includes('./assets/body-bg-inverted.png'));
   assert(shell.includes('./categories.js'));
-  assert(shell.includes('./ledger.js?v=84'));
+  assert(shell.includes('./ledger.js?v=85'));
   assert(shell.includes('./mapping-v15.js'));
   assert(shell.includes('./vendor/roboto/Roboto-variable.ttf'));
   assert(shell.includes('./vendor/roboto/Roboto-variable-italic.ttf'));
