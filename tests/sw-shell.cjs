@@ -15,11 +15,11 @@ vm.runInNewContext(fs.readFileSync('sw.js', 'utf8'), {self, caches, URL, Promise
   let task;
   handlers.install({waitUntil: p => task = p}); await task;
   assert(shell.includes('./index.html'));
-  assert(shell.includes('./ui-emergent.css?v=86'));
+  assert(shell.includes('./ui-emergent.css?v=87'));
   assert(shell.includes('./assets/body-bg.png'));
   assert(shell.includes('./assets/body-bg-inverted.png'));
   assert(shell.includes('./categories.js'));
-  assert(shell.includes('./ledger.js?v=86'));
+  assert(shell.includes('./ledger.js?v=87'));
   assert(shell.includes('./mapping-v15.js'));
   assert(shell.includes('./vendor/roboto/Roboto-variable.ttf'));
   assert(shell.includes('./vendor/roboto/Roboto-variable-italic.ttf'));

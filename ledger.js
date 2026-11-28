@@ -53,8 +53,7 @@
     $l('ledgerClosing').textContent=opening&&complete?fmtEUR((opening.e-opening.u+income-expense)/100):'—';
     status.textContent=movements.length?(q&&!list.children.length?'Nessuna operazione corrisponde alla ricerca.':''):'Nessuna operazione per la selezione corrente.';
     if(!complete)status.textContent+=' Totali non disponibili: alcuni importi mancano o non sono validi.';
-    if(!account.value)status.textContent+=' Seleziona un conto per visualizzare i saldi.';
-    else if(!opening)status.textContent+=' Saldo iniziale non disponibile o non univoco per il conto selezionato.';
+    if(account.value&&!opening)status.textContent+=' Saldo iniziale non disponibile o non univoco per il conto selezionato.';
   }
   function isCurrent(run,c){return run===version&&c===key()&&!screen.classList.contains('hidden');}
   async function loadRows(run,c){
