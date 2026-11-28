@@ -35,7 +35,7 @@
     const q=$l('ledgerSearch').value.trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('it');
     rows.forEach(r=>{const tr=document.createElement('tr');const e=amount(r.e_importo),u=amount(r.u_importo);if(e===null&&u===null)complete=false;if(e!==null)income+=Math.round(e*100);if(u!==null)expense+=Math.round(u*100);
       if(q&&!String([r.descrizione,r.note,r.e_descrizionetipo,r.u_descrizionetipo,category(r),date(r.data_operazione)].join(' ')).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('it').includes(q))return;
-      cell(tr,date(r.data_operazione),'ledger-date');cell(tr,r.descrizione);cell(tr,r.e_descrizionetipo||r.u_descrizionetipo);cell(tr,category(r));cell(tr,r.note);cell(tr,e!==null&&e!==0?fmtEUR(e):'—','ledger-in');cell(tr,u!==null&&u!==0?fmtEUR(u):'—','ledger-out');list.append(tr);
+      cell(tr,date(r.data_operazione),'ledger-date');cell(tr,r.descrizione);cell(tr,r.e_descrizionetipo||r.u_descrizionetipo);cell(tr,category(r));cell(tr,e!==null&&e!==0?fmtEUR(e):'—','ledger-in');cell(tr,u!==null&&u!==0?fmtEUR(u):'—','ledger-out');cell(tr,r.note);list.append(tr);
     });
     $l('ledgerIncome').textContent=complete?fmtEUR(income/100):'—';$l('ledgerExpense').textContent=complete?fmtEUR(expense/100):'—';
     status.textContent=rows.length?(q?list.children.length+' di ':'')+rows.length+' operazioni restituite dal Tool.':'Nessuna operazione per la selezione corrente.';
